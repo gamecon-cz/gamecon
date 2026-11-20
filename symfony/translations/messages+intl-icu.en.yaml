@@ -353,6 +353,119 @@ prihlasit_zarizeni:
     nemas_zarizeni: Don’t have the device in front of you, or did someone send you the code or the number? Reject the login.
     zamitnout: Reject
 
+# GameCon registration (web/moduly/prihlaska/prihlaska.php, web/sablony/blackarrow/prihlaska.xtpl, model/pomoc.php).
+# The e-shop blocks (merchandise, accommodation, food, voluntary admission) stay Czech for now.
+prihlaska:
+    nazev: Registration
+    nadpis: GameCon registration
+    vyzaduje_prihlaseni: You need to be logged in to view this page.
+    relace_vyprsela: You were logged out in the meantime, so your registration was not saved. Please log in again and submit it once more.
+    pred:
+        zacatek: "GameCon registration opens on {zacatek, date,d MMMM y} at {zacatek, time,HH:mm}."
+        upresnime: We will announce the date GameCon registration opens soon.
+    uzavreno: "GameCon registration closed on {konec, date,d MMMM y} at {konec, time,HH:mm}."
+    po_gc:
+        dekujeme: Thank you for coming to GameCon! We’d love to hear any {zpetna_vazba} you have, so we know what to improve and what to keep in the years to come.
+        zpetna_vazba: feedback
+        zpetna_vazba_titulek: Feedback
+        sledujte_nas: We look forward to seeing you again next year. Until then, you can follow us on {facebook}, {instagram} or {discord}.
+        neucastnil_se: GameCon is over, we look forward to seeing you in {rok}.
+        fotky: You’ll find photos from previous years on our {facebook} or {instagram}. Join us on {discord} so you don’t miss any news.
+        # Czech needs two cases of Discord
+        facebook: Facebook
+        instagram: Instagram
+        discord_kde: Discord
+        discord_kam: Discord
+        facebook_titulek: GameCon on Facebook
+        instagram_titulek: GameCon on Instagram
+        discord_titulek: GameCon on Discord
+    behem_gc:
+        na_infopultu: Your registration can no longer be changed online; {jen_na_miste}.
+        jen_na_miste: any changes can currently only be made in person at the info desk
+        prehled_objednavek: You’ll find an overview of your orders and payments under {finance} in your profile.
+        vitame: Welcome to GameCon! Your registration can no longer be changed online, so please sort out any changes at the info desk. You’ll find an overview of your payments under {finance} in your profile.
+        finance: Payments
+    prihlasen:
+        aktivni: Your GameCon {rok} registration is active! You can now change your accommodation and merchandise orders until shortly before GameCon starts.
+        uhradit_do: "Your order must be paid by {do, date,d MMMM} at the latest."
+        prehled_financi: You’ll find your financial overview and payment details under {odkaz}.
+        prehled_financi_odkaz: Payments
+    neprihlasen: Fill in the form to register for GameCon {rok}. You can choose GameCon-themed merchandise and the accommodation you want. You can change your choices later too.
+    souhlas_rodicu:
+        text: As you are under 15, you need the consent of your parent or legal guardian to take part in GameCon. Download the {odkaz}, fill it in and upload it using the form below at any time before you arrive at GameCon, or bring it to the info desk when you arrive. We will also have blank forms ready at the info desk.
+        odkaz: consent form (in Czech)
+        odeslat: Upload
+        nahrano: The consent form has been uploaded ✅
+        zobrazit: (view)
+        chybi: Please choose the consent form first.
+        ulozeno: The consent form has been saved.
+        nelze_otevrit: The file “{soubor}” could not be opened.
+        nelze_ulozit: The file “{soubor}” could not be saved.
+        neni_obrazek: The file “{soubor}” could not be read. Is it an image or a PDF?
+    predmety:
+        nadpis: Merchandise
+        info: You can order several GameCon badges, dice, hoodies and T-shirts. Just click the ➕ button. For T-shirts and hoodies, an option to add another one appears once you have chosen the first one.
+        velikosti_mikin: You’ll find the hoodie sizes {odkaz}.
+        velikosti_mikin_odkaz: here
+        zmeny_do: "You can change your hoodie order until {mikiny, date,d MMMM} and the rest of the merch until {ostatni, date,d MMMM}."
+        slevy: "Your role ({titul}) entitles you to the following bonuses (if you order them): {slevy}."
+    ubytovani:
+        nadpis: Accommodation
+        ikona: Map icon
+        info: About accommodation
+        zmeny_do: "You can order or change your accommodation until {do, date,d MMMM}."
+        kapacita: The numbers show the places taken / total capacity.
+        od_stredy: Accommodation is available from Wednesday, the programme starts on {ctvrtek} at noon.
+        ctvrtek: Thursday
+        min_dve_noci: Accommodation can only be booked for at least 2 consecutive nights.
+        nedele: "The “Ne–Po” option is the night from Sunday to Monday, when the programme is already over. On Monday, the room has to be vacated by 9:00."
+        snidane: Breakfast is included in the price of hotel rooms.
+        podrobnosti: You’ll find more about accommodation and room types on the {odkaz} page.
+        prakticke_informace: Practical information
+        bonus_vypravece: Every game master is entitled to a bonus based on the number of activities they run, which can be used for accommodation, food and activities. You’ll find the exact amount of your bonus in your {odkaz} once you have completed your registration.
+        bonus_vypravece_odkaz: payments overview
+        zdarma_organizatorovi: "{pohlavi, select, other {As an organiser, you get all your accommodation for free.}}"
+    jidlo:
+        nadpis: Food
+        info: About meals
+        zmeny_do: "Meals can be ordered or cancelled until {do, date,d MMMM}."
+        vyber: There are 3–5 dishes to choose from, always the same for lunch and dinner, plus one vegetarian dish.
+        jidelnicek: The menu is available {odkaz}.
+        jidelnicek_odkaz: here
+    vstupne:
+        dekujeme: Thank you!
+        prispevky: We really appreciate contributions in the form of voluntary admission and thank you for them. They help us make GameCon a little better every year!
+        nadpis: Voluntary admission
+    pomoc:
+        nadpis: Would you like to help organise GameCon?
+        dobrovolnik: If you’d like to help with on-site preparations as a volunteer, sign up in the {odkaz} for one of the volunteer activities, such as setting up or cleaning up.
+        dobrovolnik_odkaz: programme
+        vypravec: If you’d like to run an activity, get in touch with the head of the relevant programme section. You’ll find their contact on the section’s page under Activities.
+        sponzoring: If you’d like to support GameCon as a sponsor, you’ll find everything you need {odkaz}.
+        sponzoring_odkaz: here
+        organizace: And if you’d like to lend a hand and help organise GameCon all year round, you’ll find more information {odkaz}.
+        organizace_odkaz: here
+        vice: "Here you can tell us more about how you’d like to get involved. Please only offer help with things you haven’t arranged with anyone yet:"
+        typ:
+            dobrovolnik: Volunteers
+            dobrovolnik_popis: GameCon is what it is thanks not only to game masters and organisers, but also to the volunteers who help build its background. We mostly need help with setting up the venue (carrying tables, putting up posters and so on), at the info desk and with explaining games in the board game library.
+            vypravec: Game Masters
+            vypravec_popis: “Game Master” is the term GameCon uses for everyone who runs an activity, be it a board game, an RPG, a larp or any other game. Do you have an idea for an activity you’d like to run?
+            organizator: Organisers
+            organizator_popis: Do you have a talent for organising, or is there something specific you could help us with? Rather than professionals, we are looking for independent, active people who will enjoy being part of running a medium-sized organisation.
+            partner: GameCon partner
+            partner_popis: Would you like to promote your brand at a festival for more than 800 people? Support GameCon (not only) financially, or have a stall right at the festival?
+    ulozit_zmeny: Save changes
+    prihlasit: Register for GameCon
+    odhlasit: Cancel my GameCon registration
+    odhlasit_potvrzeni: Cancelling your GameCon registration also cancels all your activity sign-ups and merchandise orders. Click OK to cancel it.
+    odhlaseni_behem_gc: "{pohlavi, select, other {You can’t cancel your registration yourself during GameCon. Please come to the info desk.}}"
+    odhlaseno: Your GameCon {rok} registration has been cancelled.
+    prihlaseno: You are registered for GameCon {rok}.
+    aktualizovano: Your registration has been updated.
+
+# přehled financí účastníka (web/moduly/finance.php) a texty financí, které na něm jsou (Finance, Cenik, Accounting,
+# PersonalAccount); admin a reporty jazyk nenastavují, mají je tedy česky. Koruny jako „CZK 1,234.50“.
 finance:
     nadpis: Orders and payments
     uvod: "{pohlavi, select, other {Below is a list of everything you have ordered for GameCon, with the final prices after all discounts. If your overall balance is negative, you will find {zaplaceni} instructions {odkaz}.}}"

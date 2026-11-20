@@ -25,8 +25,8 @@ class PouzitiObrazku
      */
     public const ODKAZY_Z_KODU = [
         'obsah/download/tiskova_kronika.pdf'                   => 'QR kódy (web/moduly/qrka.php)',
-        'obsah/materialy/{rocnik}/souhlas_rodicu_{rocnik}.pdf' => 'přihláška (web/sablony/blackarrow/prihlaska.xtpl)',
-        'obsah/materialy/2026/velikosti_mikin.pdf'             => 'přihláška (web/sablony/blackarrow/prihlaska.xtpl)',
+        'obsah/materialy/{rocnik}/souhlas_rodicu_{rocnik}.pdf' => 'přihláška (web/moduly/prihlaska/prihlaska.php)',
+        'obsah/materialy/2026/velikosti_mikin.pdf'             => 'přihláška (web/moduly/prihlaska/prihlaska.php)',
     ];
 
     /**

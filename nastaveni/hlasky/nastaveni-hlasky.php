@@ -2,7 +2,6 @@
 
 return [
     'aktivaceOk'           => 'Účet aktivován. Děkujeme.',
-    'aktualizacePrihlasky' => 'Přihláška aktualizována.',
     'avatarChybaMazani'    => 'Obrázek se nepodařilo smazat.',
     'avatarNahran'         => 'Obrázek uživatele úspěšně uložen.',
     'avatarSmazan'         => 'Obrázek uživatele byl odstraněn.',

@@ -353,6 +353,120 @@ prihlasit_zarizeni:
     nemas_zarizeni: Nemáš to zařízení před sebou, nebo ti kód či číslo někdo poslal? Přihlášení zamítni.
     zamitnout: Zamítnout
 
+# GameCon registration (web/moduly/prihlaska/prihlaska.php, web/sablony/blackarrow/prihlaska.xtpl, model/pomoc.php).
+# The e-shop blocks (merchandise, accommodation, food, voluntary admission) stay Czech for now.
+# `d.\u00A0M.`: a no-break space, as the e-shop has always written these dates.
+prihlaska:
+    nazev: Přihláška
+    nadpis: Přihláška na GameCon
+    vyzaduje_prihlaseni: Tato stránka vyžaduje přihlášení
+    relace_vyprsela: Mezitím došlo k odhlášení, takže se přihláška neuložila. Přihlas se prosím znovu a odešli ji ještě jednou.
+    pred:
+        zacatek: "Přihlašování na GameCon bude spuštěno {zacatek, date,d. M. y} v {zacatek, time,HH:mm}."
+        upresnime: Přihlašování na GameCon bude spuštěno (upřesníme).
+    uzavreno: "Přihlašování na GameCon je uzavřeno od {konec, date,d. M. y} {konec, time,HH:mm:ss}."
+    po_gc:
+        dekujeme: Děkujeme za tvou účast na GameConu! Budeme moc rádi za jakoukoliv {zpetna_vazba}, abychom věděli, co zlepšit, případně co určitě nevynechat ani v příštích letech.
+        zpetna_vazba: zpětnou vazbu
+        zpetna_vazba_titulek: Zpětná vazba
+        sledujte_nas: Budeme se těšit zase za rok, do té doby nás můžeš sledovat na {facebook}, {instagram} nebo na {discord}.
+        neucastnil_se: GameCon už proběhl, těšíme se na viděnou v roce {rok}.
+        fotky: Fotky z předešlých ročníků najdeš na našem {facebook} nebo {instagram}. Přidej se k nám na {discord}, aby ti neutekly žádné novinky.
+        # „na Facebooku“, „na Discordu“ / „na Discord“ (kam)
+        facebook: Facebooku
+        instagram: Instagramu
+        discord_kde: Discordu
+        discord_kam: Discord
+        facebook_titulek: Facebook GameConu
+        instagram_titulek: Instagram GameConu
+        discord_titulek: Discord GameConu
+    behem_gc:
+        na_infopultu: Přihlášku již nelze upravovat online, případné změny je {jen_na_miste}.
+        jen_na_miste: momentálně možné provádět pouze na místě u Infopultu
+        prehled_objednavek: Přehled svých objednávek a plateb najdeš v záložce {finance} na svém profilu.
+        vitame: Vítáme tě na GameConu! Přihlášku již nelze upravovat online, veškeré případné změny v přihlášce proto řeš na Infopultu, přehled plateb najdeš v záložce {finance} na svém profilu.
+        finance: finance
+    prihlasen:
+        aktivni: Tvá přihláška na GameCon {rok} je aktivní! Nyní můžeš upravovat objednané ubytování i předměty až téměř do začátku GameConu.
+        uhradit_do: "Objednávku je potřeba uhradit do {do, date,d. M.} včetně."
+        prehled_financi: Svůj přehled financí a údaje k platbě najdeš v {odkaz}.
+        prehled_financi_odkaz: Přehledu financí
+    neprihlasen: Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty s GameCon tématikou a ubytování, které budeš chtít. Výběr jde i později změnit.
+    souhlas_rodicu:
+        text: Jakožto mladší 15ti let budeš potřebovat dodat potvrzení o souhlasu tvého zákonného zástupce s účastí na GameConu. Formulář ke stažení můžeš najít na {odkaz} a vyplněný nám jej můžeš kdykoliv před příjezdem na GameCon nahrát pomocí tohoto formuláře, nebo donést fyzicky při příjezdu na GameCon k Infopultu. Připravené formuláře k vyplnění budeme mít i na Infopultu.
+        odkaz: tomto odkazu
+        odeslat: Odeslat
+        nahrano: Potvrzení je úspěšně nahrané ✅
+        zobrazit: (zobrazit)
+        chybi: Nejdříve vlož potvrzení.
+        ulozeno: Potvrzení bylo uloženo.
+        nelze_otevrit: Soubor ''{soubor}'' se nepodařilo načíst
+        nelze_ulozit: Soubor ''{soubor}'' se nepodařilo uložit
+        neni_obrazek: Soubor ''{soubor}'' se nepodařilo přečíst. Je to obrázek nebo PDF?
+    predmety:
+        nadpis: Předměty
+        info: Placky, kostky, mikiny i trička s logem GameConu si můžeš objednat ve více kusech. Stačí kliknout na tlačítko ➕. U triček a mikin se po vyplnění jednoho automaticky zobrazí možnost přidat další.
+        velikosti_mikin: Velikosti mikin najdeš {odkaz}.
+        velikosti_mikin_odkaz: zde
+        zmeny_do: "Výběr mikin můžeš upravovat do {mikiny, date,d.\u00A0M.}, ostatní merch do {ostatni, date,d.\u00A0M.}"
+        slevy: "Jako {titul} máš nárok na následující bonusy (pokud si je objednáš): {slevy}."
+    ubytovani:
+        nadpis: Ubytování
+        ikona: Ikona s mapou
+        info: Informace k ubytování
+        zmeny_do: "Objednat nebo změnit ubytování můžeš do {do, date,d.\u00A0M.}."
+        kapacita: Čísla ukazují počet obsazených míst / celkovou kapacitu.
+        od_stredy: Ubytování je k dispozici od středy, program začíná ve {ctvrtek} v poledne.
+        ctvrtek: čtvrtek
+        min_dve_noci: Ubytování je možné objednat minimálně na 2 navazující noci.
+        nedele: "Varianta „Ne–Po“ znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00."
+        snidane: Hotelové pokoje mají v ceně zahrnutou snídani.
+        podrobnosti: Podrobnější informace o ubytování a typech pokojů najdeš na stránce {odkaz}.
+        prakticke_informace: Praktické informace
+        bonus_vypravece: Každý vypravěč má nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit na ubytování, jídlo a aktivity. Přesnou výšku svého bonusu najdeš po dokončení registrace ve svém {odkaz}.
+        bonus_vypravece_odkaz: finančním přehledu
+        zdarma_organizatorovi: Jako {pohlavi, select, f {organizátorka} other {organizátor}} máš veškeré ubytování zdarma.
+    jidlo:
+        nadpis: Jídlo
+        info: Informace ke stravování
+        zmeny_do: "Jídlo je možné objednat nebo zrušit do {do, date,d.\u00A0M.}"
+        vyber: Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.
+        jidelnicek: Jídelníček je k dispozici {odkaz}.
+        jidelnicek_odkaz: zde
+    vstupne:
+        dekujeme: Děkujeme!
+        prispevky: Příspěvků formou dobrovolného vstupného si moc vážíme a děkujeme za ně. I díky nim dokážeme GameCon každý rok dělat o něco lepší!
+        nadpis: Dobrovolné vstupné
+    pomoc:
+        nadpis: Chceš se zapojit do organizace?
+        dobrovolnik: Pokud chceš jako dobrovolník pomoct s přípravou na místě, přihlaš se v {odkaz} na některou z dobrovolnických aktivit (Příprava, Úklid).
+        dobrovolnik_odkaz: programu
+        vypravec: Jestli tě láká vedení nějaké aktivity, kontaktuj vedoucího dané programové sekce. Kontakt na něj najdeš na příslušné podstránce Aktivit.
+        sponzoring: V případě, že bys chtěl/a GameCon podpořit sponzoringem, vše potřebné najdeš {odkaz}.
+        sponzoring_odkaz: zde
+        organizace: A jestliže chceš přiložit ruku k dílu a zapojit se do celoroční organizace, bližší informace najdeš {odkaz}.
+        organizace_odkaz: tady
+        vice: "Zde můžeš napsat více o tom, jak se chceš zapojit. Hlas se prosím o výpomoc jen u věcí, které zatím nemáš s nikým domluvené:"
+        typ:
+            dobrovolnik: Dobrovolníci
+            dobrovolnik_popis: Za to, že je GameCon takový jaký je, vděčíme nejen vypravěčům a organizátorům, ale i dobrovolníkům, kteří pomáhají vybudovat jeho zázemí. Pomoc potřebujeme především s přípravou prostor (nošení stolů, lepení plakátů apod), Infopultem a hermanováním v deskoherně.
+            vypravec: Vypravěči
+            vypravec_popis: Vypravěč je jednotný pojem, který GameCon používá pro všechny, kteří vedou některou z aktivit – ať už se jedná o deskovku, RPG, larp či jinou hru. Napadá tě nějaká aktivita, kterou chceš uvést?
+            organizator: Organizatoři
+            organizator_popis: Máš organizační talent, nebo tě napadá konkrétní věc, se kterou nám můžeš pomoct? Spíš než profesionály hledáme samostatné aktivní jedince, kteří se budou rádi podílet na chodu středně velké organizace.
+            partner: Partner GameConu
+            partner_popis: Chceš propagovat svou značku na festivalu pro více než 800 lidí? Podpořit GameCon (nejen) finančně, či mít přímo na festivalu stánek?
+    ulozit_zmeny: Uložit změny
+    prihlasit: Přihlásit na GameCon
+    odhlasit: Odhlásit se z GameConu
+    odhlasit_potvrzeni: Odhlášení z GameConu zruší všechny tvé registrace na aktivity a nákupy předmětů. Kliknutím na OK se odhlásíš.
+    odhlaseni_behem_gc: Během Gameconu se nemůžeš {pohlavi, select, f {sama} other {sám}} odhlást. Stav se na infopultu.
+    odhlaseno: Odhlášení z GameConu {rok} proběhlo úspěšně
+    prihlaseno: Přihlášení na GameCon {rok} proběhlo úspěšně
+    aktualizovano: Přihláška aktualizována.
+
+# přehled financí účastníka (web/moduly/finance.php) a texty financí, které na něm jsou (Finance, Cenik, Accounting,
+# PersonalAccount); admin a reporty jazyk nenastavují, mají je tedy česky
 finance:
     nadpis: Přehled financí
     uvod: "V následujícím přehledu vidíš seznam všech položek, které sis na GameConu {pohlavi, select, f {objednala} other {objednal}}, s výslednými cenami po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k {zaplaceni} najdeš {odkaz}."
