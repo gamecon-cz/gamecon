@@ -352,3 +352,68 @@ prihlasit_zarizeni:
     vyber_cislo: "Choose the number the device shows:"
     nemas_zarizeni: Don’t have the device in front of you, or did someone send you the code or the number? Reject the login.
     zamitnout: Reject
+
+finance:
+    nadpis: Orders and payments
+    uvod: "{pohlavi, select, other {Below is a list of everything you have ordered for GameCon, with the final prices after all discounts. If your overall balance is negative, you will find {zaplaceni} instructions {odkaz}.}}"
+    uvod_zaplaceni: payment
+    uvod_uplne_dole: at the very bottom
+    objednane_veci: Your orders
+    bonusy: Bonuses
+    bonus_za_vedeni_aktivit: "bonus for running activities: {castka}"
+    skryte:
+        popis: "This is where you would see everything you have ordered for this year’s GameCon and your overall balance."
+        zpet: "Back to the {stranka}"
+        uvodni_stranka: home page
+    prehled:
+        aktivity: Activities
+        strava: Food
+        predmety: Merchandise
+        ubytovani: Accommodation
+        dobrovolne_vstupne: Voluntary admission
+        celkova_cena: Total price
+        zustatek_z_minulych_let: Balance from previous years
+        pripsane_platby: Payments and credits
+        stav_financi: Balance
+    polozka:
+        nedorazil: "{pohlavi, select, other {(did not turn up)}}"
+        odhlasen_pozde: "{pohlavi, select, other {(cancelled late)}}"
+        platba_na_ucet: Bank transfer
+        bez_poznamky: "(no note)"
+        bonus_za_aktivity: Bonus for activities
+        brigadnicka_odmena: Pay for temporary work
+        sleva: Discount
+        sleva_z: "Discount on {polozka}"
+    slevy:
+        sleva_procent: "{procent}% discount"
+        aktivity_zdarma: free activities
+        aktivity_se_slevou: "{procent}% off activities"
+        kostka_zdarma: free die
+        placka_zdarma: free badge
+        ubytovani_zdarma: free accommodation
+        ubytovani_ve_stredu_zdarma: free accommodation on Wednesday
+        jidlo_zdarma: free meals
+        jidlo_se_slevou: discounted meals
+        dve_tricka_zdarma: any two T-shirts free
+        jedno_tricko_zdarma: any one T-shirt free
+        modre_tricko_se_slevou: discounted blue T-shirt
+        ubytovani_na_jednu_noc: you can book accommodation for a single night
+        tricko_za_bonus: "free T-shirt for reaching a bonus of CZK {bonus}"
+    platba:
+        nadpis: Payment
+        vyber_qr: QR payment options
+        nadpis_typu: "Payment ({typ})"
+        cislo_uctu: "Account number:"
+        variabilni_symbol: "Variable symbol:"
+        reference_platby: "Payment reference:"
+        castka_k_zaplaceni: "Amount to pay:"
+        castka_v_eurech: "The amount in euros includes a reserve for exchange rate changes, so it may not exactly match the current rate. Any overpayment will stay in your GameCon account, or we will gladly refund it."
+        zaplatit_do: "GameCon has to be paid by bank transfer {do} (the money must be in GameCon’s account on that day)."
+        do_data: "by {datum, date,d MMMM} at {datum, time,HH:mm}"
+        platis_celkem: "In total you pay {castka}; you will find the exact payment details above."
+        eurova_castka: "The amount in euros includes a reserve for exchange rate changes, so it may not exactly match the current rate; any overpayment will stay in your GameCon account, or we will gladly refund it."
+        odhlaseni: "If you pay later, the system will automatically cancel your GameCon registration on {datum}."
+        preplatek: "You can use any extra money to sign up for activities at GameCon, and we will gladly refund any overpayment after GameCon."
+        prevodem_nebo_na_miste: "You can pay by bank transfer or on site."
+        zaplaceno: "Everything you have ordered is {zaplaceny}, there is nothing to pay. If you want to buy more activities on site at a discount or without using cash, you can of course transfer money to your GameCon account in advance at any time:"
+        zaplaceny: paid in full

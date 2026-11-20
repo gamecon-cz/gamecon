@@ -352,3 +352,73 @@ prihlasit_zarizeni:
     vyber_cislo: "Vyber číslo, které ukazuje zařízení:"
     nemas_zarizeni: Nemáš to zařízení před sebou, nebo ti kód či číslo někdo poslal? Přihlášení zamítni.
     zamitnout: Zamítnout
+
+finance:
+    nadpis: Přehled financí
+    uvod: "V následujícím přehledu vidíš seznam všech položek, které sis na GameConu {pohlavi, select, f {objednala} other {objednal}}, s výslednými cenami po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k {zaplaceni} najdeš {odkaz}."
+    uvod_zaplaceni: zaplacení
+    uvod_uplne_dole: úplně dole
+    objednane_veci: Objednané věci
+    bonusy: Bonusy
+    bonus_za_vedeni_aktivit: "bonus za vedení aktivit {castka}"
+    # přehled financí je vypnutý (FINANCE_VIDITELNE)
+    skryte:
+        popis: "Zde by byl seznam všech položek, které sis letos na GameConu objednal(a) a tvůj celkový stav financí."
+        zpet: "Zpět na {stranka}"
+        uvodni_stranka: Úvodní stránku
+    # skupiny tabulky přehledu (PersonalAccount::formatForHtml())
+    prehled:
+        aktivity: Aktivity
+        strava: Strava
+        predmety: Předměty
+        ubytovani: Ubytování
+        dobrovolne_vstupne: Dobrovolné vstupné
+        celkova_cena: Celková cena
+        # i název položky zůstatku (Finance), stejný text skupina pod sebou znovu nevypíše
+        zustatek_z_minulych_let: Zůstatek z minulých let
+        pripsane_platby: Připsané platby
+        stav_financi: Stav financí
+    # položky přehledu, které nejsou z dat (Finance::dejPolozkyProBfgr(), Accounting)
+    polozka:
+        nedorazil: "{pohlavi, select, f {(nedorazila)} other {(nedorazil)}}"
+        odhlasen_pozde: "{pohlavi, select, f {(odhlášena pozdě)} other {(odhlášen pozdě)}}"
+        platba_na_ucet: Platba na účet
+        bez_poznamky: "(bez poznámky)"
+        bonus_za_aktivity: Bonus za aktivity
+        brigadnicka_odmena: Brigádnická odměna
+        sleva: Sleva
+        sleva_z: "Sleva z {polozka}"
+    # slevy a výhody (Finance::slevyNaAktivity(), Cenik::getTextySlev())
+    slevy:
+        sleva_procent: "sleva {procent}%"
+        aktivity_zdarma: aktivity zdarma
+        aktivity_se_slevou: "aktivity se slevou {procent} %"
+        kostka_zdarma: kostka zdarma
+        placka_zdarma: placka zdarma
+        ubytovani_zdarma: ubytování zdarma
+        ubytovani_ve_stredu_zdarma: ubytování ve středu zdarma
+        jidlo_zdarma: jídlo zdarma
+        jidlo_se_slevou: jídlo se slevou
+        dve_tricka_zdarma: dvě jakákoli trička zdarma
+        jedno_tricko_zdarma: jedno jakékoliv tričko zdarma
+        modre_tricko_se_slevou: modré tričko se slevou
+        ubytovani_na_jednu_noc: můžeš si objednat ubytování i pro jedinou noc
+        tricko_za_bonus: "tričko zdarma za dosažení bonusu {bonus}"
+    platba:
+        nadpis: Platba
+        vyber_qr: Výběr QR platby
+        nadpis_typu: "Platba ({typ})"
+        cislo_uctu: "Číslo účtu:"
+        variabilni_symbol: "Variabilní symbol:"
+        reference_platby: "Reference platby:"
+        castka_k_zaplaceni: "Částka k zaplacení:"
+        castka_v_eurech: "Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme."
+        zaplatit_do: "GameCon je nutné zaplatit převodem {do} (tento den musejí být peníze na účtu GameConu)."
+        do_data: "do {datum, date,d. MMMM HH:mm}"
+        platis_celkem: "Platíš celkem {castka}, přesné údaje o platbě nalezneš výše."
+        eurova_castka: "Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme."
+        odhlaseni: "Při pozdější platbě tě systém dne {datum} automaticky odhlásí."
+        preplatek: "Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme."
+        prevodem_nebo_na_miste: "Zaplatit můžeš převodem nebo na místě."
+        zaplaceno: "Všechny tvoje pohledávky jsou {zaplaceny}, není potřeba nic platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost, můžeš si samozřejmě kdykoli převést peníze do zásoby:"
+        zaplaceny: v pořádku zaplaceny
