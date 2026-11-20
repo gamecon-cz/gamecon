@@ -20,10 +20,13 @@ class AnglickyWebTest extends AbstractTestWeb
      * Stránka z CMS, která se nepřekládá: pod /en/ má anglické jen menu a patičku.
      */
     private const string NEPRELOZENA_STRANKA = 'neprelozena-testovaci-stranka';
+    private const string FOTOGALERIE_LARPU = 'larpy/fotogalerie';
 
     private const string CESKA_AKTIVITA = 'Česká testovací aktivita';
     private const string ANGLICKA_AKTIVITA = 'English test activity';
+    private const string LONSKA_AKTIVITA = 'Loňská testovací aktivita';
     private const string ZACATEK_AKTIVIT = '-07-17 10:00:00';
+    private const int MINULY_ROCNIK = ROCNIK - 1;
 
     // AbstractTestWeb zakládá role mimo transakci, další webový test by je zakládal znovu
     protected static function resetDbAfterClass(): bool
@@ -41,14 +44,42 @@ class AnglickyWebTest extends AbstractTestWeb
             // aktivity na stránce linie, česká s kapacitou, anglická neomezená
             self::vlozeniAktivity(9871, self::CESKA_AKTIVITA, 10, JazykAktivity::CESKY),
             self::vlozeniAktivity(9872, self::ANGLICKA_AKTIVITA, 0, JazykAktivity::ANGLICKY),
-            'INSERT INTO akce_organizatori (id_akce, id_uzivatele) VALUES (9871, ' . \Uzivatel::SYSTEM . '), (9872, ' . \Uzivatel::SYSTEM . ')',
+            // kvůli ní je loňský ročník v přepínači ročníků linie
+            self::vlozeniAktivity(9873, self::LONSKA_AKTIVITA, 10, JazykAktivity::CESKY, self::MINULY_ROCNIK),
+            'INSERT INTO akce_organizatori (id_akce, id_uzivatele) VALUES (9871, ' . \Uzivatel::SYSTEM . '), (9872, ' . \Uzivatel::SYSTEM . '), (9873, ' . \Uzivatel::SYSTEM . ')',
+            // kdo vede larpy, česky i anglicky; RPG hlavičku nemá a ukáže zástupné texty
+            [
+                <<<'SQL'
+INSERT INTO akce_typy_hlavicky (id_typu, sekce, sekce_en, jmeno, email)
+VALUES ($0, 'šéfka Larpů', 'head of larps', 'Testovací „Šéfka“ Larpů', 'larpy@example.com')
+ON DUPLICATE KEY UPDATE sekce = VALUES(sekce), sekce_en = VALUES(sekce_en), jmeno = VALUES(jmeno), email = VALUES(email)
+SQL,
+                [
+                    0 => TypAktivity::LARP,
+                ],
+            ],
+            [
+                'DELETE FROM akce_typy_hlavicky WHERE id_typu = $0',
+                [
+                    0 => TypAktivity::RPG,
+                ],
+            ],
+            // fotogalerie linie s anglickým obsahem, jak ho dává migrace 2026-11-20-124420_anglicke-fotogalerie-linii.php
+            [
+                'INSERT INTO stranky (url_stranky, obsah, obsah_en, poradi) VALUES ($0, $1, $2, 0)',
+                [
+                    0 => self::FOTOGALERIE_LARPU,
+                    1 => "# Fotogalerie\n\n<blockquote class=\"instagram-media\">Zobrazit příspěvek na Instagramu</blockquote>",
+                    2 => "# Photo gallery\n\n<blockquote class=\"instagram-media\">View this post on Instagram</blockquote>",
+                ],
+            ],
         ];
     }
 
     /**
      * @return array{0: string, 1: array<int, mixed>}
      */
-    private static function vlozeniAktivity(int $id, string $nazev, int $kapacita, JazykAktivity $jazyk): array
+    private static function vlozeniAktivity(int $id, string $nazev, int $kapacita, JazykAktivity $jazyk, int $rocnik = ROCNIK): array
     {
         return [
             <<<'SQL'
@@ -60,10 +91,10 @@ SQL,
                 1 => $nazev,
                 2 => $kapacita,
                 3 => TypAktivity::LARP,
-                4 => ROCNIK,
+                4 => $rocnik,
                 5 => StavAktivity::PUBLIKOVANA,
                 6 => 'Krátký popis: ' . $nazev,
-                7 => ROCNIK . self::ZACATEK_AKTIVIT,
+                7 => $rocnik . self::ZACATEK_AKTIVIT,
                 8 => $jazyk->value,
             ],
         ];
@@ -198,6 +229,73 @@ SQL,
             '<b class="aktivity_terminCas">' . DatumVJazyce::denVTydnu($zacatek, Jazyk::CESTINA) . ' 10–12</b>',
         ] as $text) {
             self::assertStringContainsString($text, $telo);
+        }
+    }
+
+    public function testVedouciLiniePodAnglictinouJeAnglicky(): void
+    {
+        ['kod' => $kod, 'telo' => $telo] = $this->stahni('web/en/larpy');
+
+        self::assertSame(200, $kod);
+        self::assertStringContainsString('<figcaption>head of larps</figcaption>', $telo);
+        self::assertStringContainsString('<figcaption>Testovací „Šéfka“ Larpů</figcaption>', $telo, 'Jméno se nepřekládá.');
+        self::assertStringNotContainsString('šéfka Larpů', $telo);
+
+        ['telo' => $cesky] = $this->stahni('web/larpy');
+        self::assertStringContainsString('<figcaption>šéfka Larpů</figcaption>', $cesky);
+        self::assertStringNotContainsString('head of larps', $cesky);
+    }
+
+    public function testLinieBezVedoucihoMaZastupneTextyVJazyceStranky(): void
+    {
+        ['kod' => $kod, 'telo' => $telo] = $this->stahni('web/en/rpg');
+
+        self::assertSame(200, $kod);
+        self::assertStringContainsString('<figcaption>Section</figcaption>', $telo);
+        self::assertStringContainsString('<figcaption>Name &quot;Nickname&quot; Surname</figcaption>', $telo);
+
+        ['telo' => $cesky] = $this->stahni('web/rpg');
+        self::assertStringContainsString('<figcaption>Sekce</figcaption>', $cesky);
+        self::assertStringContainsString('<figcaption>Jmeno &quot;Prezdivka&quot; Prijmeni</figcaption>', $cesky);
+    }
+
+    public function testOdkazNaFotogaleriiLinieJeVJazyceStranky(): void
+    {
+        ['telo' => $telo] = $this->stahni('web/en/larpy');
+        self::assertStringContainsString('<a href="' . self::FOTOGALERIE_LARPU . '" class="aktivity_stranka">Photo gallery</a>', $telo);
+
+        ['telo' => $cesky] = $this->stahni('web/larpy');
+        self::assertStringContainsString('<a href="' . self::FOTOGALERIE_LARPU . '" class="aktivity_stranka">Fotogalerie</a>', $cesky);
+
+        ['kod' => $kod, 'telo' => $galerie] = $this->stahni('web/en/' . self::FOTOGALERIE_LARPU);
+        self::assertSame(200, $kod);
+        self::assertStringContainsString('<h1>Photo gallery</h1>', $galerie);
+        self::assertStringContainsString('View this post on Instagram', $galerie);
+        self::assertStringNotContainsString('<div lang="cs">', $galerie, 'Galerie s anglickým obsahem je přeložená stránka.');
+    }
+
+    public function testMinulyRocnikLiniePodAnglictinou(): void
+    {
+        ['kod' => $kod, 'telo' => $telo] = $this->stahni('web/en/larpy?rocnik=' . self::MINULY_ROCNIK);
+
+        self::assertSame(200, $kod);
+        self::assertMatchesRegularExpression('~<title>[^<]*Larps ' . self::MINULY_ROCNIK . '</title>~', $telo, 'Název linie anglicky s ročníkem');
+        self::assertStringContainsString('>' . self::LONSKA_AKTIVITA . '</label>', $telo, 'Loňská aktivita');
+        self::assertStringNotContainsString('>' . self::CESKA_AKTIVITA . '</label>', $telo, 'Letošní aktivita v loňském ročníku není.');
+        $zacatek = new \DateTimeImmutable(self::MINULY_ROCNIK . self::ZACATEK_AKTIVIT);
+        foreach ([
+            '<figcaption>head of larps</figcaption>',
+            '<b>Game Master:</b>',
+            '>show more</label>',
+            '<b class="aktivity_terminCas">' . DatumVJazyce::denVTydnu($zacatek, Jazyk::ANGLICTINA) . ' 10:00–12:00</b>',
+            // přepínač ročníků, karty / seznam a odkaz zpět na letošní vykresluje Preact v jazyce stránky
+            '"rocnikyAktivit":{"rocnik":' . self::MINULY_ROCNIK . ',"letosni":' . ROCNIK . ',"rocniky":[' . ROCNIK . ',' . self::MINULY_ROCNIK . ']}',
+            '"JAZYK":"en"',
+        ] as $text) {
+            self::assertStringContainsString($text, $telo);
+        }
+        foreach (['Vypravěč:', 'zobrazit více', 'šéfka Larpů'] as $cesky) {
+            self::assertStringNotContainsString($cesky, $telo);
         }
     }
 

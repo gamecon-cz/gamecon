@@ -146,4 +146,10 @@ describe("drobnosti", () => {
     expect(počtemPřednášek(0)).toBe("0 přednášek");
     expect(počtemPřednášek(234)).toBe("234 přednášek");
   });
+
+  it("anglicky počítá jednu a víc přednášek", () => {
+    expect(počtemPřednášek(1, "en")).toBe("1 talk");
+    expect(počtemPřednášek(3, "en")).toBe("3 talks");
+    expect(počtemPřednášek(0, "en")).toBe("0 talks");
+  });
 });

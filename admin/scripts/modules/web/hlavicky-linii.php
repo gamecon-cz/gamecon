@@ -60,6 +60,7 @@ if (post('action') === 'save-line-header') {
     }
 
     $sekce = trim((string)post('sekce'));
+    $sekceEn = trim((string)post('sekce_en'));
     $jmeno = trim((string)post('jmeno'));
     $email = trim((string)post('email'));
 
@@ -67,24 +68,27 @@ if (post('action') === 'save-line-header') {
         chyba('E-mail není v platném formátu.');
     }
 
-    if ($sekce === '' && $jmeno === '' && $email === '') {
+    if ($sekce === '' && $sekceEn === '' && $jmeno === '' && $email === '') {
         dbQuery('DELETE FROM akce_typy_hlavicky WHERE id_typu = $1', [1 => $idTypu]);
         oznameni('Hlavička linie byla vymazána, použije se fallback.');
     } else {
         dbQuery(
             <<<'SQL'
-INSERT INTO akce_typy_hlavicky (id_typu, sekce, jmeno, email)
-VALUES ($1, $2, $3, $4)
+INSERT INTO akce_typy_hlavicky (id_typu, sekce, sekce_en, jmeno, email)
+VALUES ($1, $2, $3, $4, $5)
 ON DUPLICATE KEY UPDATE
     sekce = VALUES(sekce),
+    sekce_en = VALUES(sekce_en),
     jmeno = VALUES(jmeno),
     email = VALUES(email)
 SQL,
             [
                 1 => $idTypu,
                 2 => $sekce !== '' ? $sekce : null,
-                3 => $jmeno !== '' ? $jmeno : null,
-                4 => $email !== '' ? $email : null,
+                // prázdná = anglický web ukáže českou
+                3 => $sekceEn !== '' ? $sekceEn : null,
+                4 => $jmeno !== '' ? $jmeno : null,
+                5 => $email !== '' ? $email : null,
             ],
         );
 
@@ -129,6 +133,7 @@ SELECT akce_typy.id_typu,
        akce_typy.typ_1pmn,
        akce_typy.url_typu_mn,
        akce_typy_hlavicky.sekce,
+       akce_typy_hlavicky.sekce_en,
        akce_typy_hlavicky.jmeno,
        akce_typy_hlavicky.email
 FROM akce_typy
@@ -153,6 +158,7 @@ foreach ($radky as $radek) {
         'typ_1pmn' => htmlspecialchars((string)$radek['typ_1pmn']),
         'url_typu_mn' => htmlspecialchars((string)$radek['url_typu_mn']),
         'sekce' => htmlspecialchars((string)($radek['sekce'] ?? '')),
+        'sekce_en' => htmlspecialchars((string)($radek['sekce_en'] ?? '')),
         'jmeno' => htmlspecialchars((string)($radek['jmeno'] ?? '')),
         'email' => htmlspecialchars((string)($radek['email'] ?? '')),
         'obrazek_url' => htmlspecialchars($informaceOObrazku['url']),

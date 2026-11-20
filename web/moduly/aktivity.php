@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\HlavickaLinie;
 use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\Program;
 use Gamecon\Aktivita\RocnikyAktivit;
@@ -312,10 +313,11 @@ if (!empty($org)) {
         : $typ->getNazevVJazyce();
     $this->info()->nazev(mb_ucfirst($nazevLinie) . $pripojkaRocniku);
 
-    $hlavickaLinie = dbOneLine(
-        'SELECT sekce, jmeno, email FROM akce_typy_hlavicky WHERE id_typu = $1',
-        [$typ->id()],
-    );
+    // kdo linii vede (z adminu, Web → Hlavičky linií), bez hlavičky zástupné texty
+    $hlavickaLinie = HlavickaLinie::zTypu((int)$typ->id());
+    $sekceLinie    = $hlavickaLinie?->getSekceVJazyce() ?? '';
+    $jmenoLinie    = $hlavickaLinie?->getJmeno() ?? '';
+    $emailLinie    = $hlavickaLinie?->getEmail() ?? '';
 
     $picture_path = URL_WEBU . '/' . cestaObrazkuLinie($typ->id());
 
@@ -323,9 +325,10 @@ if (!empty($org)) {
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
         'ikonaLinie'      => $picture_path,
-        'ikonaLinieSekce' => !empty($hlavickaLinie['sekce']) ? $hlavickaLinie['sekce'] : 'Sekce',
-        'ikonaLinieJmeno' => !empty($hlavickaLinie['jmeno']) ? $hlavickaLinie['jmeno'] : 'Jmeno "Prezdivka" Prijmeni',
-        'ikonaLinieEmail' => !empty($hlavickaLinie['email']) ? $hlavickaLinie['email'] : 'info@gamecon.cz',
+        // texty z adminu jsou prostý text jako t(), do HTML se escapují
+        'ikonaLinieSekce' => htmlspecialchars($sekceLinie !== '' ? $sekceLinie : t('linie.hlavicka.sekce')),
+        'ikonaLinieJmeno' => htmlspecialchars($jmenoLinie !== '' ? $jmenoLinie : t('linie.hlavicka.jmeno')),
+        'ikonaLinieEmail' => htmlspecialchars($emailLinie !== '' ? $emailLinie : 'info@gamecon.cz'),
         'specTridy'       => $typ->id() == TypAktivity::DRD
             ? 'aktivity_aktivity-drd'
             : null,

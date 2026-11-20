@@ -10,6 +10,7 @@ import {
   filtrujBezŠtítků, filtrujBezVypravěčů, filtrujPodleŠtítků, filtrujPodleVypravěčů, FiltrKaret, filtrZUrl,
   jeFiltrPrázdný, KartaProFiltr, normalizujText, PRÁZDNÝ_FILTR, urlSFiltrem, urlSRočníkem,
 } from "./filtr";
+import { t } from "../../i18n";
 import { třídaTlačítka } from "../filtrStranky/tlacitko";
 import { useMenuDoSpodkuOkna } from "../filtrStranky/useMenuDoSpodkuOkna";
 
@@ -67,7 +68,7 @@ const PřepínačRočníku: FunctionComponent<TPřepínačRočníkuProps> = (pro
   return (
     <div class="aktivityFiltr_rocnik">
       <Select<RočníkValueLabel>
-        aria-label="Ročník"
+        aria-label={t("aktivity_filtr.rocnik")}
         options={možnosti}
         value={možnosti.find((možnost) => možnost.value === ročníky.rocnik)}
         onChange={(vybraný) => {
@@ -76,8 +77,8 @@ const PřepínačRočníku: FunctionComponent<TPřepínačRočníkuProps> = (pro
           }
         }}
         formatOptionLabel={(možnost, { context }) =>
-          context === "value" ? `Ročník ${možnost.label}` : možnost.label}
-        noOptionsMessage={() => "Takový ročník tu nebyl"}
+          context === "value" ? t("aktivity_filtr.rocnik_hodnota", { rocnik: možnost.label }) : možnost.label}
+        noOptionsMessage={() => t("aktivity_filtr.zadny_rocnik")}
       />
     </div>
   );
@@ -90,7 +91,7 @@ const MinulýRočník: FunctionComponent<TPřepínačRočníkuProps> = (props) =
 
   return (
     <div class="aktivityFiltr_souhrn">
-      {`Aktivity z ročníku ${ročníky.rocnik}`}
+      {t("aktivity_filtr.minuly_rocnik", { rocnik: ročníky.rocnik })}
       <a
         class="aktivityFiltr_zrusit"
         href={urlSRočníkem(window.location.href, ročníky.letosni, ročníky.letosni)}
@@ -100,7 +101,7 @@ const MinulýRočník: FunctionComponent<TPřepínačRočníkuProps> = (props) =
           window.location.assign(urlSRočníkem(window.location.href, ročníky.letosni, ročníky.letosni));
         }}
       >
-        Zpět na letošní
+        {t("aktivity_filtr.zpet_na_letosni")}
       </a>
     </div>
   );
@@ -244,8 +245,8 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
         <input
           class="aktivityFiltr_hledat"
           type="search"
-          placeholder="Hledej v názvu, popisu, vypravěčích…"
-          aria-label="Hledat v aktivitách"
+          placeholder={t("aktivity_filtr.hledat")}
+          aria-label={t("aktivity_filtr.hledat_popisek")}
           value={filtr.text}
           onInput={(e) => {
             nastav({ text: e.currentTarget.value });
@@ -254,8 +255,8 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
         {data.tagy.length > 0 && (
           <div class="aktivityFiltr_stitky" ref={menuŠtítků.obal}>
             <Select<TagValueLabel, true>
-              placeholder="Štítky (žánr, věk, …)"
-              aria-label="Štítky"
+              placeholder={t("aktivity_filtr.stitky")}
+              aria-label={t("aktivity_filtr.stitky_popisek")}
               options={možnostiŠtítků}
               isMulti
               closeMenuOnSelect={false}
@@ -271,7 +272,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
                 Group: GroupFlex,
               }}
               formatOptionLabel={formatOptionLabel}
-              noOptionsMessage={() => "Žádný takový štítek"}
+              noOptionsMessage={() => t("aktivity_filtr.zadny_stitek")}
               styles={{
                 option(base) {
                   return {
@@ -291,8 +292,8 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
         {data.vypraveci.length > 1 && (
           <div class="aktivityFiltr_vypravec" ref={menuVypravěčů.obal}>
             <Select<TagValueLabel, true>
-              placeholder="Vypravěči"
-              aria-label="Vypravěči"
+              placeholder={t("aktivity_filtr.vypraveci")}
+              aria-label={t("aktivity_filtr.vypraveci")}
               options={možnostiVypravěčů}
               isMulti
               closeMenuOnSelect={false}
@@ -304,7 +305,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
                 nastav({ vypravěči: vybraní.map((x) => x.value) });
               }}
               formatOptionLabel={formatOptionLabel}
-              noOptionsMessage={() => "Žádný takový vypravěč"}
+              noOptionsMessage={() => t("aktivity_filtr.zadny_vypravec")}
               classNamePrefix="aktivityFiltrVypravec"
               styles={{
                 // ve sloupcích jako štítky, jinak by jich bylo vidět jen pár pod sebou (šířka menu v AktivityFiltr.less)
@@ -344,7 +345,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
               nastav({ jenVolné: !filtr.jenVolné });
             }}
           >
-            Jen volná místa
+            {t("aktivity_filtr.jen_volna_mista")}
           </button>
         )}
         <div class="aktivityFiltr_skupina aktivityFiltr_zobrazeni">
@@ -356,7 +357,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
               přepniZobrazení(false);
             }}
           >
-            Karty
+            {t("aktivity_filtr.karty")}
           </button>
           <button
             type="button"
@@ -366,7 +367,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
               přepniZobrazení(true);
             }}
           >
-            Seznam
+            {t("aktivity_filtr.seznam")}
           </button>
         </div>
       </div>
@@ -375,8 +376,8 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
       {!jeFiltrPrázdný(filtr) && (
         <div class="aktivityFiltr_souhrn" role="status">
           {zobrazené.length
-            ? `Zobrazeno ${zobrazené.length} z ${karty.length}`
-            : "Filtrům neodpovídá žádná aktivita."}
+            ? t("aktivity_filtr.zobrazeno", { zobrazeno: zobrazené.length, celkem: karty.length })
+            : t("aktivity_filtr.zadna_aktivita")}
           <button
             type="button"
             class="aktivityFiltr_zrusit"
@@ -384,7 +385,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
               setFiltr(PRÁZDNÝ_FILTR);
             }}
           >
-            Zrušit filtry
+            {t("aktivity_filtr.zrusit")}
           </button>
         </div>
       )}

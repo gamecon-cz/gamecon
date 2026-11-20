@@ -1,15 +1,15 @@
 <!-- begin: archivprednasek -->
 <div class="archivPrednasek">
-  <h1>Archiv přednášek</h1>
+  <h1>{t:aktivity.archiv_prednasek}</h1>
   <p class="archivPrednasek_uvod">
-    Přednášky z minulých ročníků GameConu, u některých i se záznamem.
-    <a href="{urlLinie}">Letošní přednášky</a>
+    {t:linie.archiv_prednasek.popis}
+    <a href="{urlLinie}">{t:linie.archiv_prednasek.letosni}</a>
   </p>
 
   <!-- lišta filtrů (Preact, ui/src/pages/archivPrednasek), karty jen schovává -->
   <div id="preact-archiv-prednasek" class="archivPrednasek_filtr">
-    <!-- begin: pocet --><p class="archivPrednasek_pocet">Přednášek v archivu: {pocet}</p><!-- end: pocet -->
-    <!-- begin: vybraniPrednasejici --><p class="archivPrednasek_pocet">Přednášky, kde přednáší {vybraniPrednasejici}: {pocetVybranych}. <a href="{cestaArchivu}">Všechny přednášky</a></p><!-- end: vybraniPrednasejici -->
+    <!-- begin: pocet --><p class="archivPrednasek_pocet">{pocet}</p><!-- end: pocet -->
+    <!-- begin: vybraniPrednasejici --><p class="archivPrednasek_pocet">{vybraniPrednasejici} <a href="{cestaArchivu}">{t:linie.archiv_prednasek.vsechny}</a></p><!-- end: vybraniPrednasejici -->
   </div>
 
   <!-- begin: rok -->
@@ -22,23 +22,23 @@
         <h3 class="archivPrednasek_nazev">{nazev}</h3>
 
         <div class="archivPrednasek_meta">
-          <!-- begin: rokOdkaz --><a href="{urlRoku}" class="archivPrednasek_rokPrednasky" title="Přednášky ročníku {rok}">{rok}</a><!-- end: rokOdkaz -->
+          <!-- begin: rokOdkaz --><a href="{urlRoku}" class="archivPrednasek_rokPrednasky" title="{titulekRoku}">{rok}</a><!-- end: rokOdkaz -->
           <!-- begin: rokText --><span class="archivPrednasek_rokPrednasky">{rok}</span><!-- end: rokText -->
-          <!-- begin: program --><a href="{urlProgramu}" class="archivPrednasek_program">Karta v programu</a><!-- end: program -->
+          <!-- begin: program --><a href="{urlProgramu}" class="archivPrednasek_program">{t:linie.archiv_prednasek.karta_v_programu}</a><!-- end: program -->
         </div>
 
         <!-- begin: prednasejici -->
         <div class="archivPrednasek_prednasejici">
-          <span class="archivPrednasek_popisek">Přednáší:</span>
+          <span class="archivPrednasek_popisek">{t:linie.archiv_prednasek.prednasi}</span>
           <!-- begin: osoba -->
-          <span class="archivPrednasek_osoba"><a href="{urlFiltruPrednasejiciho}" class="archivPrednasek_jmeno" data-prednasejici="{idPrednasejiciho}" title="Přednášky, kde přednáší {jmenoPrednasejiciho}">{jmenoPrednasejiciho}</a><!-- begin: medailonek --><a href="{urlMedailonku}" class="archivPrednasek_medailonek" title="Medailonek: {jmenoPrednasejiciho}" aria-label="Medailonek: {jmenoPrednasejiciho}"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><circle cx="8" cy="5" r="3" fill="currentColor"/><path d="M2 15c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5z" fill="currentColor"/></svg></a><!-- end: medailonek --></span>
+          <span class="archivPrednasek_osoba"><a href="{urlFiltruPrednasejiciho}" class="archivPrednasek_jmeno" data-prednasejici="{idPrednasejiciho}" title="{titulekPrednasejiciho}">{jmenoPrednasejiciho}</a><!-- begin: medailonek --><a href="{urlMedailonku}" class="archivPrednasek_medailonek" title="{titulekMedailonku}" aria-label="{titulekMedailonku}"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><circle cx="8" cy="5" r="3" fill="currentColor"/><path d="M2 15c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5z" fill="currentColor"/></svg></a><!-- end: medailonek --></span>
           <!-- end: osoba -->
         </div>
         <!-- end: prednasejici -->
 
         <div class="archivPrednasek_stitky">
           <!-- begin: stitek --><span class="archivPrednasek_stitek">{stitek}</span><!-- end: stitek -->
-          <!-- begin: bezZaznamu --><span class="archivPrednasek_stitek archivPrednasek_stitek-bezZaznamu">bez záznamu</span><!-- end: bezZaznamu -->
+          <!-- begin: bezZaznamu --><span class="archivPrednasek_stitek archivPrednasek_stitek-bezZaznamu">{t:linie.archiv_prednasek.bez_zaznamu}</span><!-- end: bezZaznamu -->
         </div>
 
         <!-- begin: kratkaAnotace -->
@@ -54,11 +54,11 @@
 
       <!-- begin: video -->
       <div class="archivPrednasek_video">
-        <a href="{urlVidea}" class="archivPrednasek_nahled" data-prehravac="{urlPrehravace}" target="_blank" rel="noopener" aria-label="Přehrát záznam: {nazev}">
+        <a href="{urlVidea}" class="archivPrednasek_nahled" data-prehravac="{urlPrehravace}" target="_blank" rel="noopener" aria-label="{prehratZaznam}">
           <img src="{urlNahledu}" alt="" loading="lazy" referrerpolicy="no-referrer" width="480" height="360">
           <span class="archivPrednasek_prehrat" aria-hidden="true"></span>
         </a>
-        <a href="{urlVidea}" class="archivPrednasek_naYoutube" target="_blank" rel="noopener">Přehrát na YouTube</a>
+        <a href="{urlVidea}" class="archivPrednasek_naYoutube" target="_blank" rel="noopener">{t:linie.archiv_prednasek.prehrat_na_youtube}</a>
       </div>
       <!-- end: video -->
     </article>
@@ -67,7 +67,7 @@
   <!-- end: rok -->
 
   <!-- begin: zadne -->
-  <p class="archivPrednasek_zadne">Archiv je zatím prázdný.</p>
+  <p class="archivPrednasek_zadne">{t:linie.archiv_prednasek.prazdny}</p>
   <!-- end: zadne -->
 </div>
 <!-- end: archivprednasek -->

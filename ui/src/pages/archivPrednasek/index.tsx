@@ -2,6 +2,7 @@ import { FunctionComponent } from "preact";
 import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import Select, { GroupBase, OptionsOrGroups } from "react-select";
 import { ApiArchivPrednasek, ApiArchivPrednaska } from "../../api/archivPrednasek";
+import { t } from "../../i18n";
 import { distinct } from "../../utils";
 import { formatOptionLabel, GroupFlex, TagValueLabel } from "../program/components/vstupy/FiltrŠtítků";
 import { normalizujText } from "../filtrStranky/text";
@@ -46,7 +47,7 @@ const pustVideo = (náhled: HTMLAnchorElement) => {
   const přehrávač = document.createElement("iframe");
   přehrávač.className = "archivPrednasek_prehravac";
   přehrávač.src = adresa;
-  přehrávač.title = náhled.getAttribute("aria-label") ?? "Záznam přednášky";
+  přehrávač.title = náhled.getAttribute("aria-label") ?? t("archiv_prednasek.zaznam_prednasky");
   přehrávač.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
   přehrávač.allowFullscreen = true;
   přehrávač.referrerPolicy = "strict-origin-when-cross-origin";
@@ -171,8 +172,8 @@ const ArchivPrednasekFiltrSDaty: FunctionComponent<TArchivPrednasekFiltrSDatyPro
         <input
           class="aktivityFiltr_hledat"
           type="search"
-          placeholder="Hledej v názvu a anotaci…"
-          aria-label="Hledat v přednáškách"
+          placeholder={t("archiv_prednasek.hledat")}
+          aria-label={t("archiv_prednasek.hledat_popisek")}
           value={filtr.text}
           onInput={(e) => {
             nastav({ text: e.currentTarget.value });
@@ -181,8 +182,8 @@ const ArchivPrednasekFiltrSDaty: FunctionComponent<TArchivPrednasekFiltrSDatyPro
         {data.stitky.length > 0 && (
           <div class="aktivityFiltr_stitky" ref={menuŠtítků.obal}>
             <Select<TagValueLabel, true>
-              placeholder="Štítky a klíčová slova"
-              aria-label="Štítky a klíčová slova"
+              placeholder={t("archiv_prednasek.stitky")}
+              aria-label={t("archiv_prednasek.stitky")}
               options={možnostiŠtítků}
               isMulti
               closeMenuOnSelect={false}
@@ -195,7 +196,7 @@ const ArchivPrednasekFiltrSDaty: FunctionComponent<TArchivPrednasekFiltrSDatyPro
               }}
               components={{ Group: GroupFlex }}
               formatOptionLabel={formatOptionLabel}
-              noOptionsMessage={() => "Žádný takový štítek"}
+              noOptionsMessage={() => t("aktivity_filtr.zadny_stitek")}
               styles={{
                 option(base) {
                   return { ...base, minWidth: "180px", maxWidth: "180px" };
@@ -209,8 +210,8 @@ const ArchivPrednasekFiltrSDaty: FunctionComponent<TArchivPrednasekFiltrSDatyPro
       <div class="aktivityFiltr_radek">
         <div class="archivPrednasekFiltr_roky" ref={menuRoků.obal}>
           <Select<TagValueLabel, true>
-            placeholder="Ročníky"
-            aria-label="Ročníky"
+            placeholder={t("archiv_prednasek.rocniky")}
+            aria-label={t("archiv_prednasek.rocniky")}
             options={možnostiRoků}
             isMulti
             closeMenuOnSelect={false}
@@ -222,13 +223,13 @@ const ArchivPrednasekFiltrSDaty: FunctionComponent<TArchivPrednasekFiltrSDatyPro
               nastav({ roky: vybrané.map((vybraný) => vybraný.value) });
             }}
             formatOptionLabel={formatOptionLabel}
-            noOptionsMessage={() => "Takový ročník v archivu není"}
+            noOptionsMessage={() => t("archiv_prednasek.zadny_rocnik")}
           />
         </div>
         <div class="aktivityFiltr_vypravec" ref={menuPřednášejících.obal}>
           <Select<TagValueLabel, true>
-            placeholder="Přednášející"
-            aria-label="Přednášející"
+            placeholder={t("archiv_prednasek.prednasejici")}
+            aria-label={t("archiv_prednasek.prednasejici")}
             options={možnostiPřednášejících}
             isMulti
             closeMenuOnSelect={false}
@@ -240,7 +241,7 @@ const ArchivPrednasekFiltrSDaty: FunctionComponent<TArchivPrednasekFiltrSDatyPro
               nastav({ přednášející: vybraní.map((vybraný) => vybraný.value) });
             }}
             formatOptionLabel={formatOptionLabel}
-            noOptionsMessage={() => "Žádný takový přednášející"}
+            noOptionsMessage={() => t("archiv_prednasek.zadny_prednasejici")}
             classNamePrefix="aktivityFiltrVypravec"
             styles={{
               // ve sloupcích jako na stránce linie (šířka menu v AktivityFiltr.less)
@@ -261,16 +262,16 @@ const ArchivPrednasekFiltrSDaty: FunctionComponent<TArchivPrednasekFiltrSDatyPro
               nastav({ jenSeZáznamem: e.currentTarget.checked });
             }}
           />
-          Jen se záznamem
+          {t("archiv_prednasek.jen_se_zaznamem")}
         </label>
       </div>
 
       <div class="aktivityFiltr_souhrn" role="status">
         {jeFiltrArchivuPrázdný(filtr)
-          ? `${počtemPřednášek(přednášky.length)} v archivu`
+          ? t("archiv_prednasek.v_archivu", { prednasek: počtemPřednášek(přednášky.length) })
           : zobrazené.length
-            ? `Zobrazeno ${zobrazené.length} z ${počtemPřednášek(přednášky.length)}`
-            : "Filtrům neodpovídá žádná přednáška."}
+            ? t("archiv_prednasek.zobrazeno", { zobrazeno: zobrazené.length, prednasek: počtemPřednášek(přednášky.length) })
+            : t("archiv_prednasek.zadna_prednaska")}
         {!jeFiltrArchivuPrázdný(filtr) && (
           <button
             type="button"
@@ -279,7 +280,7 @@ const ArchivPrednasekFiltrSDaty: FunctionComponent<TArchivPrednasekFiltrSDatyPro
               setFiltr(PRÁZDNÝ_FILTR_ARCHIVU);
             }}
           >
-            Zrušit filtry
+            {t("aktivity_filtr.zrusit")}
           </button>
         )}
       </div>
