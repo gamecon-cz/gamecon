@@ -14,8 +14,11 @@ use Gamecon\Role\Role;
 $this->blackarrowStyl(true);
 // Česká titulka a anglická stránka `en` z CMS, kterou web/index.php ukazuje na /en/, jsou jazykovými verzemi
 // téže stránky. Tenhle modul ale vykresluje jen českou: pod angličtinou (/en/titulka, /en/ bez stránky `en`)
-// je to nepřeložená stránka. Až se titulka přeloží, bude tu prostě true.
-$this->setObsahPrelozeny(AktualniJazyk::jazyk()->jeVychozi());
+// je to nepřeložená stránka. Bez stránky `en` (lokálně, na preview, smazaná v adminu) anglická verze
+// není a hreflang by mířil na českou titulku pod /en/. Až se titulka přeloží, bude tu prostě true.
+$this->setObsahPrelozeny(
+    AktualniJazyk::jazyk()->jeVychozi() && Stranka::zUrl(Stranka::URL_ANGLICKE_TITULKY) !== null,
+);
 $this->info()
      ->nazev('GameCon – největší festival nepočítačových her')
      ->popis('GameCon je největší festival nepočítačových her v České republice, který se každoročně koná třetí víkend v červenci. Opět se můžete těšit na desítky RPGček, deskovek, larpů, akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční mistrovství v DrD a v neposlední řadě úžasné lidi a vůbec zážitky, které ve vás přetrvají minimálně do dalšího roku.')
