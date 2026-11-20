@@ -24,14 +24,14 @@ require_once __DIR__ . '/../../../web/tridy/vyjimky.php';
  */
 class PrehledFinanciVJazyceTest extends AbstractTestDb
 {
-    private const ID_UZIVATELE = 7731;
-    private const ID_ROLE = -7731;
+    private const int ID_UZIVATELE = 7731;
+    private const int ID_ROLE = -7731;
 
     /**
      * daleko v budoucnosti, `pred()` ve stránce porovnává se skutečným časem
      */
-    private const ZAPLATIT_DO_POZDEJI = '2099-07-01 23:59:00';
-    private const ZAPLATIT_DO_UPLYNULO = '2001-07-01 23:59:00';
+    private const string ZAPLATIT_DO_POZDEJI = '2099-07-01 23:59:00';
+    private const string ZAPLATIT_DO_UPLYNULO = '2001-07-01 23:59:00';
 
     /**
      * @return list<string|array{0: string, 1: array<int, mixed>}>

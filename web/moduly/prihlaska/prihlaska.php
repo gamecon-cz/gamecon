@@ -221,15 +221,15 @@ if (post('prihlasitNeboUpravit')) {
     }
 }
 
-// Informace o slevách. Jídlo nevypisovat, tabulka správně vypisuje cenu po slevě. Slevy na jídlo se poznají podle
-// českého textu, slevy v jazyce stránky mají stejné pořadí (a klíče) jako české.
-$slevyNaJidlo = array_intersect($u->finance()->slevyVse(), ['jídlo zdarma', 'jídlo se slevou']);
-$slevy = array_diff_key($u->finance()->slevyVse(AktualniJazyk::jazyk()), $slevyNaJidlo);
+// Informace o slevách. Jídlo nevypisovat (podle práva, ne textu), tabulka správně vypisuje cenu po slevě.
+$slevy = $u->finance()->slevyVse(AktualniJazyk::jazyk(), [Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU]);
 if ($slevy) {
     $t->assign('slevy', htmlSVlozkami(
         t('prihlaska.predmety.slevy', ['titul' => znackaVlozky('titul'), 'slevy' => implode(', ', $slevy)]),
-        // název role je česky
-        ['titul' => '<span' . $jazykEshopu . '>' . htmlspecialchars(mb_strtolower($u->status())) . '</span>'],
+        // název role je česky, na anglické stránce ji proto obalí lang="cs"
+        ['titul' => $jazykEshopu === ''
+            ? htmlspecialchars(mb_strtolower($u->status()))
+            : '<span' . $jazykEshopu . '>' . htmlspecialchars(mb_strtolower($u->status())) . '</span>'],
     ));
     $t->parse('prihlaska.slevy');
 }

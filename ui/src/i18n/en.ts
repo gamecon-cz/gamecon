@@ -37,7 +37,7 @@ export const en: Slovník = {
   "program.legenda.neucast": "Did not attend",
   "program.legenda.plno": "Full",
   "program.legenda.organizuji": "Organising",
-  "program.nahled.cena": "{cena} CZK",
+  "program.nahled.cena": "CZK {cena}",
   "program.nahled.zdarma": "free",
   "program.odhlasit.otazka": "Are you sure you want to cancel your sign-up for {aktivita}?",
   "program.odhlasit.potvrdit": "Cancel sign-up",
