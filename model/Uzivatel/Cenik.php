@@ -205,9 +205,10 @@ class Cenik
      * vypravěčských, věci se slevami nebo zdarma apod.)
      * @todo vypravěčská sleva s číslem apod. (migrovat z financí)
      * @param Jazyk $jazyk jazyk textů, výchozí čeština viz {@see getTextySlev()}
+     * @param list<int> $bezPrav práva, jejichž slevu nevypisovat (přihláška vynechá jídlo, cenu po slevě ukáže tabulka)
      * @return array<string> prostý text
      */
-    public function slevySpecialni(Jazyk $jazyk = Jazyk::CESTINA): array
+    public function slevySpecialni(Jazyk $jazyk = Jazyk::CESTINA, array $bezPrav = []): array
     {
         $u     = $this->u;
         $slevy = [];
@@ -215,6 +216,9 @@ class Cenik
 
         // standardní slevy vyplývající z práv
         foreach ($texty as $pravo => $text) {
+            if (in_array($pravo, $bezPrav, true)) {
+                continue;
+            }
             // přeskočení práv, která mohou být přebita + normalizace textu
             if (is_array($text)) {
                 $zahrnuteVPravu = $text[1];

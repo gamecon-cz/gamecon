@@ -559,11 +559,12 @@ SQL,
     /**
      * Viz ceník
      * @param Jazyk $jazyk jazyk textů, výchozí čeština viz {@see Cenik::getTextySlev()}
+     * @param list<int> $bezPrav práva, jejichž slevu nevypisovat, viz {@see Cenik::slevySpecialni()}
      * @return array<string> prostý text
      */
-    public function slevyVse(Jazyk $jazyk = Jazyk::CESTINA): array
+    public function slevyVse(Jazyk $jazyk = Jazyk::CESTINA, array $bezPrav = []): array
     {
-        return $this->cenik()->slevySpecialni($jazyk);
+        return $this->cenik()->slevySpecialni($jazyk, $bezPrav);
     }
 
     /**

@@ -17,7 +17,9 @@ describe("legenda programu", () => {
 describe("cena v náhledu aktivity", () => {
   it("česky bez měny jako dřív, anglicky s CZK", () => {
     expect(cenaAktivity(150, "cs")).toBe("150");
-    expect(cenaAktivity(150, "en")).toBe("150 CZK");
+    expect(cenaAktivity(150, "en")).toBe("CZK 150");
+    expect(cenaAktivity(1500, "en")).toBe("CZK 1,500");
+    expect(cenaAktivity(1500, "cs")).toBe("1500");
   });
 
   it("nulová cena je zdarma", () => {
@@ -31,7 +33,7 @@ describe("cena v náhledu aktivity", () => {
 
   it("se slevou ukáže i základní cenu s hvězdičkou", () => {
     expect(cenyNáhledu({ cenaZaklad: 150, slevaNasobic: 0.5 }, "cs")).toEqual({ cena: "75", základní: "*150" });
-    expect(cenyNáhledu({ cenaZaklad: 150, slevaNasobic: 0.5 }, "en")).toEqual({ cena: "75 CZK", základní: "*150 CZK" });
+    expect(cenyNáhledu({ cenaZaklad: 150, slevaNasobic: 0.5 }, "en")).toEqual({ cena: "CZK 75", základní: "*CZK 150" });
   });
 
   it("násobič 0 je zdarma, základní cena zůstane", () => {

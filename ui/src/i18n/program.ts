@@ -12,12 +12,15 @@ export const popisekPřihlášen = (pohlavi: Pohlavi | undefined, jazyk?: Jazyk)
 
 /**
  * Cena v náhledu aktivity: „zdarma“ / „free“ u nulové, jinak částka. Česky bez měny,
- * jak byla (měnu nese ikona), anglicky s „CZK“, aby ji cizinec nevzal za eura.
+ * jak byla (měnu nese ikona), anglicky „CZK 1,500“ jako v přehledu financí, aby ji
+ * cizinec nevzal za eura.
  */
-export const cenaAktivity = (cena: number, jazyk?: Jazyk): string =>
+export const cenaAktivity = (cena: number, jazyk: Jazyk = GAMECON_KONSTANTY.JAZYK): string =>
   cena === 0
     ? t("program.nahled.zdarma", {}, jazyk)
-    : t("program.nahled.cena", { cena }, jazyk);
+    : t("program.nahled.cena", {
+      cena: jazyk === "en" ? cena.toLocaleString("en-GB", { maximumFractionDigits: 2 }) : cena,
+    }, jazyk);
 
 /**
  * Cena aktivity pro účastníka: základ krát jeho sleva (násobič 0 = zdarma, chybějící
