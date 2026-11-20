@@ -12,6 +12,7 @@ class EditorTagu
     private const ID_TAGU_KLIC        = 'aEditTagId';
     private const KATEGORIE_TAGU_KLIC = 'aEditKategorieTagu';       // název proměnné, v které jsou kategorie tagů
     private const NAZEV_TAGU_KLIC     = 'aEditNazevTagu';       // název proměnné, v které je název tagu
+    private const NAZEV_EN_TAGU_KLIC  = 'aEditNazevEnTagu';     // název proměnné, v které je anglický název tagu
     private const POZNAMKA_TAGU_KLIC  = 'aEditPoznamkaTagu';       // název proměnné, v které je poznámka k tagu
 
     public function getEditorTaguHtml()
@@ -54,6 +55,7 @@ class EditorTagu
         $editorTaguSablona->assign('aEditTag', self::POST_KLIC);
         $editorTaguSablona->assign('aEditIdTagu', self::ID_TAGU_KLIC);
         $editorTaguSablona->assign('aEditNazevTagu', self::NAZEV_TAGU_KLIC);
+        $editorTaguSablona->assign('aEditNazevEnTagu', self::NAZEV_EN_TAGU_KLIC);
         $editorTaguSablona->assign('aEditKategorieTagu', self::KATEGORIE_TAGU_KLIC);
         $editorTaguSablona->assign('aEditPoznamkaTagu', self::POZNAMKA_TAGU_KLIC);
 
@@ -88,13 +90,15 @@ FROM sjednocene_tagy',
         if (!empty($data['errors'])) {
             return ['errors' => $data['errors']];
         }
-        ['id' => $idTagu, 'nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu] = $data;
+        ['id' => $idTagu, 'nazev' => $nazevTagu, 'nazev_en' => $nazevEnTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu] = $data;
         if ($idTagu) { // this is not a new tag but existing one
             return [];
         }
         $result = dbQuery(
-            $query = 'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',
-            [$idKategorieTagu, $nazevTagu, $poznamkaTagu],
+            <<<'SQL'
+INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, nazev_en, poznamka) VALUES (NULL, $0, $1, $2, $3)
+SQL,
+            [$idKategorieTagu, $nazevTagu, $nazevEnTagu, $poznamkaTagu],
         );
         if (!$result) {
             throw new \RuntimeException('Failed SQL execution of ' . dbLastQ());
@@ -118,6 +122,7 @@ FROM sjednocene_tagy',
         }
         $values          = $_POST[self::POST_KLIC];
         $nazevTagu       = trim($values[self::NAZEV_TAGU_KLIC] ?? '');
+        $nazevEnTagu     = trim($values[self::NAZEV_EN_TAGU_KLIC] ?? '');
         $idKategorieTagu = trim($values[self::KATEGORIE_TAGU_KLIC] ?? '');
         $idTagu          = trim($values[self::ID_TAGU_KLIC] ?? '');
         $poznamkaTagu    = trim($values[self::POZNAMKA_TAGU_KLIC] ?? '');
@@ -132,17 +137,28 @@ FROM sjednocene_tagy',
             return ['errors' => $errors];
         }
 
-        return ['id' => $idTagu, 'nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu];
+        return [
+            'id'                => $idTagu,
+            'nazev'             => $nazevTagu,
+            // prázdný = jen česky
+            'nazev_en'          => $nazevEnTagu !== ''
+                ? $nazevEnTagu
+                : null,
+            'id_kategorie_tagu' => $idKategorieTagu,
+            'poznamka'          => $poznamkaTagu,
+        ];
     }
 
     private function getTagById(int $id): array
     {
         return dbOneLine(
-            'SELECT sjednocene_tagy.id, sjednocene_tagy.id_kategorie_tagu, kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
-       sjednocene_tagy.nazev, sjednocene_tagy.poznamka
+            <<<'SQL'
+SELECT sjednocene_tagy.id, sjednocene_tagy.id_kategorie_tagu, kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
+       sjednocene_tagy.nazev, COALESCE(sjednocene_tagy.nazev_en, '') AS nazev_en, sjednocene_tagy.poznamka
 FROM sjednocene_tagy
 JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.id = sjednocene_tagy.id_kategorie_tagu
-WHERE sjednocene_tagy.id = $1',
+WHERE sjednocene_tagy.id = $1
+SQL,
             [$id],
         );
     }
@@ -156,12 +172,16 @@ WHERE sjednocene_tagy.id = $1',
         if (!empty($data['errors'])) {
             return ['errors' => $data['errors']];
         }
-        ['id' => $idTagu, 'nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu] = $data;
+        ['id' => $idTagu, 'nazev' => $nazevTagu, 'nazev_en' => $nazevEnTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu] = $data;
         if (!$idTagu) { // this is not an update
             return [];
         }
         try {
-            $result = dbUpdate('sjednocene_tagy', ['nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu], ['id' => $idTagu]);
+            $result = dbUpdate(
+                'sjednocene_tagy',
+                ['nazev' => $nazevTagu, 'nazev_en' => $nazevEnTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu],
+                ['id' => $idTagu],
+            );
         } catch (\DbDuplicateEntryException $dbDuplicateEntryException) {
             return ['errors' => ["Název tagu '$nazevTagu' už je obsazený: {$dbDuplicateEntryException->getMessage()}"]];
         }
@@ -179,21 +199,26 @@ WHERE sjednocene_tagy.id = $1',
     public function getTagy(): array
     {
         $result     = dbFetchAll(
-            'SELECT sjednocene_tagy.id, sjednocene_tagy.nazev, sjednocene_tagy.poznamka,
+            <<<'SQL'
+SELECT sjednocene_tagy.id, sjednocene_tagy.nazev, COALESCE(sjednocene_tagy.nazev_en, '') AS nazev_en, sjednocene_tagy.poznamka,
        kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
+       COALESCE(kategorie_sjednocenych_tagu.nazev_en, '') AS nazev_kategorie_en,
        IF (kategorie_sjednocenych_tagu.id_hlavni_kategorie IS NULL, kategorie_sjednocenych_tagu.nazev, (SELECT hlavni_kategorie.nazev FROM kategorie_sjednocenych_tagu AS hlavni_kategorie WHERE hlavni_kategorie.id = kategorie_sjednocenych_tagu.id_hlavni_kategorie)) AS nazev_hlavni_kategorie,
        sjednocene_tagy.id_kategorie_tagu
 FROM sjednocene_tagy
 JOIN kategorie_sjednocenych_tagu ON sjednocene_tagy.id_kategorie_tagu = kategorie_sjednocenych_tagu.id
 ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev
-',
+SQL,
         );
         $mappedTags = [];
         foreach ($result as $row) {
             $mappedTag    = [
                 'id'                     => $row['id'],
                 'nazev'                  => $row['nazev'],
+                // prázdný = jen česky
+                'nazev_en'               => $row['nazev_en'],
                 'nazev_kategorie'        => $row['nazev_kategorie'],
+                'nazev_kategorie_en'     => $row['nazev_kategorie_en'],
                 'nazev_hlavni_kategorie' => $row['nazev_hlavni_kategorie'],
                 'id_kategorie_tagu'      => $row['id_kategorie_tagu'],
                 'poznamka'               => $row['poznamka'],

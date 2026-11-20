@@ -22,6 +22,13 @@ describe("dny pro čtenáře", () => {
     expect(popisekSkupiny("Klubovna")).toBe("Klubovna");
   });
 
+  it("linii vezme z názvů linií v jazyce stránky", () => {
+    expect(popisekSkupiny("larpy", { larpy: "larps" })).toBe("larps");
+    expect(popisekSkupiny("Klubovna", { larpy: "larps" })).toBe("Klubovna");
+    GAMECON_KONSTANTY.JAZYK = "en";
+    expect(popisekSkupiny("pátek", { larpy: "larps" })).toBe("Friday");
+  });
+
   it("datum záložky dne", () => {
     expect(formátujDatumProČtenáře(PÁTEK)).toBe("pátek 17.7.");
     GAMECON_KONSTANTY.JAZYK = "en";

@@ -20,6 +20,11 @@ class TagEntityStructure
     public const nazev = 'nazev';
 
     /**
+     * @see Tag::$nazevEn
+     */
+    public const nazevEn = 'nazevEn';
+
+    /**
      * @see Tag::$poznamka
      */
     public const poznamka = 'poznamka';

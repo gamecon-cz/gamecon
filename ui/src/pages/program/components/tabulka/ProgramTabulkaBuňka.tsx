@@ -9,6 +9,7 @@ import { jazykAktivity, jePlnoZObsazenost, krátkýŠtítekJazyka, názevJazykaA
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
+import { názevLinie } from "../../../../i18n/nazvy";
 
 export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,
@@ -123,7 +124,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             <div class="program_kostym">kostým: {aktivita.kostym.nazev}</div>
           )}
           {zobrazLinii ? (
-            <span class="program_osobniTyp">{aktivita.linie}</span>
+            <span class="program_osobniTyp">{názevLinie(aktivita)}</span>
           ) : undefined}
         </div>
       </td>

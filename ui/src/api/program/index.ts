@@ -80,7 +80,10 @@ export type ApiAktivitaNepřihlášen = {
   cenaZaklad: number,
   casText: string,
   cas: OdDo,
+  /** český název linie, klíč (seskupení v tabulce, filtr ?linie=) */
   linie: string,
+  /** anglický název linie k zobrazení (bez překladu český), viz názevLinie(); chybí ve starších JSONech */
+  linieEn?: string,
   /** chybí v datech vygenerovaných před zavedením jazyka aktivity, pak jde o "cs" */
   jazyk?: JazykAktivity,
   turnajId?: number;
@@ -161,10 +164,16 @@ export type ApiAktivitaObsazenost = {
   obsazenost: ApiObsazenost,
 };
 
+/** EditorTagu::getTagy() přes ProgramStaticFileGenerator::generateStitky() */
 export type ApiTag = {
   id: number,
   nazev: string,
+  /** anglický název k zobrazení (bez překladu český), viz názevŠtítku(); chybí ve starších JSONech */
+  nazevEn?: string,
+  /** český název kategorie, klíč (štítky z jedné kategorie se ve filtru sčítají) */
   nazevKategorie: string,
+  /** anglický název kategorie k zobrazení (bez překladu český); chybí ve starších JSONech */
+  nazevKategorieEn?: string,
 };
 
 // --- Static file manifest ---
