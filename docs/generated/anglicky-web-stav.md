@@ -8,8 +8,10 @@ Stav k 20. 11. 2026: všechno je v [PR #1403](https://github.com/gamecon-cz/game
 - **Rozhraní pod `/en/`:**
   - menu, patička a titulka;
   - stránky linií (`web/moduly/aktivity.php`): rozhraní výpisu, přihlašovátko, hlavička s vedoucím linie, lišta filtrů v Preactu včetně karet a seznamu a minulých ročníků, archiv přednášek;
-  - program v Preactu: filtry, štítky, názvy linií a tagů;
-  - účet: registrace, nastavení, přihlášení, přihlášení QR kódem, obnova hesla.
+  - program v Preactu: legenda „Filter by“, filtry, štítky, názvy linií a tagů, přihlašovátko v buňce, náhled aktivity s cenou (anglicky v CZK), okno odhlášení a celé okno týmu;
+  - účet: registrace, nastavení, přihlášení, přihlášení QR kódem, obnova hesla;
+  - přihláška na GameCon (`/prihlaska`) kromě e-shopu: všechny stavy stránky, nápověda „Chceš se zapojit“, tlačítka a hlášky. E-shop je v ní česky v `lang="cs"`.
+  - přehled financí (`/finance`): tabulka objednávek a plateb, slevy, pokyny k platbě a QR kódy; názvy aktivit, předmětů a poznámky k platbám jsou data a zůstávají česky.
 - **Obsah z DB** (sloupce `*_en`, NULL nebo prázdné = česká záloha):
   - `stranky.obsah_en`: 25 stránek, mimo jiné praktické informace, kontakty, `legal`, jídelníček, úvody linií a RPG návody. K tomu fotogalerie linií jako kopie české verze.
   - `akce_typy.*_en`: názvy a krátké popisy linií.
@@ -26,15 +28,16 @@ Stav k 20. 11. 2026: všechno je v [PR #1403](https://github.com/gamecon-cz/game
 - **Štítek „CZ“** u česky vedené aktivity v programu na anglickém webu má být nenápadný: šedý text, ne černý rámeček jako `EN`. `(záměr)`
 - **Nepřejmenovávat kód kvůli angličtině.** Tým je český, metody a identifikátory zůstávají, jak jsou, i když porušují pravidlo `get…`/`is…`. `(záměr)`
 - **Netvrdit, že je GameCon pro všechny věky.** V angličtině je vynechané „bez ohledu na věk“, česky to zůstalo. `(záměr)`
+- **Koruny anglicky jako „CZK 1,234.50“** (kód měny před částkou, anglický zápis čísla), eura „€41.32“, stejně jako „CZK 2,500“ v anglických stránkách z CMS. Česky beze změny („1 234,50 Kč“). E-maily a admin mají částky česky vždy.
 - **Popisy aktivit se nepřekládají.** Místo toho je jazyk aktivity. Ostatní nepřeložený obsah se pod `/en/` ukazuje česky s poznámkou.
 - **Fotogalerie linií** mají anglický obsah jako kopii české verze (migrace `…124420`), aby tlačítko „Photo gallery“ bylo anglicky. Kdo galerii mění, musí změnit i pole „Obsah anglicky“; jinak anglická verze zastará a nic na to neupozorní.
 
 ## Co zbývá (nejdřív to podstatné)
 
 - **Projít překlady.** Psala je AI. Hlavně `legal` (zvážit větu, že při rozporu platí česká verze) a sporné tagy („Přemýšlecí“ → Thinking, „Vztahová“ → Relationship-driven, „Žánrovka“ → Genre larp, „Bardi a balady“).
-- **Přihláška na GameCon** (`/prihlaska`, e-shop, ubytování, jídlo, trička, finance): odhad 300–400 textů. Názvy předmětů jsou v e-shopu i logika (`'Spacák'`, `Shop::bezDne()`), proto `nazev_en` až v novém e-shopu (PR #1467). Ubytovací blok se dnes záměrně vykresluje česky přes `AktualniJazyk::provedVJazyce()` v `ShopUbytovani`.
+- **E-shop přihlášky na GameCon** (předměty, ubytování, jídlo, vstupné v `/prihlaska`; rámec stránky už přeložený je): šablony `model/Shop/templates/shop-*.xtpl`, texty v `Shop` a `ShopUbytovani`, skripty `web/soubory/blackarrow/shop/*.js` a povinné údaje pro ubytování. Názvy předmětů jsou v e-shopu i logika (`'Spacák'`, `Shop::bezDne()`, `LIKE 'Snídaně%'`), proto `nazev_en` až v novém e-shopu (PR #1467). Ubytovací blok se dnes záměrně vykresluje česky přes `AktualniJazyk::provedVJazyce()` v `ShopUbytovani`. Až bude e-shop přeložený, zmizí z přihlášky `jazykEshopu`.
 - **E-maily:** fáze 5 z plánu, navázat na šablony e-mailů v DB (PR #1362) s jazykem v klíči. Jazyk příjemce je `uzivatele_hodnoty.jazyk`.
-- **Zbytek Preact programu:** přihlašovátko v buňce, týmy a modální okna.
+- **Chyby z PHP API programu** (přihlášení na aktivitu, týmy) jsou česky: `web/moduly/api/aktivitaTym.php`, `model/Aktivita/AktivitaTym.php`, hlášky `hlaska()` z `Aktivita::prihlasovatkoZpracujBezBack()` (`nastaveni/hlasky/`). Preact je jen zobrazí. Náhodné názvy týmů (`ui/src/utils/nazevTymu.ts`, `NazevTymuGenerator`) jsou česky.
 - **CMS podstránky bez překladu:** pravidla turnajů DrD, D&D a Legend, archivní stránky, novinky a blog.
 - **Sitemapa** zatím neobsahuje `/en/` adresy, stačí `hreflang` v HTML.
 - **Zastaralé údaje v českých textech** (převzaté i do angličtiny): kontakty mají datum ročníku 2026, RPG návody a boží larp jsou psané pro dřívější ročník, v „Jak si vybrat hru“ jsou překlepy.
@@ -58,3 +61,4 @@ Stav k 20. 11. 2026: všechno je v [PR #1403](https://github.com/gamecon-cz/game
   - review třemi agenty a opravy: kanonická adresa a `hreflang` jen u přeložených stránek, cookie a účet jen z volby jazyka, filtr nezávislých aktivit, escapování `t()`, CHECK přes `BINARY`, časová zóna dat, statický JSON programu česky;
   - překlad titulky, linií, CMS stránek, tagů a filtrů programu.
 - 20. 11. 2026, druhé kolo podle připomínek uživatele: Game Masters a Talks, tichý štítek CZ, vedoucí linií, karty a seznam, minulé ročníky, fotogalerie, archiv přednášek, registrace, přihlášení a obnova hesla. Ke každému kolu proběhlo code review novým agentem.
+- Třetí kolo podle připomínek uživatele: celé rozhraní programu v Preactu (legenda, přihlašovátko, okna týmů), přihláška na GameCon kromě e-shopu a přehled financí. Větev je lineárně přerebasovaná na `main`, protože repozitář slučuje jen přes „Rebase and merge“ a merge commity mainu ve větvi GitHub neuměl přehrát.
