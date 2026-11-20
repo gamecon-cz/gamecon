@@ -28,6 +28,11 @@ class CategoryTag
     #[ORM\Column(name: 'nazev', length: 128, nullable: false)]
     private string $nazev;
 
+    #[ORM\Column(name: 'nazev_en', length: 255, nullable: true, options: [
+        'comment' => 'anglický název, NULL = jen česky',
+    ])]
+    private ?string $nazevEn = null;
+
     #[ORM\Column(name: 'poradi', type: Types::INTEGER, nullable: false, options: [
         'unsigned' => true,
     ])]
@@ -61,6 +66,18 @@ class CategoryTag
     public function setNazev(string $nazev): static
     {
         $this->nazev = $nazev;
+
+        return $this;
+    }
+
+    public function getNazevEn(): ?string
+    {
+        return $this->nazevEn;
+    }
+
+    public function setNazevEn(?string $nazevEn): static
+    {
+        $this->nazevEn = $nazevEn;
 
         return $this;
     }

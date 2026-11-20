@@ -15,6 +15,7 @@ import {
   useAktivitaNáhled,
   useAktivityFiltrované,
   useAktivityStatus,
+  useNázvyLinií,
   useUrlStav,
   useUrlVýběr,
 } from "../../../../store/program/selektory";
@@ -53,6 +54,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const urlStavVýběr = useUrlVýběr();
   const aktivityFiltrované = useAktivityFiltrované();
   const aktivityStatus = useAktivityStatus();
+  const názvyLinií = useNázvyLinií();
 
   const kompaktní = useProgramStore(s => s.všeobecné.kompaktní);
 
@@ -129,7 +131,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
         const nadpisSkupiny = (
           <td rowSpan={Math.max(řádků, 1)}>
-            <div class="program_nazevLinie">{popisekSkupiny(klíč)}</div>
+            <div class="program_nazevLinie">{popisekSkupiny(klíč, jeMístnost ? undefined : názvyLinií)}</div>
           </td>
         );
 

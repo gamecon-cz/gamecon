@@ -27,6 +27,11 @@ class TagSqlStructure
     public const nazev = 'nazev';
 
     /**
+     * @see Tag::$nazevEn
+     */
+    public const nazev_en = 'nazev_en';
+
+    /**
      * @see Tag::$poznamka
      */
     public const poznamka = 'poznamka';

@@ -11,5 +11,6 @@ class SjednoceneTagySqlStruktura
     public const ID                = 'id';
     public const ID_KATEGORIE_TAGU = 'id_kategorie_tagu';
     public const NAZEV             = 'nazev';
+    public const NAZEV_EN          = 'nazev_en';
     public const POZNAMKA          = 'poznamka';
 }

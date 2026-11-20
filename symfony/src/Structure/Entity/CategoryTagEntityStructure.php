@@ -20,6 +20,11 @@ class CategoryTagEntityStructure
     public const nazev = 'nazev';
 
     /**
+     * @see CategoryTag::$nazevEn
+     */
+    public const nazevEn = 'nazevEn';
+
+    /**
      * @see CategoryTag::$poradi
      */
     public const poradi = 'poradi';

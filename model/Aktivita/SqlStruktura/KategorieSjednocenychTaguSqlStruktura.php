@@ -10,6 +10,7 @@ class KategorieSjednocenychTaguSqlStruktura
 
     public const ID                  = 'id';
     public const NAZEV               = 'nazev';
+    public const NAZEV_EN            = 'nazev_en';
     public const ID_HLAVNI_KATEGORIE = 'id_hlavni_kategorie';
     public const PORADI              = 'poradi';
 }

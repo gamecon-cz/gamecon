@@ -6,6 +6,7 @@
 <table class="skryteRadky zvyraznovana" id="tagyTabulka">
   <tr>
     <th>Název</th>
+    <th>Anglický název</th>
     <th>Kategorie</th>
     <th>Poznámka</th>
     <th>Upravit</th>
@@ -14,6 +15,7 @@
   {hlavniKategorieTr}
   <tr id="tag{id}" data-tag="{tag_json}">
     <td id="tag{id}Nazev">{nazev}</td>
+    <td id="tag{id}NazevEn">{nazev_en}</td>
     <td id="tag{id}NazevKategorie" style="white-space: nowrap">{nazev_kategorie}</td>
     <td id="tag{id}Poznamka">{poznamka}</td>
     <td>
@@ -41,6 +43,7 @@
       if (editedTag) {
         $('#tag' + editedTag.id).data('tag', editedTag);
         document.getElementById('tag' + editedTag.id + 'Nazev').textContent = editedTag.nazev;
+        document.getElementById('tag' + editedTag.id + 'NazevEn').textContent = editedTag.nazev_en;
         document.getElementById('tag' + editedTag.id + 'NazevKategorie').textContent = editedTag.nazev_kategorie;
         document.getElementById('tag' + editedTag.id + 'Poznamka').textContent = editedTag.poznamka;
       }

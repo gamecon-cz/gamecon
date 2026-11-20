@@ -23,11 +23,12 @@ export const názevDneVTýdnu = (datum: Date | number): string =>
 
 /**
  * Popisek skupiny v tabulce programu: den (klíčem je český název s háčky) přeloží,
- * ostatní klíče (linie, místnost) vrátí, jak jsou.
+ * linii (klíčem je český název) vezme z `názvyLinií` (useNázvyLinií()), ostatní klíče
+ * (místnost) vrátí, jak jsou.
  */
-export const popisekSkupiny = (klíč: string): string => {
+export const popisekSkupiny = (klíč: string, názvyLinií: Record<string, string> = {}): string => {
   const index = DNY_NÁZVY_S_HÁČKY.indexOf(klíč);
-  return index === -1 ? klíč : t(KLÍČE_DNŮ[DNY_NÁZVY[index]]);
+  return index === -1 ? (názvyLinií[klíč] ?? klíč) : t(KLÍČE_DNŮ[DNY_NÁZVY[index]]);
 };
 
 /** „pátek 18.7." / „Friday 18/7", s `pouzeText` jen den */

@@ -77,6 +77,7 @@ class ProgramStaticFileGenerator implements ResetInterface
      *
      * Nedávej sem texty v jazyce stránky (t(), DatumVJazyce): uživatelské API ji volá v jazyce
      * požadavku, statické JSONy ve výchozím jazyce, a obě cesty se musí shodovat. Překládá Preact.
+     * Text z DB, který má anglickou verzi, jde proto do JSONu v obou jazycích (`linie` a `linieEn`).
      *
      * @return array<string, mixed>
      */
@@ -105,7 +106,9 @@ class ProgramStaticFileGenerator implements ResetInterface
                 'od' => $zacatekAktivity->getTimestamp() * 1000,
                 'do' => $konecAktivity->getTimestamp() * 1000,
             ],
+            // český název je klíč (seskupení, filtr ?linie=), anglický jen k zobrazení, bez překladu český
             'linie'           => $activity->typ()->nazev(),
+            'linieEn'         => $activity->typ()->getNazevVJazyce(Jazyk::ANGLICTINA),
             'jazyk'           => $activity->jazyk()->value,
             'turnajId'        => $activity->turnaj()?->getId(),
             'turnajKolo'      => $activity->turnajKolo(),
@@ -148,10 +151,18 @@ class ProgramStaticFileGenerator implements ResetInterface
                 static function (
                     $tag,
                 ) {
+                    // český název kategorie je klíč (seskupení ve filtru), anglické názvy jsou jen k zobrazení,
+                    // bez překladu české (JSON sdílí oba jazyky webu, viz veSdilenemJazyce())
                     return [
-                        'id'             => (int) $tag['id'],
-                        'nazev'          => $tag['nazev'],
-                        'nazevKategorie' => $tag['nazev_kategorie'],
+                        'id'      => (int) $tag['id'],
+                        'nazev'   => $tag['nazev'],
+                        'nazevEn' => $tag['nazev_en'] !== ''
+                            ? $tag['nazev_en']
+                            : $tag['nazev'],
+                        'nazevKategorie'   => $tag['nazev_kategorie'],
+                        'nazevKategorieEn' => $tag['nazev_kategorie_en'] !== ''
+                            ? $tag['nazev_kategorie_en']
+                            : $tag['nazev_kategorie'],
                     ];
                 },
                 $tagy,
