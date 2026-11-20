@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita;
 
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+
 /**
  * Šéf sekce (linie) z hlavičky linie: tabulka akce_typy_hlavicky, admin Web → Hlavičky linií. Jediné místo, odkud ho
  * bere hlavička stránky linie (web/moduly/aktivity.php) i upozornění na věk, e-mail a report o mladším účastníkovi.
- * Linie bez vyplněného e-mailu v hlavičce má šéfa programu na info@gamecon.cz.
+ * Linie bez vyplněného e-mailu v hlavičce má šéfa programu na info@gamecon.cz. Sekci má hlavička i anglicky (`sekce_en`)
+ * pro stránku linie pod `/en/`.
  */
 class KontaktSefaLinie
 {
@@ -18,7 +22,7 @@ class KontaktSefaLinie
      * Hlavičky všech linií, načtené jedním dotazem při prvním dotazu v požadavku: upozornění na věk se v programu
      * počítá u každé aktivity. Hlavička se mění v jiném požadavku (admin Web → Hlavičky linií).
      *
-     * @var array<int, array{sekce: string|null, jmeno: string|null, email: string|null}>|null
+     * @var array<int, array{sekce: string|null, sekce_en: string|null, jmeno: string|null, email: string|null}>|null
      */
     private static ?array $hlavickyPodleTypu = null;
 
@@ -27,7 +31,7 @@ class KontaktSefaLinie
         if (self::$hlavickyPodleTypu === null) {
             self::$hlavickyPodleTypu = [];
             foreach (dbFetchAll(<<<'SQL'
-                SELECT id_typu, sekce, jmeno, email FROM akce_typy_hlavicky
+                SELECT id_typu, sekce, sekce_en, jmeno, email FROM akce_typy_hlavicky
                 SQL) as $hlavicka) {
                 self::$hlavickyPodleTypu[(int) $hlavicka['id_typu']] = $hlavicka;
             }
@@ -36,6 +40,7 @@ class KontaktSefaLinie
 
         return new self(
             sekce: $hlavicka['sekce'] ?? null,
+            sekceEn: $hlavicka['sekce_en'] ?? null,
             jmeno: $hlavicka['jmeno'] ?? null,
             email: $hlavicka['email'] ?? null,
         );
@@ -51,17 +56,19 @@ class KontaktSefaLinie
     }
 
     private readonly ?string $sekce;
+    private readonly ?string $sekceEn;
     private readonly ?string $jmeno;
     private readonly ?string $email;
 
     /**
      * Hodnoty z hlavičky linie, prázdné jako null.
      */
-    private function __construct(?string $sekce, ?string $jmeno, ?string $email)
+    private function __construct(?string $sekce, ?string $sekceEn, ?string $jmeno, ?string $email)
     {
-        $this->sekce = self::neprazdne($sekce);
-        $this->jmeno = self::neprazdne($jmeno);
-        $this->email = self::neprazdne($email);
+        $this->sekce   = self::neprazdne($sekce);
+        $this->sekceEn = self::neprazdne($sekceEn);
+        $this->jmeno   = self::neprazdne($jmeno);
+        $this->email   = self::neprazdne($email);
     }
 
     private static function neprazdne(?string $hodnota): ?string
@@ -78,6 +85,18 @@ class KontaktSefaLinie
      */
     public function getSekce(): ?string
     {
+        return $this->sekce;
+    }
+
+    /**
+     * Sekce pro čtenáře stránky linie, v jazyce stránky (nebo v předaném); bez anglického textu česky, bez sekce null.
+     */
+    public function getSekceVJazyce(?Jazyk $jazyk = null): ?string
+    {
+        if (($jazyk ?? AktualniJazyk::jazyk()) === Jazyk::ANGLICTINA && $this->sekceEn !== null) {
+            return $this->sekceEn;
+        }
+
         return $this->sekce;
     }
 

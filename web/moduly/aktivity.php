@@ -304,7 +304,7 @@ if (!empty($org)) {
         : $typ->getNazevVJazyce();
     $this->info()->nazev(mb_ucfirst($nazevLinie) . $pripojkaRocniku);
 
-    // stejný kontakt dostane mladší účastník v upozornění na věk
+    // stejný kontakt dostane mladší účastník v upozornění na věk; bez hlavičky zástupné texty
     $sefSekce = KontaktSefaLinie::zTypu($typ->id());
 
     $picture_path = URL_WEBU . '/' . cestaObrazkuLinie($typ->id());
@@ -313,9 +313,10 @@ if (!empty($org)) {
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
         'ikonaLinie'      => $picture_path,
-        'ikonaLinieSekce' => $sefSekce->getSekce() ?? 'Sekce',
-        'ikonaLinieJmeno' => $sefSekce->getJmeno() ?? 'Jmeno "Prezdivka" Prijmeni',
-        'ikonaLinieEmail' => $sefSekce->getEmail(),
+        // texty z adminu jsou prostý text jako t(), do HTML se escapují
+        'ikonaLinieSekce' => htmlspecialchars($sefSekce->getSekceVJazyce() ?? t('linie.hlavicka.sekce')),
+        'ikonaLinieJmeno' => htmlspecialchars($sefSekce->getJmeno() ?? t('linie.hlavicka.jmeno')),
+        'ikonaLinieEmail' => htmlspecialchars($sefSekce->getEmail()),
         'specTridy'       => $typ->id() == TypAktivity::DRD
             ? 'aktivity_aktivity-drd'
             : null,

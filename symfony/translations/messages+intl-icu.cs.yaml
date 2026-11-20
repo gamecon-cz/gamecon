@@ -24,6 +24,31 @@ jazyk_aktivity:
     cesky_i_anglicky: česky i anglicky
     nezavisla: jazykově nezávislá
 
+# stránka linie (web/moduly/aktivity.php) a archiv přednášek pod linií přednášek (web/moduly/archivprednasek.php)
+linie:
+    # zástupné texty hlavičky linie, která v adminu (Web → Hlavičky linií) nemá vyplněno, kdo linii vede
+    hlavicka:
+        sekce: Sekce
+        jmeno: 'Jmeno "Prezdivka" Prijmeni'
+    archiv_prednasek:
+        popis: Přednášky z minulých ročníků GameConu, u některých i se záznamem.
+        letosni: Letošní přednášky
+        pocet: "Přednášek v archivu: {pocet}"
+        vybrani: "Přednášky, kde přednáší {prednasejici}: {pocet}."
+        vsechny: Všechny přednášky
+        prednasky_rocniku: Přednášky ročníku {rok}
+        karta_v_programu: Karta v programu
+        prednasi: "Přednáší:"
+        prednasky_prednasejiciho: Přednášky, kde přednáší {jmeno}
+        medailonek: "Medailonek: {jmeno}"
+        bez_zaznamu: bez záznamu
+        cela_anotace: Celá anotace
+        anotace: Anotace
+        prehrat_zaznam: "Přehrát záznam: {nazev}"
+        prehrat_na_youtube: Přehrát na YouTube
+        prazdny: Archiv je zatím prázdný.
+        klicova_slova: Klíčová slova
+
 menu:
     prihlasit: přihlásit
     finance: Finance

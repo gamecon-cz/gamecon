@@ -24,6 +24,31 @@ jazyk_aktivity:
     cesky_i_anglicky: in Czech and English
     nezavisla: language-independent
 
+# line page (web/moduly/aktivity.php) and the talks archive under the line of talks (web/moduly/archivprednasek.php)
+linie:
+    # placeholders in the header of a line whose head is not filled in the admin (Web → Hlavičky linií)
+    hlavicka:
+        sekce: Section
+        jmeno: 'Name "Nickname" Surname'
+    archiv_prednasek:
+        popis: Talks from past years of GameCon, some of them with a recording.
+        letosni: This year’s talks
+        pocet: "Talks in the archive: {pocet}"
+        vybrani: "Talks given by {prednasejici}: {pocet}."
+        vsechny: All talks
+        prednasky_rocniku: Talks from {rok}
+        karta_v_programu: Programme entry
+        prednasi: "Given by:"
+        prednasky_prednasejiciho: Talks given by {jmeno}
+        medailonek: "Profile: {jmeno}"
+        bez_zaznamu: no recording
+        cela_anotace: Full description
+        anotace: Description
+        prehrat_zaznam: "Play recording: {nazev}"
+        prehrat_na_youtube: Watch on YouTube
+        prazdny: The archive is empty for now.
+        klicova_slova: Keywords
+
 menu:
     prihlasit: log in
     finance: Payments

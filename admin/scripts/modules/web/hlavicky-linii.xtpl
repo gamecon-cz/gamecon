@@ -93,6 +93,11 @@
         </label>
 
         <label>
+          Sekce anglicky (prázdná = na anglickém webu česky)<br>
+          <input type="text" name="sekce_en" value="{sekce_en}" lang="en" placeholder="head of …">
+        </label>
+
+        <label>
           Jméno<br>
           <input type="text" name="jmeno" value="{jmeno}">
         </label>
