@@ -46,6 +46,11 @@ class AnonymizovanaDatabaze
         'bingo_karta',
         'bingo_karta_pole',
         'bingo_zazneni',
+        'turnaj_hodnoceni_sablona',  // tournament judging criteria typed by its organizer, internal until published
+        'turnaj_hodnoceni_kategorie',
+        'turnaj_hodnoceni_kriterium',
+        'turnaj_hodnoceni',          // narrators' ratings of teams, point at akce_tym emptied above
+        'turnaj_hodnoceni_hodnota',
     ];
 
     public static function vytvorZGlobals(): self

@@ -39,6 +39,7 @@ class Pravo extends \DbObject
     public const ADMINISTRACE_DEV           = 113;
     public const PREPNUTI_NA_UZIVATELE      = 114; // Smí se v adminu přihlásit (přepnout) jako libovolný uživatel (dříve hardcoded superadmin)
     public const ADMINISTRACE_BINGO         = 116; // Bingo z jednání rady, migrace ho dala rolím s titulem organizátora
+    public const ADMINISTRACE_HODNOCENI_TURNAJE = 117; // Kritéria hodnocení turnaje D&D, výsledky a export (org turnaje), 115 bere větev 1510
 
     public const PLACKA_ZDARMA    = 1002;
     public const KOSTKA_ZDARMA    = 1003;

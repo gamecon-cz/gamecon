@@ -169,6 +169,24 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             'bingo_zazneni' => <<<'SQL'
                 INSERT INTO bingo_zazneni SET id_jednani = 1, id_fraze = 1, id_uzivatele = 100, kdy = NOW()
                 SQL,
+            'turnaj_hodnoceni_sablona' => <<<'SQL'
+                INSERT INTO turnaj_hodnoceni_sablona
+                SET id = 1, rok = 2026, id_typu = 14, skala = '1 2', zdroj = 'Škála: 1 2', nahrano = NOW(), id_nahral = 100
+                SQL,
+            'turnaj_hodnoceni_kategorie' => <<<'SQL'
+                INSERT INTO turnaj_hodnoceni_kategorie SET id = 1, id_sablony = 1, poradi = 1, nazev = 'Hraní rolí'
+                SQL,
+            'turnaj_hodnoceni_kriterium' => <<<'SQL'
+                INSERT INTO turnaj_hodnoceni_kriterium SET id = 1, id_kategorie = 1, poradi = 1, nazev = 'Postavy'
+                SQL,
+            'turnaj_hodnoceni' => <<<'SQL'
+                INSERT INTO turnaj_hodnoceni
+                SET id = 1, id_sablony = 1, id_tymu = 1, kolo = 1, id_akce = 1, id_hodnotitele = 100,
+                    vytvoreno = NOW(), upraveno = NOW()
+                SQL,
+            'turnaj_hodnoceni_hodnota' => <<<'SQL'
+                INSERT INTO turnaj_hodnoceni_hodnota SET id_hodnoceni = 1, id_kriteria = 1, hodnota = 5
+                SQL,
         ];
 
         self::assertEqualsCanonicalizing(
