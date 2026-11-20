@@ -14,6 +14,8 @@ import { PrihlaseniKapitana } from "./PrihlaseniKapitana";
 import { useAktivity, useNastaveniTymuModalAktivitaId, useNastaveniTymuModalData } from "../../store/program/selektory";
 import { denAktivity } from "../../store/program/logic/aktivity";
 import { Aktivita } from "../../store/program/slices/programDataSlice";
+import { t } from "../../i18n";
+import { zkratkaDne } from "../../i18n/program";
 
 type PripravaTymuProps = {
   casSmazaniRozpracovanyMs: number | undefined;
@@ -59,9 +61,7 @@ const useOdpočet = (casExpiraceMs: number): [string, boolean] => {
 export const ziskejDenCasAktivity = (a: Aktivita): string => {
   const časOd = new Date(a.cas.od);
   const časDo = new Date(a.cas.do);
-  const den = denAktivity(časOd)?.toLocaleDateString("cs-CZ", {
-    weekday: "short"
-  }) ?? "";
+  const den = zkratkaDne(denAktivity(časOd));
   const formatCas = (d: Date) => `${d.getHours().toString().padStart(2, " ")}:${d.getMinutes().toString().padStart(2, "0")}`;
 
   return `${den} ${formatCas(časOd)}–${formatCas(časDo)}`;
@@ -143,7 +143,10 @@ export const PripravaTymu: FunctionComponent<PripravaTymuProps> = ({
     .map((k) => {
       const aktivitaKola = aktivityTymu
         .find(aktivita => k.aktivity.some(a => a.id === aktivita.id))
-      return "kolo " + k.cisloKola.toString(10) + ". " + (aktivitaKola ? ziskejDenCasAktivity(aktivitaKola) : "");
+      return t("tym.priprava.kolo_termin", {
+        kolo: k.cisloKola.toString(10),
+        termin: aktivitaKola ? ziskejDenCasAktivity(aktivitaKola) : "",
+      });
     })
     .join("\n");
 

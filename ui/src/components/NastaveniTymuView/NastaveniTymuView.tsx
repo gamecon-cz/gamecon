@@ -24,6 +24,7 @@ import { Alert } from "./Alert";
 import { IconBrushStroke, IconArrowRight } from "./Ikony";
 import { useAktivity } from "../../store/program/selektory";
 import { ziskejDenCasAktivity } from "../PripravaTymu/PripravaTymu";
+import { t } from "../../i18n";
 
 import "./NastaveniTymuView.less";
 
@@ -87,7 +88,9 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   );
 
   const onOdhlasitSPotvrzenim = sPotvrzením(
-    `Opravdu se chcete odhlásit z aktivity${nazevAktivity ? ` ${nazevAktivity}` : ""} a opustit tým?`,
+    nazevAktivity
+      ? t("tym.otazka.odhlasit", { aktivita: nazevAktivity })
+      : t("tym.otazka.odhlasit_bez_nazvu"),
     onOdhlásit
   );
 
@@ -98,34 +101,40 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
   const onPrihlasitKapitana = () => { void onProveďAkci({ typ: "prihlasKapitana" }); };
 
   const onSmazatTym = sPotvrzením(
-    `Opravdu chcete smazat tým z aktivity ${nazevAktivity ? ` ${nazevAktivity}` : ""} ?`,
+    nazevAktivity
+      ? t("tym.otazka.smazat", { aktivita: nazevAktivity })
+      : t("tym.otazka.smazat_bez_nazvu"),
     () => { void onProveďAkci({ typ: "smazTym" }); }
   );
 
   const onZamkniTym = sPotvrzením(
-    `Opravdu chcete zamknout tým ${týmNázev}? Tým se poté nebude moci editovat. Tato akce je nevratná.`,
+    t("tym.otazka.zamknout", { tym: týmNázev }),
     () => { void onProveďAkci({ typ: "zamkni" }); }
   );
 
   const onPřegenrovatSPotvrzením = sPotvrzením(
-    "Opravdu chcete přegenerovat kód týmu? Starý kód přestane fungovat.",
+    t("tym.otazka.pregenerovat"),
     () => { void onProveďAkci({ typ: "pregenerujKod" }); }
   );
 
   const onPředejKapitánaSPotvrzením = (clen: ClenTymu) => sPotvrzením(
-    `Opravdu chcete předat kapitána hráči ${clen.jmeno}?`,
+    t("tym.otazka.predat_kapitana", { hrac: clen.jmeno }),
     () => { void onProveďAkci({ typ: "predejKapitana", idNovehoKapitana: clen.id }); }
   )();
 
   const onOdebratČlenaSPotvrzením = (clen: ClenTymu) => sPotvrzením(
-    `Opravdu chcete odebrat hráče ${clen.jmeno} z týmu ${týmNázev}${nazevAktivity ? ` na aktivitě ${nazevAktivity}` : ""}?`,
+    nazevAktivity
+      ? t("tym.otazka.odebrat", { hrac: clen.jmeno, tym: týmNázev, aktivita: nazevAktivity })
+      : t("tym.otazka.odebrat_bez_aktivity", { hrac: clen.jmeno, tym: týmNázev }),
     () => { void onProveďAkci({ typ: "odhlasClena", idClena: clen.id }); }
   )();
 
   const onOdhlasitAktivituSPotvrzením = (aktivitaId: number) => {
     const aktivita = vsechnyAktivity.find(a => a.id === aktivitaId);
     sPotvrzením(
-      `Opravdu se chcete odhlásit z aktivity${aktivita?.nazev ? ` ${aktivita.nazev}` : ""}?`,
+      aktivita?.nazev
+        ? t("tym.otazka.odhlasit_aktivitu", { aktivita: aktivita.nazev })
+        : t("tym.otazka.odhlasit_aktivitu_bez_nazvu"),
       () => onOdhlasitAktivitu(aktivitaId)
     )();
   };
@@ -140,13 +149,13 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
     <div class="gc-tm-scrim" onClick={(e) => { if (e.target === e.currentTarget) setPotvrzení(null); }}>
       <div class="gc-tm-modal gc-tm-root" style={{ width: "min(420px, 100%)" }}>
         <div class="gc-tm-body" style={{ padding: 24 }}>
-          <div class="gc-tm-eyebrow">Potvrzení</div>
+          <div class="gc-tm-eyebrow">{t("tym.potvrzeni")}</div>
           <p style={{ fontSize: 15, lineHeight: 1.5, margin: "8px 0 18px" }}>{potvrzení.text}</p>
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-            <button class="gc-tm-btn gc-tm-btn--ghost" onClick={() => setPotvrzení(null)}>Zrušit</button>
+            <button class="gc-tm-btn gc-tm-btn--ghost" onClick={() => setPotvrzení(null)}>{t("tym.zrusit")}</button>
             <button class="gc-tm-btn gc-tm-btn--primary"
                     onClick={() => { potvrzení.akce(); setPotvrzení(null); }}>
-              Potvrdit
+              {t("tym.potvrdit")}
             </button>
           </div>
         </div>
@@ -161,7 +170,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
         <button class="gc-tm-btn gc-tm-btn--danger gc-tm-btn--sm"
                 onClick={onSmazatTym}
                 disabled={načítá || načítáAkci}>
-          🗑 Smazat tým
+          {t("tym.smazat")}
         </button>
       )}
       {GAMECON_KONSTANTY.JE_ADMIN && data?.tym?.zamceny && (
@@ -173,7 +182,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
         <button class="gc-tm-btn gc-tm-btn--danger gc-tm-btn--sm"
                 onClick={onOdhlasitSPotvrzenim}
                 disabled={data?.tym?.zamceny}>
-          Odhlásit!
+          {t("tym.odhlasit")}
         </button>
       )}
     </div>
@@ -189,8 +198,8 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           {/* Header */}
           <div class="gc-tm-header">
             <IconBrushStroke className="gc-tm-brush" />
-            <div class="gc-tm-eyebrow">Nastavení týmu</div>
-            <h2 class="gc-tm-title">{nazevAktivity ?? "Aktivita"}</h2>
+            <div class="gc-tm-eyebrow">{t("aktivity.nastaveni_tymu")}</div>
+            <h2 class="gc-tm-title">{nazevAktivity ?? t("tym.aktivita")}</h2>
             {headerCasy.length > 0 && (
               <div class="gc-tm-subtitle">
                 {headerCasy.map((cas, i) => (
@@ -198,7 +207,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                 ))}
               </div>
             )}
-            <button class="gc-tm-close" onClick={onZavřít} aria-label="Zavřít">×</button>
+            <button class="gc-tm-close" onClick={onZavřít} aria-label={t("tym.zavrit")}>×</button>
             {dangerSlot}
           </div>
 
@@ -206,13 +215,13 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           <div class="gc-tm-body">
             {(načítá || načítáAkci) && (
               <Alert kind="warning" icon="⏳">
-                <div class="gc-tm-alert__title">Načítám…</div>
+                <div class="gc-tm-alert__title">{t("tym.nacitam")}</div>
               </Alert>
             )}
 
             {chyba && (
               <Alert kind="danger" icon="!">
-                <div class="gc-tm-alert__title">Chyba</div>
+                <div class="gc-tm-alert__title">{t("tym.chyba")}</div>
                 <div class="gc-tm-alert__desc">{chyba}</div>
               </Alert>
             )}
@@ -233,25 +242,25 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
               <>
                 <div class="gc-tm-section">
                   <div class="gc-tm-section-label">
-                    Nový tým <span class="gc-tm-section-label__dash" />
+                    {t("tym.novy")} <span class="gc-tm-section-label__dash" />
                   </div>
                   <button
                     class="gc-tm-btn gc-tm-btn--primary gc-tm-btn--lg gc-tm-btn--full"
                     disabled={!můžeZaložitTým}
                     onClick={onZaložitTým}
                   >
-                    ✱ Založit nový tým <IconArrowRight />
+                    {t("tym.zalozit")} <IconArrowRight />
                   </button>
                   <div style={{ fontSize: 12.5, color: "var(--ink-3)", marginTop: 8 }}>
-                    Stanete se kapitánem a po vybrání kol pozvete spoluhráče kódem.
+                    {t("tym.zalozit_popis")}
                   </div>
                 </div>
 
-                <div class="gc-tm-or">nebo</div>
+                <div class="gc-tm-or">{t("tym.nebo")}</div>
 
                 <div class="gc-tm-section" style={{ marginTop: 0 }}>
                   <div class="gc-tm-section-label">
-                    Přidat se kódem <span class="gc-tm-section-label__dash" />
+                    {t("tym.pridat_se_kodem")} <span class="gc-tm-section-label__dash" />
                   </div>
                   <div class="gc-tm-code-join">
                     <input
@@ -266,7 +275,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                       disabled={kódPřipojeníDoTýmu.length < 4}
                       onClick={() => onPřipojitSe(undefined, +kódPřipojeníDoTýmu)}
                     >
-                      Připoj se
+                      {t("tym.pripoj_se")}
                     </button>
                   </div>
                 </div>
@@ -274,7 +283,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
                 {data?.vsechnyTymy && data.vsechnyTymy.length > 0 && (
                   <div class="gc-tm-section">
                     <div class="gc-tm-section-label">
-                      Veřejné týmy <span class="gc-tm-section-label__dash" />
+                      {t("tym.verejne_tymy")} <span class="gc-tm-section-label__dash" />
                     </div>
                     <SeznamTymu
                       tymy={data.vsechnyTymy}
@@ -305,7 +314,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
             {data?.vsechnyTymy && data.vsechnyTymy.length > 0 && modalMáTým && (
               <div class="gc-tm-section" style={{ marginTop: 8 }}>
                 <div class="gc-tm-section-label">
-                  Všechny týmy u aktivity <span class="gc-tm-section-label__dash" />
+                  {t("tym.vsechny_tymy")} <span class="gc-tm-section-label__dash" />
                 </div>
                 <SeznamTymu
                   tymy={data.vsechnyTymy}
@@ -319,7 +328,7 @@ export const NastaveniTymuView: FunctionComponent<NastaveniTymuViewProps> = (pro
           {/* Footer */}
           <div class="gc-tm-footer">
             <div class="gc-tm-footer__left" />
-            <button class="gc-tm-btn gc-tm-btn--ghost" onClick={onZavřít}>Zavřít</button>
+            <button class="gc-tm-btn gc-tm-btn--ghost" onClick={onZavřít}>{t("tym.zavrit")}</button>
           </div>
         </div>
       </div>

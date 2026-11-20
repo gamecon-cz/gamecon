@@ -32,7 +32,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
   return (
     <>
       <div class="program_hlavicka">
-        <h1>Program {urlStav.ročník}</h1>
+        <h1>{t("program.nadpis.rocnik", { rocnik: urlStav.ročník })}</h1>
         <div class="program_dny">
           {urlStavMožnosti.map((možnost) => {
             return (

@@ -10,6 +10,7 @@ import { FunctionComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import { UpozorneniOdpocet } from "./UpozorneniOdpocet";
 import { IconArrowRight } from "../NastaveniTymuView/Ikony";
+import { t } from "../../i18n";
 
 export type KoloAktivity = {
   cisloKola: number;
@@ -52,15 +53,15 @@ export const VyberKolAktivity: FunctionComponent<VyberKolAktivityProps> = ({
     <div>
       <UpozorneniOdpocet
         zbyvajiciCas={zbyvajiciCas}
-        podtexty="Zvol si aktivity pro všechna kola a přihlas se jako kapitán."
+        podtexty={t("tym.priprava.zvol_kola")}
       />
 
       {kola.map((kolo) => (
         <div class="gc-tm-round" key={kolo.cisloKola}>
-          <div class="gc-tm-round__label">KOLO {kolo.cisloKola}</div>
+          <div class="gc-tm-round__label">{t("tym.priprava.kolo", { kolo: kolo.cisloKola })}</div>
 
           {kolo.aktivity.length === 0 ? (
-            <div class="gc-tm-empty-state">— žádné termíny —</div>
+            <div class="gc-tm-empty-state">{t("tym.priprava.zadne_terminy")}</div>
           ) : (
             <div class="gc-tm-round__options">
               {kolo.aktivity.map((aktivita) => {
@@ -80,7 +81,7 @@ export const VyberKolAktivity: FunctionComponent<VyberKolAktivityProps> = ({
                     />
                     <span class="gc-tm-round-opt__dot" />
                     <span class="gc-tm-round-opt__time" dangerouslySetInnerHTML={{ __html: aktivita.cas }} />
-                    {jedinaMoznost && <span class="gc-tm-round-opt__meta">jediný termín</span>}
+                    {jedinaMoznost && <span class="gc-tm-round-opt__meta">{t("tym.priprava.jediny_termin")}</span>}
                   </label>
                 );
               })}
@@ -95,7 +96,7 @@ export const VyberKolAktivity: FunctionComponent<VyberKolAktivityProps> = ({
         onClick={onPotvrdit}
         style={{ marginTop: 18 }}
       >
-        {nacita ? "Zpracovávám…" : "Potvrdit výběr"}
+        {t(nacita ? "tym.priprava.zpracovavam" : "tym.priprava.potvrdit_vyber")}
         {!nacita && <IconArrowRight />}
       </button>
     </div>

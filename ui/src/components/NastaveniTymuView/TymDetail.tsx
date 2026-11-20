@@ -12,6 +12,7 @@ import { ApiAktivitaTym, ClenTymu } from "../../api/program";
 import { generujNahodnyNazevTymu } from "../../utils/nazevTymu";
 import { Alert } from "./Alert";
 import { IconCopy, IconDice } from "./Ikony";
+import { t, tSPrvky } from "../../i18n";
 
 type TymDetailProps = {
   data: NastaveniTymuData;
@@ -68,8 +69,8 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
 
   const status = dataTymu?.zamceny ? (
     <Alert kind="success" icon="✓">
-      <div class="gc-tm-alert__title">Tým je zamčený a připravený k hraní</div>
-      <div class="gc-tm-alert__desc">Užijte si hru. 🎲</div>
+      <div class="gc-tm-alert__title">{t("tym.zamceny")}</div>
+      <div class="gc-tm-alert__desc">{t("tym.uzijte_si_hru")}</div>
     </Alert>
   ) : (
     <OdpočetExpiraceAktivity
@@ -82,7 +83,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
   const sekceNazev = jeVTymu && (
     <div class="gc-tm-section" style={{ marginTop: 0 }}>
       <div class="gc-tm-section-label">
-        Název týmu <span class="gc-tm-section-label__dash" />
+        {t("tym.nazev")} <span class="gc-tm-section-label__dash" />
       </div>
       {nazevEditovatelny ? (
         <div class="gc-tm-name-edit">
@@ -90,7 +91,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
             class="gc-tm-input"
             value={nazevDraft}
             maxLength={255}
-            placeholder="Zadejte název týmu"
+            placeholder={t("tym.nazev_zadejte")}
             onInput={(e) => setNazevDraft(e.currentTarget.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") ulozNazev();
@@ -99,7 +100,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
           />
           <button
             class="gc-tm-icon-btn"
-            title="Vygenerovat náhodný název"
+            title={t("tym.nazev_nahodny")}
             onClick={() => setNazevDraft(generujNahodnyNazevTymu())}
           >
             <IconDice size={18} />
@@ -109,12 +110,12 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
             disabled={nazevDraft.trim() === nazevServer}
             onClick={ulozNazev}
           >
-            Uložit
+            {t("tym.ulozit")}
           </button>
         </div>
       ) : (
         <div style={{ fontWeight: 700, fontSize: 18 }}>
-          {nazevServer || <span style={{ color: "var(--ink-3)", fontStyle: "italic", fontWeight: 500 }}>bez názvu</span>}
+          {nazevServer || <span style={{ color: "var(--ink-3)", fontStyle: "italic", fontWeight: 500 }}>{t("tym.bez_nazvu")}</span>}
         </div>
       )}
     </div>
@@ -124,13 +125,13 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
     <div class="gc-tm-section">
       <div class="gc-tm-code-box">
         <div>
-          <div class="gc-tm-code-box__label">Kód týmu</div>
+          <div class="gc-tm-code-box__label">{t("tym.kod")}</div>
           <div class="gc-tm-code-box__value">{dataTymu.kod}</div>
         </div>
         <div class="gc-tm-code-box__right">
           <button
             class="gc-tm-icon-btn"
-            title={zkopírováno ? "Zkopírováno!" : "Zkopírovat"}
+            title={t(zkopírováno ? "tym.zkopirovano" : "tym.zkopirovat")}
             onClick={() => zkopírujKód(dataTymu.kod!)}
           >
             {zkopírováno ? "✓" : <IconCopy size={16} />}
@@ -140,7 +141,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
               class="gc-tm-btn gc-tm-btn--ghost gc-tm-btn--sm"
               onClick={onPřegenrovatSPotvrzením}
             >
-              Přegenerovat
+              {t("tym.pregenerovat")}
             </button>
           )}
         </div>
@@ -151,20 +152,20 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
   const sekceVerejnost = !dataTymu?.zamceny && jeKapitán && dataTymu?.verejny !== undefined && (
     <div class="gc-tm-section">
       <div class="gc-tm-section-label">
-        Viditelnost <span class="gc-tm-section-label__dash" />
+        {t("tym.viditelnost")} <span class="gc-tm-section-label__dash" />
       </div>
       <div class="gc-tm-vis-row">
         <div
           class={`gc-tm-vis-pill ${!dataTymu.verejny ? "is-active" : ""}`}
           onClick={() => dataTymu.verejny && onPřepniVerejnost()}
         >
-          🔒 Soukromý (jen na kód)
+          {t("tym.soukromy_popis")}
         </div>
         <div
           class={`gc-tm-vis-pill ${dataTymu.verejny ? "is-active" : ""}`}
           onClick={() => !dataTymu.verejny && onPřepniVerejnost()}
         >
-          🌐 Veřejný (otevřený)
+          {t("tym.verejny_popis")}
         </div>
       </div>
     </div>
@@ -173,7 +174,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
   const sekceClenove = dataTymu?.clenove && dataTymu.clenove.length > 0 && (
     <div class="gc-tm-section">
       <div class="gc-tm-section-label">
-        Členové týmu
+        {t("tym.clenove")}
         {limit !== null && (
           <span class="gc-tm-members-count">
             ({pocetClenu}/{limit}{minKapacita ? `, min. ${minKapacita}${maxKapacita !== null && limit < maxKapacita ? ` max. ${maxKapacita}` : ""}` : ""})
@@ -186,20 +187,20 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
         <div key={clen.id} class={`gc-tm-member ${clen.jeKapitan ? "gc-tm-member--captain" : ""}`}>
           <span class="gc-tm-member__avatar">{iniciály(clen.jmeno)}</span>
           <span class="gc-tm-member__name">{clen.jmeno}</span>
-          {clen.jeKapitan && <span class="gc-tm-member__badge">Kapitán</span>}
+          {clen.jeKapitan && <span class="gc-tm-member__badge">{t("tym.kapitan")}</span>}
           {!dataTymu?.zamceny && jeKapitán && !clen.jeKapitan && (
             <div class="gc-tm-member__actions">
               <button
                 class="gc-tm-btn gc-tm-btn--ghost gc-tm-btn--sm"
                 onClick={() => onPředejKapitánaSPotvrzením(clen)}
               >
-                Předat kapitána
+                {t("tym.predat_kapitana")}
               </button>
               <button
                 class="gc-tm-btn gc-tm-btn--ghost gc-tm-btn--sm"
                 onClick={() => onOdebratČlenaSPotvrzením(clen)}
               >
-                Odebrat
+                {t("tym.odebrat")}
               </button>
             </div>
           )}
@@ -212,14 +213,14 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
         return (
           <div key={`volne-${i}`} class={`gc-tm-member gc-tm-member--empty ${povinné ? "gc-tm-member--required" : ""}`}>
             <span class="gc-tm-member__avatar">+</span>
-            <span class="gc-tm-member__name">volné místo{povinné && " (povinné)"}</span>
+            <span class="gc-tm-member__name">{t(povinné ? "tym.volne_misto_povinne" : "tym.volne_misto")}</span>
           </div>
         );
       })}
 
       {!dataTymu?.zamceny && jeKapitán && limit !== null && (
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
-          <span style={{ fontSize: 12.5, color: "var(--ink-3)", fontWeight: 600 }}>Volných míst:</span>
+          <span style={{ fontSize: 12.5, color: "var(--ink-3)", fontWeight: 600 }}>{t("tym.volnych_mist")}</span>
           <div class="gc-tm-stepper">
             <button
               disabled={limit <= Math.max(pocetClenu, minKapacita)}
@@ -243,7 +244,7 @@ export const TymDetail: FunctionComponent<TymDetailProps> = ({
       onClick={onZamkniTym}
       style={{ marginTop: 18 }}
     >
-      🔒 Zamknout tým a začít hrát
+      {t("tym.zamknout")}
     </button>
   );
 
@@ -274,12 +275,13 @@ const OdpočetExpiraceAktivity: FunctionComponent<{
   return (
     <Alert kind={smaže ? "danger" : "warning"} icon="⏱">
       <div class="gc-tm-alert__title">
-        Za <span class="gc-tm-alert__count">{formatZbývá(odpočet)} h</span>{" "}
-        bude tým automaticky {smaže ? "smazán" : "zveřejněn"}
+        {tSPrvky(smaže ? "tym.odpocet.smazan" : "tym.odpocet.zverejnen", {
+          cas: <span class="gc-tm-alert__count">{formatZbývá(odpočet)} h</span>,
+        })}
       </div>
       <div class="gc-tm-alert__desc">
-        Kapitán musí tým zamknout.{" "}
-        {minKapacitaNaplněna ? "" : "Nejdříve naplň minimální kapacitu."}
+        {t("tym.kapitan_musi_zamknout")}{" "}
+        {minKapacitaNaplněna ? "" : t("tym.naplnit_minimum")}
       </div>
     </Alert>
   );
