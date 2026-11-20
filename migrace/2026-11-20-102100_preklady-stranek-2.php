@@ -48,7 +48,7 @@ And the **menu is on [this page](https://gamecon.cz/jidelnicek)**.
 
 
 ## Registering for GameCon and prices
-<p>There is <b>no entry fee</b> at GameCon, so you can take part in the festival for its whole duration completely <b>free of charge</b>. You only pay for the activities, accommodation and food you <b>actually order</b>. The board game library, lectures and part of the side programme are free!</p>
+<p>There is <b>no entry fee</b> at GameCon, so you can take part in the festival for its whole duration completely <b>free of charge</b>. You only pay for the activities, accommodation and food you <b>actually order</b>. The board game library, talks and part of the side programme are free!</p>
 
  <p>All you need to do is create a GameCon account and, once registration opens, fill in the <a href="prihlaska">registration form</a>.</p>
 
@@ -59,7 +59,7 @@ And the **menu is on [this page](https://gamecon.cz/jidelnicek)**.
 
 ## How activities work
 
-We warmly recommend trying sections you don’t know too! Unless stated otherwise, all games are suitable for newcomers and the storytellers will be happy to show you the ropes. You’ll find everything you need to know in the descriptions of the individual lines of activities.
+We warmly recommend trying sections you don’t know too! Unless stated otherwise, all games are suitable for newcomers and the game masters will be happy to show you the ropes. You’ll find everything you need to know in the descriptions of the individual lines of activities.
 
 <details>
 <summary>Programme waves and signing up for activities</summary>
@@ -71,8 +71,8 @@ We warmly recommend trying sections you don’t know too! Unless stated otherwis
         <ul>
 <li><p><b>Board game library</b>
 You don’t need to sign up for the board game library at all – just register for GameCon, check in at the info desk and you can play for free.</p></li>
-<li><p><b>Lectures</b>
-Lectures have no capacity limit and are free for participants; just sign up for them either through the <a href="program">Programme</a> or on their <a href="prednasky">line of activities</a>.</p></li>
+<li><p><b>Talks</b>
+Talks have no capacity limit and are free for participants; just sign up for them either through the <a href="program">Programme</a> or on their <a href="prednasky">line of activities</a>.</p></li>
 </ul></p>
 
 </article>
@@ -132,11 +132,11 @@ Lectures have no capacity limit and are free for participants; just sign up for 
 <details>
     <summary>Getting to your activities</summary>
    <article>
-        <p><b>Meet 15 minutes before the activity starts</b> at the meeting point (Sraziště), by the flag of the activity’s section. You’ll find the meeting point on the open space <b>in front of the halls of residence</b>. If you aren’t there on time, the storyteller may call you (keep your phone switched on), or your place may go to a substitute!</p>
+        <p><b>Meet 15 minutes before the activity starts</b> at the meeting point (Sraziště), by the flag of the activity’s section. You’ll find the meeting point on the open space <b>in front of the halls of residence</b>. If you aren’t there on time, the game master may call you (keep your phone switched on), or your place may go to a substitute!</p>
 
-<p>If you know in advance that <b>you’ll be late</b> but still plan to come, <b>let the info desk know, in person or by phone</b>. We’ll pass the message on to the storyteller.</p>
+<p>If you know in advance that <b>you’ll be late</b> but still plan to come, <b>let the info desk know, in person or by phone</b>. We’ll pass the message on to the game master.</p>
 
-<p><b>For a lecture, go straight to the lecture room. To get there, go through the lobby into building B, turn right just behind the door, and at the end of the corridor on the right you’ll find a door with a sign saying Přednášky (Lectures)</b>.</p>
+<p><b>For a talk, go straight to the talks room. To get there, go through the lobby into building B, turn right just behind the door, and at the end of the corridor on the right you’ll find a door with a sign saying Přednášky (Talks)</b>.</p>
 
 <p><b>You can drop in to the board game library</b> every day from 8:00 until 3:00 at night (from 14:00 on Thursday and until 14:00 on Sunday). You’ll find it in the gyms and in the corridor between buildings A and C, behind the info desk.</p>
 </article>
@@ -158,9 +158,9 @@ Lectures have no capacity limit and are free for participants; just sign up for 
 <details>
     <summary>Substitutes</summary>
    <article>
-<p>People drop out of many activities literally at the last minute, so you may be lucky and grab a place in a game even without signing up for it in advance. <b>Hang around the substitutes’ flag</b>, or step forward if you see a storyteller looking for a substitute.</p>
+<p>People drop out of many activities literally at the last minute, so you may be lucky and grab a place in a game even without signing up for it in advance. <b>Hang around the substitutes’ flag</b>, or step forward if you see a game master looking for a substitute.</p>
 
-<p>As a substitute, <b>you pay the full price of the activity</b>; the storyteller adds the activity to your programme afterwards by entering you in the attendance list. So <b>at the end of GameCon, make sure your balance isn’t in the red</b> – if it is, either settle it online or stop by the info desk (instant bank transfer or cash).</p>
+<p>As a substitute, <b>you pay the full price of the activity</b>; the game master adds the activity to your programme afterwards by entering you in the attendance list. So <b>at the end of GameCon, make sure your balance isn’t in the red</b> – if it is, either settle it online or stop by the info desk (instant bank transfer or cash).</p>
 </details>
 
 
@@ -170,7 +170,7 @@ If you are <b>under 15</b>, send us a scan of the signed [parental consent form]
 
 When choosing activities, check their <b>age limit</b> (every activity has a tag with the minimum age). If you are below the age limit but think you can handle the game, try getting in touch with the head of the section (you’ll find their contact on the section’s page under Activities) and agree on it directly with them.
 
-If you only want to supervise a child during an activity, <b>arrange it in advance</b> with the storyteller through the head of the section, to find out whether it’s possible. If not, please respect the storyteller’s wishes.
+If you only want to supervise a child during an activity, <b>arrange it in advance</b> with the game master through the head of the section, to find out whether it’s possible. If not, please respect the game master’s wishes.
 
 
 ## Rules of participation
@@ -178,7 +178,7 @@ If you only want to supervise a child during an activity, <b>arrange it in advan
 <details>
     <summary>1. Don’t be an idiot</summary>
     <article>
-        <p>If something interesting crosses your mind, try to think it through before you do it – especially in the evening! Be considerate of yourself and others. If you behave inappropriately or dangerously, a storyteller may exclude you from an activity and/or an organiser from GameCon, even without giving a reason or a refund. And for good. It has never happened so far and we’d like to keep it that way.</p>
+        <p>If something interesting crosses your mind, try to think it through before you do it – especially in the evening! Be considerate of yourself and others. If you behave inappropriately or dangerously, a game master may exclude you from an activity and/or an organiser from GameCon, even without giving a reason or a refund. And for good. It has never happened so far and we’d like to keep it that way.</p>
     </article>
 </details>
 
@@ -191,7 +191,7 @@ If you only want to supervise a child during an activity, <b>arrange it in advan
 <details>
     <summary>3. Quiet hours</summary>
     <article>
-        <p>They exist and GameCon is no exception. Some participants want to sleep, and many organisers and storytellers really need to, so that GameCon works for you too. And we want to stay on good terms with the university and the police.</p>
+        <p>They exist and GameCon is no exception. Some participants want to sleep, and many organisers and game masters really need to, so that GameCon works for you too. And we want to stay on good terms with the university and the police.</p>
 
         <p>So keep the mess to a minimum – both noise and litter – outside in the street and in the corridors. For late nights, head to the Night Lounge (Noční kecárna) in the Vrtule club, or to the board game library.</p>
 </details>
@@ -464,7 +464,7 @@ qualified psychologist Míša, who will be very glad to help you. Really. And ev
 <li><strong><a href="https://forms.gle/zkjgMmJXnxDVrPME7" target="_blank" rel="noopener noreferrer">General feedback</a></strong></li>
 </ul>
 
-<p>Don’t forget to rate the individual activities and storytellers too. GameCon is a labour of love for all of us, so we’re always glad to hear what you liked, or what we can work on for next year.</p>
+<p>Don’t forget to rate the individual activities and game masters too. GameCon is a labour of love for all of us, so we’re always glad to hear what you liked, or what we can work on for next year.</p>
 
 <ul>
 <li><strong><a href="https://forms.gle/pTYdB9ncmz8FvWHK7" target="_blank" rel="noopener noreferrer">Action games and bonuses</a></strong></li>
@@ -473,7 +473,7 @@ qualified psychologist Míša, who will be very glad to help you. Really. And ev
 <li><strong><a href="https://forms.gle/iSd9WK6kScSjqoVb6" target="_blank" rel="noopener noreferrer">Epic board games</a></strong></li>
 <li><strong><a href="https://forms.gle/KWfZePrkDVdQCJAw6" target="_blank" rel="noopener noreferrer">Larps</a></strong></li>
 <li><strong><a href="https://forms.gle/5tbjsJYPkgA7FDEA6" target="_blank" rel="noopener noreferrer">Legends of the Adventurers’ Club</a></strong></li>
-<li><strong><a href="https://forms.gle/TY8gM2JSmbSAB2Yh7" target="_blank" rel="noopener noreferrer">Lectures</a></strong></li>
+<li><strong><a href="https://forms.gle/TY8gM2JSmbSAB2Yh7" target="_blank" rel="noopener noreferrer">Talks</a></strong></li>
 <li><strong><a href="https://forms.gle/3f6bJ7FfSvdFob9V9" target="_blank" rel="noopener noreferrer">RPG</a></strong></li>
 <li><strong><a href="https://forms.gle/LR6FVdXqUpWdxtaX8" target="_blank" rel="noopener noreferrer">Wargaming and miniature painting</a></strong></li>
 <li><strong><a href="https://forms.gle/Xk3feyBvJ6eWk1mz5" target="_blank" rel="noopener noreferrer">D&amp;D tournament</a></strong></li>
@@ -594,7 +594,7 @@ You can also contact our Kindred Spirit by e-mail, which only our professional p
         </article>
     </div>
     <div style="text-align: justify;">
-        <p>Storytellers are in touch with the heads of the individual programme sections; you’ll find their contacts on the page of each line. Institutions can contact the individual organisers directly, which makes the conversation quicker.
+        <p>Game Masters are in touch with the heads of the individual programme sections; you’ll find their contacts on the page of each line. Institutions can contact the individual organisers directly, which makes the conversation quicker.
         </p>
     </div>
 </section>
@@ -717,18 +717,18 @@ You can also contact our Kindred Spirit by e-mail, which only our professional p
             <img class="medailonek_fotka" src="soubory/obsah/obrazky/organizatori/archimedesfort1_2024.jpg" alt="">
             <div class="medailonek_popis">
                 <h3 class="medailonek_jmeno">Ondřej “Archimedesfort1” Valášek</h3>
-                <p>head of programme and Lectures</p>
+                <p>head of programme and Talks</p>
                 <p>Board member</p>
                 <p><a href="mailto:prednasky@gamecon.cz">prednasky@gamecon.cz</a></p>
             </div>
             <details class="medailonek_vice">
                 <summary>in their own words</summary>
                 <div class="medailonek_text">
-                    <p>I first set out for GameCon to hear a single Saturday lecture and meet a few people from the RPG community; a year later I took part in the whole GameCon as one of the lecture organisers. And GameCon cast its spell on me. Now I’m in charge of the lectures.</p>
+                    <p>I first set out for GameCon to hear a single Saturday talk and meet a few people from the RPG community; a year later I took part in the whole GameCon as one of the talk organisers. And GameCon cast its spell on me. Now I’m in charge of the talks.</p>
 
-                    <p>Besides lectures, I sometimes play board games, but mostly I play RPGs, and I’ve been very active in the RPG community for a few years now. I also like to try a larp or wargaming now and then.</p>
+                    <p>Besides talks, I sometimes play board games, but mostly I play RPGs, and I’ve been very active in the RPG community for a few years now. I also like to try a larp or wargaming now and then.</p>
 
-                    <p>I hope the lectures at GameCon will thrive and that everyone will be happy with them – organisers, storytellers and audience alike.</p>
+                    <p>I hope the talks at GameCon will thrive and that everyone will be happy with them – organisers, game masters and audience alike.</p>
                 </div>
             </details>
         </article>
@@ -836,7 +836,7 @@ Choose carefully – not just for your own sake
 
 Playing at GC has its own specifics. Besides those given by the format
 of the event (time, rooms…), they include the fact that players often
-don’t know the storyteller, the other players, or even the system or
+don’t know the game master, the other players, or even the system or
 setting they are going to play – and that’s a good thing! GameCon is
 here (among other things) so that you can try something new,
 unconventional or unusual, play with someone new and see how other
@@ -908,32 +908,32 @@ descriptions), but if you’re not one of them, it shouldn’t put you off.
 Typically these may be abbreviations of the systems used (WoD,
 GUMSHOE, WHFR…).
 
-Storytellers
+Game Masters
 ------------
 
 And last but definitely not least, we’re fully aware that how much fun
 a game is depends to a large extent on the “chemistry” between the
 players themselves. While we can’t give you profiles of your fellow
-players, we can at least partly introduce the storyteller running the
+players, we can at least partly introduce the game master running the
 game.
 
-If you click on a storyteller’s name, the website takes you to their
+If you click on a game master’s name, the website takes you to their
 profile page. It contains a photo, but above all a short personal and
 gaming introduction that tells you something about who they are and how
 they approach roleplaying.
 
 And of course, the profile also lists all the activities the
-storyteller runs at GC, so if you had a great game with someone the
+game master runs at GC, so if you had a great game with someone the
 year before, this is an easy way to find the games they’re running this
 year.
 
 **If you’re unsure about anything in a game, don’t be afraid to ask.**
-You can ask its storyteller privately, you can ask the head of the RPG
+You can ask its game master privately, you can ask the head of the RPG
 line, or you can ask on our Facebook. Either way, you’ll surely get an
 answer, and it can make the game a lot clearer, not only for you but
 for the others too.
 
-In general, we encourage storytellers to talk to people about their
+In general, we encourage game masters to talk to people about their
 games before GC (usually by e-mail), because we’ve found that it helps
 mutual understanding a lot. So please, if needed, take a moment to
 reply; a game of 4 hours or more is definitely worth those few minutes.
@@ -957,7 +957,7 @@ because thanks to it the line got better and better every year.
 
 Recently, however, we ran into a problem. For games with lower ratings,
 the reasons given were no longer problems on the side of the
-storytellers or of us organisers; more and more often they were
+game masters or of us organisers; more and more often they were
 problems with players who didn’t get on with each other in the game.
 The players at GC don’t seem to have changed much, so we were pleased
 that we had gradually got rid of all the complaints aimed at us. On the
@@ -982,7 +982,7 @@ We’ve polished the descriptions further so you can learn as much as
 possible from them. The tags, which until now only helped you find your
 way around a few things (systems), are now used more broadly and also
 tell you about the style the game will focus on. And last but not
-least, we keep working on our storytellers’ profiles.
+least, we keep working on our game masters’ profiles.
 
 Please pay attention to your choice. When you know what you want, it
 makes it easier to actually find it. When you’re trying something new,
@@ -1012,26 +1012,26 @@ people who expect something completely different will meet at the same
 game. Of course, there’s still room for different interpretations of
 many things; we try to eliminate that by communicating about the game
 before GC. Both experience and feedback show that communication about
-the game before GC between the players and the storyteller (and among
+the game before GC between the players and the game master (and among
 the players themselves) helps a lot to create better and more enjoyable
 games.
 
 **If you expect / want something specific from a game**, say so,
-ideally to the other players too, but at least to the storyteller. If
+ideally to the other players too, but at least to the game master. If
 you’ve chosen the game for a specific reason (e.g. you want to try the
 system, or even something specific in that system), say it. Firstly,
-the storyteller can adapt the game so you really get it; secondly, the
+the game master can adapt the game so you really get it; secondly, the
 others will know that’s what you’re after. If, on the other hand,
 there’s something you don’t want in the game (e.g. you chose it
 precisely because it looks like it won’t deal with rules much), say
 that too, maybe even more so. There’s only one game, and if the
-players’ preferences differ in some way, its storyteller will make
+players’ preferences differ in some way, its game master will make
 clear which way the game leans.
 
 **If you’re not sure about something**, ask about it. Seriously. It
 sounds trivial, but people often feel all kinds of reluctance to
 approach someone and ask, so please get over it. You can ask the
-storyteller, the head of the RPG section or, for example, on the GC
+game master, the head of the RPG section or, for example, on the GC
 Facebook page; either way, that link between question and answer is
 important and really helps.
 
@@ -1041,10 +1041,10 @@ find during the game that it’s heading somewhere a little different
 from what you’d enjoy, say so at a suitable moment. Whether you’d like
 to add a bit of action, or on the contrary slow down a bit and play out
 more interactions between the characters, or you feel the game could
-pick up the pace a little, don’t hesitate to say it. Storytellers are
+pick up the pace a little, don’t hesitate to say it. Game Masters are
 only human too and don’t always run everything perfectly. A short
 discussion like this about the state of the game and where it’s heading
-is certainly not an attack on the storyteller; on the contrary, it’s
+is certainly not an attack on the game master; on the contrary, it’s
 taking part in the game and in making it as much fun as possible for
 everyone. Of course, the players’ ideas may differ, but you won’t
 clear that up without talking about it. One thing always applies:
@@ -1103,10 +1103,10 @@ Think about what kind of game would appeal to you.
 
 - **Larp plague** (a serious infectious disease with a significant impact on society; source: wikipedia.org): a common illness affecting the player population shortly before a gaming event, causing places to free up in otherwise completely unavailable games. If you’re watching for free places, please follow point 6. Stay reachable: we may call you at the start of a block to say a place has suddenly freed up, and we’ll treat you like royalty if you pick up the phone and come to play. Win-win.
 
-Talk to your storyteller.
+Talk to your game master.
 ------------
 
-- Before GameCon, your storyteller will send you an e-mail with information about the game and what costume is suitable, and may ask whether you’d rather play Hansel or Gretel (or maybe other characters, if there are any in the game). Please reply as soon as possible. If you have questions about the game or aren’t sure you’ve chosen well, take the chance and ask.
+- Before GameCon, your game master will send you an e-mail with information about the game and what costume is suitable, and may ask whether you’d rather play Hansel or Gretel (or maybe other characters, if there are any in the game). Please reply as soon as possible. If you have questions about the game or aren’t sure you’ve chosen well, take the chance and ask.
 
 Get your costume ready.
 --------
@@ -1127,17 +1127,17 @@ Don’t cancel! And if you have to, please do it as soon as possible.
 Come to the meeting point on time.
 --------
 
-- It may seem that a little delay at the coffee stand (we know, there’s often a hellish queue) doesn’t matter, but believe us, in the packed GameCon programme every 5 minutes counts. At the very least, it’s 5 minutes of stomach ulcers growing for the storyteller, who is already ringing every phone line in a panic that a player is missing and the game won’t be playable.
+- It may seem that a little delay at the coffee stand (we know, there’s often a hellish queue) doesn’t matter, but believe us, in the packed GameCon programme every 5 minutes counts. At the very least, it’s 5 minutes of stomach ulcers growing for the game master, who is already ringing every phone line in a panic that a player is missing and the game won’t be playable.
 
 Stay reachable
 ----------
 
 - If you’re signed up for a larp or watching for free places, please stay reachable on the phone number you gave when registering. If you get held up at the coffee stand (which will certainly never happen to you any more, as you’ve read point 5), or if someone can’t make it to the game and a place opens up for a substitute, we’ll call you! Be ready for it. It’s frustrating to have 5 substitutes on the list and not be able to reach any of them.
 
-Listen to the storyteller
+Listen to the game master
 ------
 
-- The storyteller is there to prepare you for the game you’re about to play. They’ll tell you how to handle information in the game, how interactions between characters work and how to react in specific situations. You may even try out some mechanics or situations in pre-game workshops. Pay proper attention to this preparation, even if you feel you’ve heard it a thousand times. Every game is a bit different.
+- The game master is there to prepare you for the game you’re about to play. They’ll tell you how to handle information in the game, how interactions between characters work and how to react in specific situations. You may even try out some mechanics or situations in pre-game workshops. Pay proper attention to this preparation, even if you feel you’ve heard it a thousand times. Every game is a bit different.
 - **Ask before the game**. Is something unclear to you already during the briefing? Ask. There are no stupid questions.
 
 And now let’s play!
@@ -1146,7 +1146,7 @@ And now let’s play!
 - **Be active**. No awesome larp has ever been played with everyone sitting in a corner and not interacting with anyone.
 - **Read your character carefully**: everything written in your character sheet is important! Secrets, information and possibly items are usually meant as charges that set the game in motion. So the real “goal” usually isn’t to keep them at all costs; it can be much more interesting to release them into the world at the right moment. When the right moment comes depends on you as a player, on your character and on how that particular game unfolds.
 - Remember that **you’re making the game awesome not just for yourself, but for the other players too**. If you’re supposed to deal with three characters in the game and you decide to ignore one of them completely, that player may lose an important part of their game.
-- If you’re lost during the game, bored or don’t know what to do, **ask the storyteller**. They’ll be happy to point you in the right direction or advise you what to do next or which storyline you could still get going. It’s best to ask somewhere out of the way, ideally so that the other players can’t hear.
+- If you’re lost during the game, bored or don’t know what to do, **ask the game master**. They’ll be happy to point you in the right direction or advise you what to do next or which storyline you could still get going. It’s best to ask somewhere out of the way, ideally so that the other players can’t hear.
 - **Don’t step out of character**. In a chamber larp, speaking out of character isn’t customary; you should sort everything out “in character”. If another player asks you something that isn’t written in your character sheet but your character would probably know (e.g. “Where did you go to primary school?”), feel free to make something up; if it isn’t written in your character sheet, it’s probably not important. Likewise, if other players make up some information in the game, play along as if it were true. E.g. if someone says “Hey, remember that time we went fishing together?” and you have no idea what they’re on about, take it into the game and throw in something like “Oh yeah, you mean when we caught that huge pike?”, but you could just as well say “Come off it, that must have been with one of your floozies, you and your memory!” It’s up to you what fits the game better at that moment.
 
 Thanks for reading all the way to the end, and we’re looking forward to all the awesome games we’ll play with you!

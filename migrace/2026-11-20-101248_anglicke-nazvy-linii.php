@@ -22,7 +22,7 @@ SQL,
 $preklady = [
     1   => ['board game tournament', 'board game tournaments', 'Your favourite board games or brand new ones! As in every proper tournament, you can win prizes here too – maybe even the very game you are playing!'],
     2   => ['larp', 'larps', 'Become a character in a dramatic or comic story and live every moment to the full, as if the world around you did not exist.'],
-    3   => ['lecture', 'lectures', 'Playing is fun, sure, but knowledge is power! Come and listen to interesting speakers of all kinds.'],
+    3   => ['talk', 'talks', 'Playing is fun, sure, but knowledge is power! Come and listen to interesting speakers of all kinds.'],
     4   => ['RPG', 'RPG', 'All you need to travel to another world and live through a thrilling adventure are dice and your own imagination.'],
     5   => ['workshop', 'workshops', ''],
     6   => ['wargaming', 'wargaming', 'Armies of miniatures on the battlefield! Come and play a proper battle set in your favourite world!'],
