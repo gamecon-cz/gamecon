@@ -136,7 +136,7 @@ $i = (new Info($systemoveNastaveni))
     ->obrazek('soubory/styl/og-image.jpg')
     ->site('GameCon');
 if ($url !== null) {
-    $i->url(Info::getKanonickaUrlZCesty(URL_WEBU, $kanonickaCesta));
+    $i->setKanonickaCesta($kanonickaCesta);
 }
 $m->info($i);
 

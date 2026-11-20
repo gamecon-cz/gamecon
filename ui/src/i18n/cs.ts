@@ -10,6 +10,7 @@ export const cs = {
   "program.vyber.ucastnik": "Účastník",
   "program.vyber.vsechny_dny": "všechny dny",
   "program.filtry": "Filtry",
+  "program.vypraveci": "Vypravěči",
   "program.filtr.jazyk": "Jazyk",
   "jazyk_filtru.cesky": "česky",
   "jazyk_filtru.anglicky": "anglicky",

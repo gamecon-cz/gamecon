@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Web;
 
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Info;
@@ -11,6 +13,12 @@ use PHPUnit\Framework\TestCase;
 
 class InfoTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        AktualniJazyk::reset();
+        parent::tearDown();
+    }
+
     /**
      * @test
      */
@@ -118,6 +126,57 @@ class InfoTest extends TestCase
         $html = $this->vytvorInfo()->nazev('Hry &amp; spol')->html();
 
         self::assertStringContainsString('<title>Hry &amp; spol</title>', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function anglickaStrankaMaKanonickouAdresuPodPrefixemJazyka(): void
+    {
+        AktualniJazyk::nastav(Jazyk::ANGLICTINA);
+
+        $info = $this->vytvorInfo()->setKanonickaCesta('program');
+
+        self::assertSame(URL_WEBU . '/en/program', $info->getKanonickaUrl());
+        self::assertStringContainsString('<link rel="canonical" href="' . URL_WEBU . '/en/program">', $info->html());
+    }
+
+    /**
+     * @test
+     */
+    public function jazykoveVerzeUkazujiNaKanonickeAdresyIsDotazem(): void
+    {
+        AktualniJazyk::nastav(Jazyk::ANGLICTINA);
+
+        $html = $this->vytvorInfo()
+            ->setKanonickaCesta('rpg')
+            ->setKanonickyParametr('rocnik', 2024)
+            ->html();
+
+        self::assertStringContainsString('<link rel="alternate" hreflang="cs" href="' . URL_WEBU . '/rpg?rocnik=2024">', $html);
+        self::assertStringContainsString('<link rel="alternate" hreflang="en" href="' . URL_WEBU . '/en/rpg?rocnik=2024">', $html);
+        self::assertStringContainsString('<link rel="alternate" hreflang="x-default" href="' . URL_WEBU . '/rpg?rocnik=2024">', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function titulkaMaVKazdemJazyceSvouAdresu(): void
+    {
+        $html = $this->vytvorInfo()->setKanonickaCesta('')->html();
+
+        self::assertStringContainsString('<link rel="canonical" href="' . URL_WEBU . '/">', $html);
+        self::assertStringContainsString('<link rel="alternate" hreflang="en" href="' . URL_WEBU . '/en/">', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function bezKanonickeCestyHlavickaNeobsahujeJazykoveVerze(): void
+    {
+        $html = $this->vytvorInfo()->url('https://gamecon.cz/program')->html();
+
+        self::assertStringNotContainsString('hreflang', $html);
     }
 
     private function vytvorInfo(): Info

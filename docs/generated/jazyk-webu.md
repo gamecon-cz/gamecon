@@ -26,6 +26,7 @@ Plán celé dvojjazyčnosti a co ještě chybí: [docs/dvojjazycny-web.md](../dv
 
 - `<base href>` je `urlWebu()`, takže relativní odkazy (`href="program"`, i v obsahu stránek z CMS) zůstávají v jazyce stránky.
 - Absolutní odkazy skládej přes `urlWebu('cesta')`, ne `URL_WEBU . '/cesta'`. Platí to i pro přesměrování a pro Symfony controllery, které vykreslují `index.xtpl` (`ObnovaHeslaController::strankaResponse()` musí předat `base` i `jazyk` stejně jako `web/index.php`). Výjimka jsou odkazy, které se tisknou nebo sdílí jako kanonické (QR kódy, `Novinka::urlNaWebu()`); ty zůstávají české a návštěvníka s volbou angličtiny přesměruje cookie.
+- Kanonická adresa (`og:url`, `rel="canonical"`) je v jazyce stránky: `Info::setKanonickaCesta()` dostane cestu bez prefixu a složí z ní přes `urlWebu()` adresu pod `/en/` i odkazy `hreflang` na ostatní jazyky, včetně parametrů z `setKanonickyParametr()`. `Info::url(URL_WEBU . …)` by anglickou stránku kanonicky odkázal na českou, a ta by si s `hreflang` odporovala.
 - Relativní odkazy na soubory (`soubory/…`) vedou pod `/en/`. Obsluhuje je pravidlo ve `web/.htaccess`: adresář `en/` neexistuje, Apache proto dá do `REQUEST_FILENAME` jen `…/web/en` (zbytek cesty je PATH_INFO) a pravidlo skládá cestu ze zachycené části URL.
 - Preact volá API v jazyce stránky (`BASE_PATH_API` = `…/en/api/`), aby texty z API seděly k rozhraní.
 - Cesta v `JazykPozadavku` je z `$_GET['req']`, tedy už dekódovaná. Do odkazů a do `Location` se vrací zakódovaná (`cestaProUrl()`), jinak by šlo přes URL vložit HTML do přepínače jazyka.
