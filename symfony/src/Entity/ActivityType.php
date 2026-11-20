@@ -24,8 +24,18 @@ class ActivityType
     #[ORM\Column(name: 'typ_1p', length: 32, nullable: false)]
     private string $typ1p;
 
+    #[ORM\Column(name: 'typ_1p_en', length: 255, nullable: true, options: [
+        'comment' => 'anglický název v jednotném čísle, NULL = jen česky',
+    ])]
+    private ?string $typ1pEn = null;
+
     #[ORM\Column(name: 'typ_1pmn', length: 32, nullable: false)]
     private string $typ1pmn;
+
+    #[ORM\Column(name: 'typ_1pmn_en', length: 255, nullable: true, options: [
+        'comment' => 'anglický název linie, NULL = jen česky',
+    ])]
+    private ?string $typ1pmnEn = null;
 
     #[ORM\Column(name: 'url_typu_mn', length: 32, nullable: false)]
     private string $urlTypuMn;
@@ -45,6 +55,11 @@ class ActivityType
 
     #[ORM\Column(name: 'popis_kratky', length: 255, nullable: false)]
     private string $popisKratky;
+
+    #[ORM\Column(name: 'popis_kratky_en', length: 255, nullable: true, options: [
+        'comment' => 'anglický krátký popis, NULL = jen česky',
+    ])]
+    private ?string $popisKratkyEn = null;
 
     #[ORM\Column(name: 'aktivni', type: Types::BOOLEAN, nullable: true, options: [
         'default' => true,
@@ -91,6 +106,30 @@ class ActivityType
     public function setTyp1pmn(string $typ1pmn): static
     {
         $this->typ1pmn = $typ1pmn;
+
+        return $this;
+    }
+
+    public function getTyp1pEn(): ?string
+    {
+        return $this->typ1pEn;
+    }
+
+    public function setTyp1pEn(?string $typ1pEn): static
+    {
+        $this->typ1pEn = $typ1pEn;
+
+        return $this;
+    }
+
+    public function getTyp1pmnEn(): ?string
+    {
+        return $this->typ1pmnEn;
+    }
+
+    public function setTyp1pmnEn(?string $typ1pmnEn): static
+    {
+        $this->typ1pmnEn = $typ1pmnEn;
 
         return $this;
     }
@@ -151,6 +190,18 @@ class ActivityType
     public function setPopisKratky(string $popisKratky): static
     {
         $this->popisKratky = $popisKratky;
+
+        return $this;
+    }
+
+    public function getPopisKratkyEn(): ?string
+    {
+        return $this->popisKratkyEn;
+    }
+
+    public function setPopisKratkyEn(?string $popisKratkyEn): static
+    {
+        $this->popisKratkyEn = $popisKratkyEn;
 
         return $this;
     }

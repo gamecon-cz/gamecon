@@ -20,9 +20,19 @@ class ActivityTypeEntityStructure
     public const typ1p = 'typ1p';
 
     /**
+     * @see ActivityType::$typ1pEn
+     */
+    public const typ1pEn = 'typ1pEn';
+
+    /**
      * @see ActivityType::$typ1pmn
      */
     public const typ1pmn = 'typ1pmn';
+
+    /**
+     * @see ActivityType::$typ1pmnEn
+     */
+    public const typ1pmnEn = 'typ1pmnEn';
 
     /**
      * @see ActivityType::$urlTypuMn
@@ -43,6 +53,11 @@ class ActivityTypeEntityStructure
      * @see ActivityType::$popisKratky
      */
     public const popisKratky = 'popisKratky';
+
+    /**
+     * @see ActivityType::$popisKratkyEn
+     */
+    public const popisKratkyEn = 'popisKratkyEn';
 
     /**
      * @see ActivityType::$aktivni
