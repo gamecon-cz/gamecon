@@ -609,7 +609,8 @@ SQL,
             'spolubydlici'         => htmlspecialchars(dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()) ?? ''),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
-            // Přihláška na GameCon zatím přeložená není (i pod /en/ je česky), povinné údaje z registrace proto taky ne.
+            // E-shop přihlášky na GameCon zatím přeložený není (i pod /en/ je česky v lang="cs"), povinné údaje
+            // z registrace proto taky ne.
             'povinneUdaje'         => AktualniJazyk::provedVJazyce(
                 Jazyk::vychozi(),
                 fn () => $this->registrace->povinneUdajeProUbytovaniHtml(
@@ -816,7 +817,7 @@ SQL,
             self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
         }
 
-        // povinné údaje pro ubytování, hlášky česky jako zbytek přihlášky (viz html())
+        // povinné údaje pro ubytování, hlášky česky jako zbytek e-shopu přihlášky (viz html())
         AktualniJazyk::provedVJazyce(Jazyk::vychozi(), fn () => $this->registrace->ulozZmeny());
 
         return true;
