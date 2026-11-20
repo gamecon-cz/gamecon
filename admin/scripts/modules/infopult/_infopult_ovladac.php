@@ -58,6 +58,22 @@ if (post('gcOdjed') && $uPracovni) {
     back();
 }
 
+// vrácení kroku odkliknutého omylem, smí jen šéf infopultu (hlídá model)
+if ($uPracovni && post('gcZrusOdjezd')) {
+    $uPracovni->gcZrusOdjezd($u);
+    oznameni('Odjezd zrušen');
+}
+
+if ($uPracovni && post('gcZrusPrijezd')) {
+    $uPracovni->gcZrusPrijezd($u);
+    oznameni('Příjezd zrušen');
+}
+
+if ($uPracovni && post('gcZrusPrihlaseni')) {
+    $uPracovni->gcZrusPrihlaseni($u);
+    oznameni('Přihlášení zrušeno');
+}
+
 if (post('platba') && $uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
         varovani('Platba připsána uživateli, který není přihlášen na Gamecon', false);
