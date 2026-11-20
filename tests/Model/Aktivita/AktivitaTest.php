@@ -7,6 +7,7 @@ namespace Gamecon\Tests\Model\Aktivita;
 use App\Kernel;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
 use Gamecon\Aktivita\StavAktivity;
@@ -14,6 +15,7 @@ use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -446,6 +448,53 @@ SQL, [
     public function muzuZkusitZiskatAktivituPodleIdPomociNull()
     {
         self::assertSame(null, Aktivita::zId(null));
+    }
+
+    /**
+     * @test
+     */
+    public function instanceMaJazykAktivityZeKtereVznikla(): void
+    {
+        dbInsert(Sql::AKCE_SEZNAM_TABULKA, [
+            Sql::NAZEV_AKCE => 'Anglická aktivita s instancí',
+            Sql::ROK        => ROCNIK,
+            Sql::TYP        => TypAktivity::DESKOHERNA,
+            Sql::JAZYK      => JazykAktivity::ANGLICKY->value,
+        ]);
+        $aktivita = Aktivita::zId((int) dbInsertId());
+
+        $instance = $aktivita->instancuj();
+
+        self::assertNotSame($aktivita->id(), $instance->id());
+        self::assertSame(JazykAktivity::ANGLICKY, $instance->jazyk());
+    }
+
+    /**
+     * @test
+     * Collation utf8mb4_czech_ci nerozlišuje velikost písmen ani mezery na konci, `tryFrom()` enumu ano.
+     * CHECK proto porovnává binárně, jinak by v databázi mohl být jazyk, který PHP nezná.
+     */
+    public function sloupecJazykPustiJenPresnyKod(): void
+    {
+        $dotazy = [
+            'akce_seznam'       => 'UPDATE akce_seznam SET jazyk = $0 WHERE id_akce = 1',
+            'uzivatele_hodnoty' => 'UPDATE uzivatele_hodnoty SET jazyk = $0 WHERE id_uzivatele = 123',
+        ];
+        dbQuery($dotazy['akce_seznam'], [JazykAktivity::CESKY_I_ANGLICKY->value]);
+        dbQuery($dotazy['uzivatele_hodnoty'], [Jazyk::ANGLICTINA->value]);
+
+        foreach (['EN', 'en ', 'Cs-En'] as $neplatny) {
+            foreach ($dotazy as $tabulka => $dotaz) {
+                try {
+                    dbQuery($dotaz, [$neplatny]);
+                    self::fail("Tabulka {$tabulka} pustila jazyk '{$neplatny}'.");
+                } catch (\DbException $vyjimka) {
+                    self::assertStringContainsString("{$tabulka}_jazyk_znamy", $vyjimka->getMessage());
+                }
+            }
+        }
+        self::assertSame(JazykAktivity::CESKY_I_ANGLICKY->value, dbOneCol('SELECT jazyk FROM akce_seznam WHERE id_akce = 1'));
+        self::assertSame(Jazyk::ANGLICTINA->value, dbOneCol('SELECT jazyk FROM uzivatele_hodnoty WHERE id_uzivatele = 123'));
     }
 
     /**
