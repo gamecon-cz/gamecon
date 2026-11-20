@@ -65,15 +65,6 @@ $jazykEshopu = AktualniJazyk::jazyk()->jeVychozi()
     ? ''
     : ' lang="' . Jazyk::vychozi()->value . '"';
 
-if (post('pridatPotvrzeniRodicu')) {
-    if (!$u->zpracujPotvrzeniRodicu()) {
-        chyba(htmlspecialchars(t('prihlaska.souhlas_rodicu.chybi')));
-    } else {
-        oznameni(htmlspecialchars(t('prihlaska.souhlas_rodicu.ulozeno')));
-    }
-    back();
-}
-
 if (po(GC_BEZI_DO)) {
     if ($u && $u->gcPritomen()) {
         $t->assign([
@@ -169,6 +160,16 @@ if (!$u) {
         urlWebu('prihlaseni'),
         Chyba::VAROVANI
     );
+}
+
+// až za kontrolou přihlášení: souhlas odeslaný po vypršení relace skončí výše na přihlášení, jako každé jiné odeslání
+if (post('pridatPotvrzeniRodicu')) {
+    if (!$u->zpracujPotvrzeniRodicu()) {
+        chyba(htmlspecialchars(t('prihlaska.souhlas_rodicu.chybi')));
+    } else {
+        oznameni(htmlspecialchars(t('prihlaska.souhlas_rodicu.ulozeno')));
+    }
+    back();
 }
 
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
