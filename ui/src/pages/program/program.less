@@ -445,12 +445,26 @@
   display: inline-block;
   margin-right: 4px;
   padding: 1px 4px;
-  font-size: 9px;
+  /* jako místnost (.program_lokace) */
+  font-size: smaller;
   font-weight: bold;
   line-height: 1.3;
   vertical-align: middle;
   background-color: #2C2C2C;
   color: #FFFFFF;
+}
+
+/* plný název jazyka jen pro čtečky, vidět je zkratka */
+.program .program_jazyk_nazev {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .program .programNahled_odkaz~form~b {

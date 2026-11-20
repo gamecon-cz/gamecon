@@ -107,7 +107,11 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             {aktivita.nazev}
           </a>
           {štítekJazyka && (
-            <span class="program_jazyk" title={názevJazykaAktivity(jazyk)}>{štítekJazyka}</span>
+            // title čtečka u obyčejného spanu nepřečte, proto plný název ve skrytém textu
+            <span class="program_jazyk" title={názevJazykaAktivity(jazyk)}>
+              <span aria-hidden="true">{štítekJazyka}</span>
+              <span class="program_jazyk_nazev">{názevJazykaAktivity(jazyk)}</span>
+            </span>
           )}
           <Obsazenost
             obsazenost={aktivita.obsazenost}

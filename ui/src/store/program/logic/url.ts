@@ -1,5 +1,5 @@
 import { AktivitaStav } from "../../../api/program";
-import { JazykFiltru } from "../../../utils/jazykAktivity";
+import { JazykFiltru, jazykyFiltruZUrl } from "../../../utils/jazykAktivity";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { t } from "../../../i18n";
 import { názevDneVTýdnu } from "../../../i18n/datum";
@@ -108,12 +108,17 @@ const AUTO_REFRESH_QUERY_KEY = "autoRefresh";
 const párováníQueryDoStavu: {
   query: string,
   stavString: keyof ProgramURLStav,
+  /**
+   * Ověří hodnotu z URL (může ji kdokoli přepsat) a vrátí, co se dá použít;
+   * undefined = jako by parametr v URL nebyl.
+   */
+  zUrl?: (hodnota: unknown) => unknown,
 }[] = [
   { stavString: "filtrPřihlašovatelné", query: PŘIHLAŠOVATELNÉ_QUERY_KEY },
   { stavString: "aktivitaNáhledId", query: NÁHLED_QUERY_KEY },
   { stavString: "filtrLinie", query: LINIE_QUERY_KEY },
   { stavString: "filtrTagy", query: TAGY_QUERY_KEY },
-  { stavString: "filtrJazyk", query: JAZYK_AKTIVITY_QUERY_KEY },
+  { stavString: "filtrJazyk", query: JAZYK_AKTIVITY_QUERY_KEY, zUrl: jazykyFiltruZUrl },
   { stavString: "filtrStavAktivit", query: STAVY_QUERY_KEY },
   { stavString: "filtrText", query: TEXT_QUERY_KEY },
   { stavString: "podleMístnosti", query: PODLE_MÍSTNOSTI_QUERY_KEY },
@@ -127,13 +132,14 @@ const parsujUrlDoStavu = (
   urlObj: URL,
   urlStav: ProgramURLStav,
   klíčVUrlStav: keyof ProgramURLStav,
-  klíčVQuery: string
+  klíčVQuery: string,
+  zUrl?: (hodnota: unknown) => unknown,
 ) => {
   const hodnotaString = urlObj.searchParams.get(klíčVQuery);
   try {
     if (hodnotaString) {
-      const hodnota = JSON.parse(decodeURIComponent(hodnotaString));
-      (urlStav[klíčVUrlStav] as any) = hodnota;
+      const hodnota: unknown = JSON.parse(decodeURIComponent(hodnotaString));
+      (urlStav[klíčVUrlStav] as any) = zUrl ? zUrl(hodnota) : hodnota;
     }
   } catch (e) { console.error(`nepodařilo se rozparsovat hodnotu ${hodnotaString ?? ""}`); }
 };
@@ -184,12 +190,12 @@ export const parsujUrl = (url: string) => {
     ročník: GAMECON_KONSTANTY.ROCNIK,
   };
 
-  for (const { query, stavString } of párováníQueryDoStavu.concat(
+  for (const { query, stavString, zUrl } of párováníQueryDoStavu.concat(
     [
       { stavString: "ročník", query: ROCNIK_QUERY_KEY }
     ]
   )) {
-    parsujUrlDoStavu(urlObj, urlStav, stavString, query);
+    parsujUrlDoStavu(urlObj, urlStav, stavString, query, zUrl);
     // Když query param v URL chybí, použij výchozí nastavení stránky (např.
     // dedikovaná stránka „Program po místnostech“ posílá podleMistnosti=true),
     // aby stránka nabíhala se správným seskupením i bez query parametru.
