@@ -14,6 +14,12 @@ describe("t", () => {
     expect(t("program.nadpis.den", {}, "cs")).toBe("Program {den}");
   });
 
+  it("neznámý klíč vrátí sám sebe jako PHP t(), nespadne", () => {
+    expect(t("neni.ve.slovniku" as keyof typeof cs, {}, "en")).toBe("neni.ve.slovniku");
+    // názevJazykaFiltru() s neznámým jazykem z URL tak dřív shodil celý program
+    expect(() => t(undefined as unknown as keyof typeof cs, {}, "cs")).not.toThrow();
+  });
+
   it("anglický slovník používá stejné parametry jako český", () => {
     const parametry = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map(x => x[1]).sort();
     for (const klíč of Object.keys(cs) as (keyof typeof cs)[]) {
