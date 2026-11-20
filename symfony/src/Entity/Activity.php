@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\StavAktivity;
 
 /**
@@ -140,7 +141,7 @@ class Activity
     private string $shortDescription;
 
     /**
-     * @see \Gamecon\Aktivita\JazykAktivity
+     * @see JazykAktivity
      */
     #[ORM\Column(name: 'jazyk', type: Types::STRING, length: 16, nullable: false, options: [
         'default' => 'cs',
@@ -490,8 +491,15 @@ class Activity
         return $this->jazyk;
     }
 
+    /**
+     * @param string $jazyk hodnota {@see JazykAktivity}, jinou nepustí ani CHECK v databázi
+     */
     public function setJazyk(string $jazyk): self
     {
+        if (JazykAktivity::tryFrom($jazyk) === null) {
+            $povolene = implode(', ', array_column(JazykAktivity::cases(), 'value'));
+            throw new \InvalidArgumentException("Neznámý jazyk aktivity '{$jazyk}', povolené jsou: {$povolene}");
+        }
         $this->jazyk = $jazyk;
 
         return $this;
