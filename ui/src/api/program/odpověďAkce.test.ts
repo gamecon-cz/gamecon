@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { ChybaApi, fetchAktivitaTým, odpověďAkce } from "./index";
+import { GAMECON_KONSTANTY } from "../../env";
 
 // Admin API odpoví nepřihlášenému 401 a účastníkovi bez práv 403 s tělem {error}, bez `chyba` i `úspěch`.
 // Program by takovou odpověď vzal za úspěch (hlídá jen chyba.hláška) a akce by tiše „prošla“; načtení týmu by zase
@@ -42,6 +43,30 @@ describe("odpověďAkce", () => {
     const odpověď = await odpověďAkce<Odpověď>(new Response("", {status: 200}));
     expect(odpověď.úspěch).toBe(false);
     expect(odpověď.chyba?.hláška).toMatch(/obnov/);
+  });
+
+  describe("na anglické stránce", () => {
+    afterEach(() => {
+      GAMECON_KONSTANTY.JAZYK = "cs";
+    });
+
+    it("hlášky ke statusu jsou anglicky", async () => {
+      GAMECON_KONSTANTY.JAZYK = "en";
+      expect((await odpověďAkce<Odpověď>(json({error: "401 Unauthorized"}, 401))).chyba?.hláška)
+        .toBe("Your login has expired, please log in again.");
+      expect((await odpověďAkce<Odpověď>(json({error: "403 Forbidden"}, 403))).chyba?.hláška)
+        .toBe("You don’t have permission to do this.");
+      expect((await odpověďAkce<Odpověď>(new Response("<html>500</html>", {status: 500}))).chyba?.hláška)
+        .toBe("The server responded with an error (HTTP 500).");
+      expect((await odpověďAkce<Odpověď>(new Response("", {status: 200}))).chyba?.hláška)
+        .toBe("The server didn’t respond, please reload the page and try again.");
+    });
+
+    it("hlášku z těla (PHP API) nechá, jak přišla", async () => {
+      GAMECON_KONSTANTY.JAZYK = "en";
+      const chyba = {úspěch: false, chyba: {hláška: "Aktivita je plná"}};
+      expect(await odpověďAkce<Odpověď>(json(chyba, 200))).toEqual(chyba);
+    });
   });
 });
 

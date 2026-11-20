@@ -2,6 +2,7 @@ import { FunctionComponent } from "preact";
 import { useAktivita, useOdhlasitModalAktivitaId } from "../../../../store/program/selektory";
 import { nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity } from "../../../../store/program/slices/programDataSlice";
+import { t } from "../../../../i18n";
 
 
 type PotvrzeniModalProps = {};
@@ -19,12 +20,12 @@ export const OdhlasitAktivituModal: FunctionComponent<PotvrzeniModalProps> = (pr
           nastavModalOdhlásit();
       }}>
         <div className="modal clearfix">
-          <h3>Opravdu se chceš odhlásit z aktivity {aktivita?.nazev}?</h3>
+          <h3>{t("program.odhlasit.otazka", { aktivita: aktivita?.nazev ?? "" })}</h3>
           <button class="vpravo" style={{marginLeft:"8px"}} onClick={() => {
             nastavModalOdhlásit();
             void proveďAkciAktivity(aktivitaId, "odhlasit");
-          }}>Odhlásit!</button>
-          <button class="vpravo zpet" onClick={() => { nastavModalOdhlásit(); }}>Zavřít</button>
+          }}>{t("program.odhlasit.potvrdit")}</button>
+          <button class="vpravo zpet" onClick={() => { nastavModalOdhlásit(); }}>{t("program.odhlasit.zavrit")}</button>
         </div>
       </div>
     </>

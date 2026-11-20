@@ -1,5 +1,7 @@
 import { AktivitaStav } from "../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../env";
+import { t } from "../../../i18n";
+import { popisekPřihlášen } from "../../../i18n/program";
 import {
   useUrlStavStavyFiltr,
   useÚčastník,
@@ -12,7 +14,6 @@ export const ProgramLegenda = () => {
 
   // todo: tady se má asi používat slovo vypravěč (a možná i logika potřebuje změnit na lidi co májí právo vyprávět)
   const organizator = účastník?.role?.organizator ?? false;
-  const koncovkaDlePohlaví = (účastník?.pohlavi === "f") ? "a" : "";
   const jeÚčastník = účastník ?? false;
 
   const stavyFiltr = useUrlStavStavyFiltr();
@@ -43,43 +44,44 @@ export const ProgramLegenda = () => {
   const vnitřek = (
     <div class="program_legenda_inner">
         <div class="program_legenda_typ">
-          Filtruj podle:
+          {t("program.legenda.filtruj_podle")}
         </div>
         <label class="program_legenda_typ otevrene">
           {zaškrtávátkoPro("volno")}
-          Otevřené
+          {t("program.legenda.otevrene")}
         </label>
         <label class="program_legenda_typ vDalsiVlne">
-          {zaškrtávátkoPro("vDalsiVlne")}V další vlně
+          {zaškrtávátkoPro("vDalsiVlne")}
+          {t("program.legenda.v_dalsi_vlne")}
         </label>
         <label class="program_legenda_typ vBudoucnu">
           {zaškrtávátkoPro("vBudoucnu")}
-          Připravujeme
+          {t("program.legenda.pripravujeme")}
         </label>
         {jeÚčastník ? (
           <>
             <label class="program_legenda_typ nahradnik">
               {zaškrtávátkoPro("nahradnik")}
-              Sleduji
+              {t("program.legenda.sleduji")}
             </label>
             <label class="program_legenda_typ prihlasen">
               {zaškrtávátkoPro("prihlasen")}
-              Přihlášen{koncovkaDlePohlaví}
+              {popisekPřihlášen(účastník?.pohlavi)}
             </label>
             <label class="program_legenda_typ neucast">
               {zaškrtávátkoPro("neucast")}
-              Neúčast
+              {t("program.legenda.neucast")}
             </label>
           </>
         ) : undefined}
         <label class="program_legenda_typ plno">
           {zaškrtávátkoPro("plno")}
-          Plno
+          {t("program.legenda.plno")}
         </label>
         {organizator ? (
           <label class="program_legenda_typ organizator">
             {zaškrtávátkoPro("organizator")}
-            organizuji
+            {t("program.legenda.organizuji")}
           </label>
         ) : (
           <></>
