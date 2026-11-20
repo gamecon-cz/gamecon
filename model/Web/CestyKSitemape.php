@@ -36,12 +36,14 @@ class CestyKSitemape
             static fn (TypAktivity $typAktivity) => $typAktivity->url(),
             TypAktivity::zViditelnych(),
         );
+        // stránka `en` je anglická titulka na /en/ (web/index.php), její adresa /en kanonická není
         $cestyStranek = dbOneArray(<<<'SQL'
             SELECT url_stranky
             FROM stranky
             WHERE redirect = 0
+                AND url_stranky <> $0
             ORDER BY url_stranky
-            SQL);
+            SQL, [\Stranka::URL_ANGLICKE_TITULKY]);
         $adresyBlogu = dbOneArray(<<<'SQL'
             SELECT url
             FROM novinky

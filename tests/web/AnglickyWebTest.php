@@ -14,7 +14,7 @@ class AnglickyWebTest extends AbstractTestWeb
     /**
      * Stránka z CMS, která se nepřekládá: pod /en/ má anglické jen menu a patičku.
      */
-    private const NEPRELOZENA_STRANKA = 'neprelozena-testovaci-stranka';
+    private const string NEPRELOZENA_STRANKA = 'neprelozena-testovaci-stranka';
 
     // AbstractTestWeb zakládá role mimo transakci, další webový test by je zakládal znovu
     protected static function resetDbAfterClass(): bool
