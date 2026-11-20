@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Accounting;
 
+use Gamecon\Jazyk\AktualniJazyk;
 use Gamecon\Uzivatel\Finance;
 
 readonly class PersonalAccount
@@ -33,19 +34,22 @@ readonly class PersonalAccount
     }
 
     /**
+     * Přehled jako HTML tabulka. Názvy skupin a částky jsou v jazyce požadavku (v adminu česky), popisy položek
+     * jsou HTML z financí (@see Finance::dejPolozkyProBfgr()).
+     *
      * @param bool $positivePrices if true, prices are formatted as positive values and only behave as negative in "total sum"
      */
     public function formatForHtml(bool $positivePrices = false): string
     {
         $result = '<table class="objednavky">';
 
-        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::ACTIVITY, 'Aktivity', $positivePrices);
-        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::FOOD, 'Strava', $positivePrices);
-        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::SHOP_ITEMS, 'Předměty', $positivePrices);
-        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::ACCOMMODATION, 'Ubytování', $positivePrices);
-        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::VOLUNTARY_DONATION, 'Dobrovolné vstupné', $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::ACTIVITY, t('finance.prehled.aktivity'), $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::FOOD, t('finance.prehled.strava'), $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::SHOP_ITEMS, t('finance.prehled.predmety'), $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::ACCOMMODATION, t('finance.prehled.ubytovani'), $positivePrices);
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::VOLUNTARY_DONATION, t('finance.prehled.dobrovolne_vstupne'), $positivePrices);
 
-        $result = $result . '<tr><td><b>Celková cena</b></td><td><b>' . Finance::formatujCastku(-array_reduce(
+        $result = $result . '<tr><td><b>' . htmlspecialchars(t('finance.prehled.celkova_cena')) . '</b></td><td><b>' . $this->formatujCastku(-array_reduce(
             array_filter($this->getTransactions(), fn (Transaction $a) => (
                 $a->getCategory() === TransactionCategoryEnum::ACTIVITY
                 || $a->getCategory() === TransactionCategoryEnum::FOOD
@@ -55,15 +59,21 @@ readonly class PersonalAccount
             fn ($a, $b) => $this->transactionSumReducer($a, $b),
             0.0)) . '</b></td></tr>';
 
-        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR, 'Zůstatek z minulých let');
-        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::MANUAL_MOVEMENTS, 'Připsané platby');
+        // položka zůstatku má stejný název jako skupina (stejný klíč), a tak se pod ní nevypíše znovu
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::LEFTOVER_FROM_LAST_YEAR, t('finance.prehled.zustatek_z_minulych_let'));
+        $result = $result . $this->categoryToHtml($this, TransactionCategoryEnum::MANUAL_MOVEMENTS, t('finance.prehled.pripsane_platby'));
 
-        $result = $result . '<tr><td><b>Stav financí</b></td><td><b>' . Finance::formatujCastku(array_reduce(
+        $result = $result . '<tr><td><b>' . htmlspecialchars(t('finance.prehled.stav_financi')) . '</b></td><td><b>' . $this->formatujCastku(array_reduce(
             $this->getTransactions(),
             fn ($a, $b) => $this->transactionSumReducer($a, $b),
             0.0)) . '</b></td></tr>';
 
         return $result . '</table>';
+    }
+
+    private function formatujCastku(float $castka): string
+    {
+        return Finance::formatujCastku($castka, AktualniJazyk::jazyk());
     }
 
     private function transactionSumReducer(float $carry, Transaction $item): float
@@ -75,13 +85,16 @@ readonly class PersonalAccount
         return Finance::zaokouhli($carry);
     }
 
+    /**
+     * @param string $categoryName prostý text
+     */
     private function categoryToHtml(self $account, TransactionCategoryEnum $category, string $categoryName, bool $negatePrice = false): string
     {
         $groupedSplits = $this->groupedSplitsByCategory($account, $category, $categoryName);
         $categoryTotal = $this->totalForCategory($account, $category);
 
-        $result = '<tr><td><b>' . $categoryName . '</b></td><td><b>'
-            . Finance::formatujCastku(($negatePrice ? -1 : 1) * $categoryTotal)
+        $result = '<tr><td><b>' . htmlspecialchars($categoryName) . '</b></td><td><b>'
+            . $this->formatujCastku(($negatePrice ? -1 : 1) * $categoryTotal)
             . '</b></td></tr>';
 
         foreach ($groupedSplits as $groupedSplit) {
@@ -90,7 +103,7 @@ readonly class PersonalAccount
                 $description .= ' ' . $groupedSplit['count'] . '×';
             }
             $result = $result . '<tr class="objednavky--polozka"><td>' . $description . '</td><td>'
-                . Finance::formatujCastku(($negatePrice ? -1 : 1) * $groupedSplit['amount'])
+                . $this->formatujCastku(($negatePrice ? -1 : 1) * $groupedSplit['amount'])
                 . '</td></tr>';
         }
 
