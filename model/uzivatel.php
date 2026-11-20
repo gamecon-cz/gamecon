@@ -934,6 +934,123 @@ SQL,
     }
 
     /**
+     * Smí vracet přihlášení, příjezd a odjezd, které někdo na infopultu odklikl omylem. Jen šéf infopultu, ať se to
+     * nestane omylem znovu (Trello 961).
+     */
+    public function isOpravnenVracetStavNaGc(): bool
+    {
+        return $this->jeSefInfopultu();
+    }
+
+    /**
+     * Vrátí „Odjel z GC“, účastník je zase přítomen
+     */
+    public function gcZrusOdjezd(self $editor): void
+    {
+        $this->zkontrolujZeEditorJeOpravnenVracetStavNaGc($editor);
+        if (! $this->gcOdjel()) {
+            throw new Chyba('Uživatel z GC neodjel, není co vracet');
+        }
+        $this->odeberRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
+    }
+
+    /**
+     * Vrátí „Přijel a Dát materiály“, účastník je zase jen přihlášen. Odjezd se vrací dřív, pořadí kroků zůstane
+     * stejné jako cestou tam.
+     */
+    public function gcZrusPrijezd(self $editor): void
+    {
+        $this->zkontrolujZeEditorJeOpravnenVracetStavNaGc($editor);
+        if (! $this->gcPritomen()) {
+            throw new Chyba('Uživatel na GC nepřijel, není co vracet');
+        }
+        if ($this->gcOdjel()) {
+            throw new Chyba('Uživatel už z GC odjel, nejdřív vrať odjezd');
+        }
+        $this->odeberRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $editor);
+    }
+
+    /**
+     * Vrátí „Přihlásit“, jen dokud na přihlášení nic nevisí (@see getPrekazkyZruseniPrihlaseni()), takže zmizí beze
+     * stopy a účastníkovi nepřijde žádný mail. Jinak je to odhlášení z GC (@see odhlasZGc()), a to patří správci financí.
+     */
+    public function gcZrusPrihlaseni(self $editor): void
+    {
+        $this->zkontrolujZeEditorJeOpravnenVracetStavNaGc($editor);
+        if (! $this->gcPrihlasen()) {
+            throw new Chyba('Uživatel není přihlášen na GC, není co vracet');
+        }
+        if ($this->gcPritomen()) {
+            throw new Chyba('Uživatel už prošel infopultem, nejdřív vrať příjezd');
+        }
+        $prekazky = $this->getPrekazkyZruseniPrihlaseni();
+        if ($prekazky !== []) {
+            throw new Chyba(sprintf(
+                'Uživatel už má letos %s, přihlášení nejde jen tak vrátit. Odhlásit z GC ho může správce financí.',
+                implode(', ', $prekazky),
+            ));
+        }
+        $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $editor);
+    }
+
+    /**
+     * Co na letošním přihlášení visí: aktivity v jakémkoli stavu (i sledované, pozdě zrušené, nedorazil), aktivity,
+     * které vede (vypravěč přihlášený z webu není omyl infopultu), objednávky a platby. Platby proto, že odhlášení
+     * plátce hlásí info@ (@see informujOOdhlaseni()).
+     *
+     * @return list<string> prázdné, když jde přihlášení zrušit beze stopy
+     */
+    public function getPrekazkyZruseniPrihlaseni(): array
+    {
+        $parametry = [
+            0 => $this->id(),
+            1 => $this->systemoveNastaveni->rocnik(),
+        ];
+        $prekazky = [];
+        if (dbOneCol(<<<'SQL'
+SELECT EXISTS(
+    SELECT 1 FROM akce_prihlaseni
+    JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni.id_akce
+    WHERE akce_prihlaseni.id_uzivatele = $0 AND akce_seznam.rok = $1
+) OR EXISTS(
+    SELECT 1 FROM akce_prihlaseni_spec
+    JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni_spec.id_akce
+    WHERE akce_prihlaseni_spec.id_uzivatele = $0 AND akce_seznam.rok = $1
+)
+SQL, $parametry)) {
+            $prekazky[] = 'aktivity';
+        }
+        if (dbOneCol(<<<'SQL'
+SELECT EXISTS(
+    SELECT 1 FROM akce_organizatori
+    JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
+    WHERE akce_organizatori.id_uzivatele = $0 AND akce_seznam.rok = $1
+)
+SQL, $parametry)) {
+            $prekazky[] = 'vedené aktivity';
+        }
+        if (dbOneCol(<<<'SQL'
+SELECT EXISTS(SELECT 1 FROM shop_nakupy WHERE id_uzivatele = $0 AND rok = $1)
+SQL, $parametry)) {
+            $prekazky[] = 'objednávky';
+        }
+        if (dbOneCol(<<<'SQL'
+SELECT EXISTS(SELECT 1 FROM platby WHERE id_uzivatele = $0 AND rok = $1)
+SQL, $parametry)) {
+            $prekazky[] = 'platby';
+        }
+
+        return $prekazky;
+    }
+
+    private function zkontrolujZeEditorJeOpravnenVracetStavNaGc(self $editor): void
+    {
+        if (! $editor->isOpravnenVracetStavNaGc()) {
+            throw new Chyba('Vracet přihlášení, příjezd nebo odjezd účastníka smí jen šéf infopultu');
+        }
+    }
+
+    /**
      * Je uživatel přihlášen na aktuální GC?
      */
     public function gcPrihlasen(): bool
