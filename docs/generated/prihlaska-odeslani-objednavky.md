@@ -8,13 +8,14 @@ TL;DR: co se stane po odeslání veřejné přihlášky (`/prihlaska`) — pořa
 - `model/Shop/Shop.php::zpracujPredmety`, `::zpracujUbytovani`, `::zpracujJidlo`, `::zpracujVstupne`, `::prodat`
 - `model/Shop/ShopUbytovani.php::zpracuj`, `::ulozObjednaneUbytovaniUcastnika`, `::validujVybraneNociUbytovani`
 - `tests/Shop/AbstractTestPrihlaska.php` — testy jedou stejnou sekvenci jako modul
+- `model/pomoc.php` + `model/pomoc.xtpl` — sekce „Chceš se zapojit do organizace?“, jen text, viz níže
 
 ## Pořadí zpracování je významné
 
 Modul volá v tomhle pořadí a celé to obaluje jednou transakcí:
 
 ```
-gcPrihlas → zpracujPredmety → zpracujUbytovani → zpracujJidlo → zpracujVstupne → Pomoc::zpracuj → finance()->obnovUdaje
+gcPrihlas → zpracujPredmety → zpracujUbytovani → zpracujJidlo → zpracujVstupne → finance()->obnovUdaje
 ```
 
 Ubytování musí předcházet jídlu: `zpracujJidlo()` se ptá `ubytovani->dnyHotelovychPokoju()`, aby vyhodilo snídaně, které jsou v ceně hotelu. Při přehození by snídaně u hotelových pokojů prošly.
@@ -36,6 +37,19 @@ Každá sekce se zpracuje, jen když v POSTu je její klíč; jinak zůstane bez
 | Vstupné | `shopV` | částka |
 
 Počet kusů = **počet řádků** v `shop_nakupy`; tabulka nemá unique přes (uživatel, předmět, rok). Proto se objednávka aktualizuje diffem starých a nových řádků, ne přepsáním.
+
+## Sekce „Chceš se zapojit“ nic neukládá
+
+Je to jen text, který každý druh pomoci posílá jinam: dobrovolníky na dobrovolnické aktivity v programu (Příprava, Úklid), vypravěče za vedoucím programové sekce, sponzory na `pro-sponzory-a-media`, celoroční organizaci na `organizacni-vypomoc`. Sloupce `uzivatele_hodnoty.pomoc_typ` a `pomoc_vice` přihláška nečte ani nezapisuje.
+
+Historie, kvůli které se sem nemá vracet formulář bez rozmyslu:
+
+- Do února 2025 tu byl formulář: zaškrtávátko `cPomoc[chci]` „Chci se zapojit“, pod ním výběr druhu pomoci (`cPomoc[typ]`, předvybraný první, `dobrovolnik`) a pole `cPomoc[detail]`. Výběr a pole schovávalo CSS (`.shopPomoc_vyber { max-height: 0 }`), rozbalilo je jen zaškrtnuté zaškrtávátko.
+- Úprava textů 2025-02-28 (`57feed7d7`) nahradila zaškrtávátko nadpisem a čtyřmi odstavci, jeden na každý druh pomoci. Výběr a pole v šabloně zůstaly, ale bez zaškrtávátka je nikdo neviděl, a `Pomoc::zpracuj()` bez `chci` každým uložením přihlášky zapsal do obou sloupců prázdnou hodnotu. Odstraněno v listopadu 2026.
+- Proto nestačilo jen zahodit podmínku na `chci`: skrytý výběr s předvybraným `dobrovolnik` by se odeslal za každého a každý účastník by byl veden jako dobrovolník.
+- Sloupce dál vypisuje `BfgrReport` (Dobrovolník pozice / info) a report potvrzení pro mladší 15 let a nuluje je převod ročníku (`admin/scripts/modules/dev/update-zustatku.php`). Od února 2025 jsou u všech prázdné.
+
+Kdyby organizátoři chtěli zájem o pomoc z přihlášky zase sbírat, musí formulář být vidět a nesmí mít předvybraný druh pomoci. Hlídá to `tests/web/PomocVPrihlasceTest.php`: sekce nesmí posílat žádné pole `cPomoc` a uložení přihlášky nesmí sloupce změnit.
 
 ## Kde se hlídá vyprodání — a kde ne
 

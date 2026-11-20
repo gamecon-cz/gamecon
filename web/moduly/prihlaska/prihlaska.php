@@ -117,7 +117,7 @@ if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
 }
 
 $shop  = new Shop($u, $u, $systemoveNastaveni);
-$pomoc = new Pomoc($u);
+$pomoc = new Pomoc();
 
 if (post('odhlasit')) {
     if (po($systemoveNastaveni->gcBeziOd())) {
@@ -145,7 +145,6 @@ if (post('prihlasitNeboUpravit')) {
         $shop->zpracujUbytovani(ulozitNechceUbytovani: true);
         $shop->zpracujJidlo();
         $shop->zpracujVstupne();
-        $pomoc->zpracuj();
         $u->finance()->obnovUdaje();
         dbCommit();
     } catch (Throwable $throwable) {
