@@ -3,7 +3,7 @@
 # Write an ICU date pattern (`{konec, date,d MMMM}`) without a space after the second comma, ICU would print it.
 
 aktivity:
-    vypravec: "Storyteller:"
+    vypravec: "Game Master:"
     zobrazit_vice: show more
     informace: "Details:"
     terminy: "Times:"
@@ -11,9 +11,9 @@ aktivity:
     termin: "{zacatek, date,EEEE HH:mm}–{konec, time,HH:mm}"
     nastaveni_tymu: Team settings
     prihlasit_tym: Sign up a team
-    vypraveci: Storytellers
-    archiv_prednasek: Lecture archive
-    vypravec_bez_popisu: we don’t have a description from this storyteller yet
+    vypraveci: Game Masters
+    archiv_prednasek: Talks archive
+    vypravec_bez_popisu: we don’t have a description from this game master yet
 
 jazyk:
     prepnout: Switch to English
@@ -73,7 +73,7 @@ stranka:
 titulka:
     info:
         nazev: GameCon – the largest festival of non-computer games
-        popis: GameCon is the largest festival of non-computer games in the Czech Republic, held every year on the third weekend of July. Once again you can look forward to dozens of RPGs, board games, larps, action games, wargaming, lectures, contests in Tales of the Empire, the traditional DrD Championship and, last but not least, amazing people and experiences that will stay with you at least until next year.
+        popis: GameCon is the largest festival of non-computer games in the Czech Republic, held every year on the third weekend of July. Once again you can look forward to dozens of RPGs, board games, larps, action games, wargaming, talks, contests in Tales of the Empire, the traditional DrD Championship and, last but not least, amazing people and experiences that will stay with you at least until next year.
     hlavicka:
         claim: The largest festival of non-computer games
         zacatek: "{zacatek, date,d}"

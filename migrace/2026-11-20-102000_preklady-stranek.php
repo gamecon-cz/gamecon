@@ -5,9 +5,9 @@ declare(strict_types=1);
 /** @var Godric\DbMigrations\Migration $this */
 
 // English content (stranky.obsah_en) of the CMS pages an English visitor reaches first: the intro pages of the activity
-// lines, the menu, the tea room, helping to organise, sponsors and media, the programme legend, turbo tournaments
-// and the photo galleries of the lines. The Czech content (obsah) stays untouched. More pages are translated
-// in 2026-11-20-102100_preklady-stranek-2.php.
+// lines, the menu, the tea room, helping to organise, sponsors and media, the programme legend and turbo tournaments
+// (the photo galleries of the lines in 2026-11-20-124420_anglicke-fotogalerie-linii.php). The Czech content (obsah)
+// stays untouched. More pages are translated in 2026-11-20-102100_preklady-stranek-2.php.
 // Links, image paths, e-mail addresses and placeholders (%…%) are the same as in the Czech content; relative links
 // stay in the page language thanks to <base href>.
 
@@ -28,13 +28,13 @@ You negotiate, scheme and try to reach your goals or to live your character to t
 MD;
 
 $preklady['o-prednaskach-na-gc'] = <<<'MD'
-# Lectures and workshops
+# Talks and workshops
 
-Look forward to **free lectures** and discussions with people who live for games – from seasoned players to designers and guests from the community!
+Look forward to **free talks** and discussions with people who live for games – from seasoned players to designers and guests from the community!
 
-**The lecture times shown are approximate.** You will find the exact times in the description of each lecture, or at GameCon itself on the programme posters.
+**The talk times shown are approximate.** You will find the exact times in the description of each talk, or at GameCon itself on the programme posters.
 
-Besides lectures, you can also choose from **hands-on workshops** with more room for questions, interaction and trying things yourself – these are **paid**.
+Besides talks, you can also choose from **hands-on workshops** with more room for questions, interaction and trying things yourself – these are **paid**.
 MD;
 
 $preklady['o-rpg-na-gc'] = <<<'MD'
@@ -68,7 +68,7 @@ Experience a linked RPG set in the world of [Tales of the Empire](http://imperiu
 
 ## Game runs
 
-Each run has two games, each led by a different storyteller. You choose the first game.
+Each run has two games, each led by a different game master. You choose the first game.
 
 - Run 1 (Thursday afternoon + Friday morning): played on Thursday 14:00–18:00 and on Friday 09:00–13:00
 - Run 2 (Thursday evening + Friday afternoon): played on Thursday 19:00–23:00 and on Friday 14:00–18:00
@@ -98,7 +98,7 @@ MD;
 $preklady['o-epickych-deskovkach'] = <<<'MD'
 # Epic board games
 
-Drawn to big board games with beautiful components, but put off by complicated rules? You don't need to study anything, the storyteller will explain everything and make sure the game runs smoothly!
+Drawn to big board games with beautiful components, but put off by complicated rules? You don't need to study anything, the game master will explain everything and make sure the game runs smoothly!
 
 Epic board games tend to be highly interactive, they have elements of conflict and diplomacy, and luck plays a part too. The focus is on atmosphere rather than on game dynamics; the games often draw on fantasy, sci-fi or history, which makes for a deeper gaming experience.
 MD;
@@ -125,7 +125,7 @@ $preklady['dnd-info'] = <<<'MD'
 
 A tournament for all players of **Dungeons & Dragons** and of its compatible Czech edition **Jeskyně a draci**. Test your detective and role-playing skills, have fun and create a story with your party that will lead you together to victory and to lifting the travelling trophy.
 
-On this page you will find everything you need to know about the D&D/JaD tournament – how the tournament is organised and its rules, this year's adventure and the storytellers who will run it.
+On this page you will find everything you need to know about the D&D/JaD tournament – how the tournament is organised and its rules, this year's adventure and the game masters who will run it.
 MD;
 
 $preklady['celohra'] = <<<'MD'
@@ -294,7 +294,7 @@ MD;
 $preklady['pro-sponzory-a-media'] = <<<'MD'
 # Who we are
 
-GameCon is the largest multi-genre festival of non-computer games in Central Europe, bringing together the communities of board games, tabletop RPGs, larps, wargaming and other games every summer. Besides the games themselves, it also offers action games and physical activities, lectures, workshops, tournaments and the Celohra, a game that ties together the programme of the whole festival.
+GameCon is the largest multi-genre festival of non-computer games in Central Europe, bringing together the communities of board games, tabletop RPGs, larps, wargaming and other games every summer. Besides the games themselves, it also offers action games and physical activities, talks, workshops, tournaments and the Celohra, a game that ties together the programme of the whole festival.
 
 It is open to experienced players and long-time participants as well as to complete beginners. The chance to try different kinds of games and play styles and to share experiences with other players is part of what makes GameCon special.
 
@@ -378,5 +378,5 @@ SQL,
     );
 }
 
-// The photo galleries of the lines (`*/fotogalerie`) stay without translation: they are Instagram embeds that are
-// updated in Czech every year, and a copied English version would keep showing the old posts.
+// The photo galleries of the lines (`*/fotogalerie`) are not here: they are Instagram embeds, their English content
+// is made from the Czech one in 2026-11-20-124420_anglicke-fotogalerie-linii.php.

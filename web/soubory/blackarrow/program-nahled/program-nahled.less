@@ -120,6 +120,10 @@
         content: 'Vypravěč: ';
         font-weight: bold;
     }
+    // anglický web (rozhraní, ne obsah: nepřeložený program je uvnitř <div lang="cs">, proto ne :lang())
+    html[lang="en"] &::before {
+        content: 'Game Master: ';
+    }
     margin-bottom: 12px;
 }
 

@@ -163,7 +163,7 @@ SQL,
         self::assertMatchesRegularExpression('~<title>[^<]*Larps</title>~', $telo, 'Název linie anglicky');
         $zacatek = new \DateTimeImmutable(ROCNIK . self::ZACATEK_AKTIVIT);
         foreach ([
-            '<b>Storyteller:</b>',
+            '<b>Game Master:</b>',
             '>show more</label>',
             '<h3>Details:</h3>',
             '<h3>Times:</h3>',
