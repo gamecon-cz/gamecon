@@ -159,17 +159,20 @@ final class JazykPozadavku
 
     /**
      * Jazyk, který si má zapamatovat cookie prohlížeče, nebo null, když se nemění.
-     * Přepínač vždy, adresa s prefixem jazyka jen při navigaci (viz isNavigace()).
+     * Přepínač vždy. Adresa s prefixem jazyka jen při navigaci (viz isNavigace()) a jen nepřihlášenému:
+     * přihlášeného drží v jazyce jeho účet, a kdyby si cookie brala jazyk z prefixu, přenesla by se do ní
+     * i angličtina z přesměrování podle účtu. Infopult přepnutý na anglického účastníka by pak měl
+     * angličtinu v prohlížeči na rok a dostal by ji každý další účastník, kterého tam obslouží.
      * Česká adresa bez přepínače nic nemění: mohla přijít z natvrdo psaného odkazu.
      */
-    public function getJazykDoCookie(string $metoda, bool $jeAjax, string $secFetchMode = ''): ?Jazyk
+    public function getJazykDoCookie(string $metoda, bool $jeAjax, string $secFetchMode = '', bool $jePrihlasen = false): ?Jazyk
     {
         $prepnuti = $this->jazykPrepnuti();
         if ($prepnuti !== null) {
             return $prepnuti;
         }
 
-        return $this->maPrefix && $this->isNavigace($metoda, $jeAjax, $secFetchMode)
+        return $this->maPrefix && ! $jePrihlasen && $this->isNavigace($metoda, $jeAjax, $secFetchMode)
             ? $this->jazyk
             : null;
     }
@@ -179,10 +182,14 @@ final class JazykPozadavku
      * Jen z přepínače: sdílený odkaz na `/en/…` otevřený jednou nesmí přepnout účet (a s ním e-maily
      * i přesměrování na všech zařízeních) a infopult, který se přihlásí jako účastník v prohlížeči
      * s anglickou cookie, nesmí zapsat angličtinu do jeho účtu. Registrace si jazyk ukládá sama.
+     * Kdo je přepnutý na jiného uživatele (infopult na vypravěče), volí jazyk jen pro svůj prohlížeč,
+     * jazyk e-mailů toho uživatele nemění.
      */
-    public function getJazykDoUctu(): ?Jazyk
+    public function getJazykDoUctu(bool $jePrepnutoNaUzivatele = false): ?Jazyk
     {
-        return $this->jazykPrepnuti();
+        return $jePrepnutoNaUzivatele
+            ? null
+            : $this->jazykPrepnuti();
     }
 
     /**
@@ -208,7 +215,7 @@ final class JazykPozadavku
         $jeAjax = is_ajax();
         $secFetchMode = (string) ($_SERVER['HTTP_SEC_FETCH_MODE'] ?? '');
 
-        $doCookie = $this->getJazykDoCookie($metoda, $jeAjax, $secFetchMode);
+        $doCookie = $this->getJazykDoCookie($metoda, $jeAjax, $secFetchMode, $uzivatel !== null);
         if ($doCookie !== null && ($_COOKIE[self::COOKIE] ?? null) !== $doCookie->value) {
             setcookie(self::COOKIE, $doCookie->value, [
                 'expires'  => time() + 365 * 24 * 3600,
@@ -219,8 +226,11 @@ final class JazykPozadavku
             ]);
             $_COOKIE[self::COOKIE] = $doCookie->value;
         }
-        $doUctu = $this->getJazykDoUctu();
-        if ($doUctu !== null && $uzivatel !== null && $uzivatel->jazyk() !== $doUctu) {
+        // session přepnutí se čte, jen když je co uložit
+        $doUctu = $uzivatel !== null && $this->jazykPrepnuti() !== null
+            ? $this->getJazykDoUctu(\Gamecon\Uzivatel\PrepnutiNaUzivatele::zSession()->isPrepnuto())
+            : null;
+        if ($doUctu !== null && $uzivatel->jazyk() !== $doUctu) {
             $uzivatel->nastavJazyk($doUctu);
         }
 

@@ -207,6 +207,34 @@ class JazykPozadavkuTest extends TestCase
         );
     }
 
+    public function testPrihlasenemuSiCookieJazykZPrefixuNebere(): void
+    {
+        self::assertNull(
+            JazykPozadavku::zCesty('en/program')->getJazykDoCookie('GET', false, 'navigate', true),
+            'Přihlášeného přesměruje na /en/ jeho účet; cookie by tu angličtinu jinak podržela pro každého dalšího v prohlížeči.',
+        );
+        self::assertSame(
+            Jazyk::CESTINA,
+            JazykPozadavku::zCesty('en/program', [
+                'jazyk' => 'cs',
+            ])->getJazykDoCookie('GET', false, 'navigate', true),
+            'Přepínač platí i pro přihlášeného.',
+        );
+    }
+
+    public function testPrepnutyNaJinehoUzivateleJehoUcetNemeni(): void
+    {
+        $prepinac = JazykPozadavku::zCesty('program', [
+            'jazyk' => 'cs',
+        ]);
+
+        self::assertNull(
+            $prepinac->getJazykDoUctu(true),
+            'Infopult přepnutý na účastníka volí jazyk svého prohlížeče, ne jazyk e-mailů účastníka.',
+        );
+        self::assertSame(Jazyk::CESTINA, $prepinac->getJazykDoCookie('GET', false, 'navigate', true));
+    }
+
     public function testDoUctuSeUkladaJenPrepinac(): void
     {
         self::assertNull(
