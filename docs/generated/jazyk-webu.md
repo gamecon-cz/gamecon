@@ -1,6 +1,6 @@
 TL;DR: Veřejný web běží česky na `/…` a anglicky na `/en/…`. Jazyk požadavku určuje `JazykPozadavku`, texty rozhraní jsou v katalozích `symfony/translations/messages+intl-icu.{cs,en}.yaml` a vykresluje je `t()` v PHP, `{t:klic}` v šablonách a `t()` v Preactu. Admin je jen česky.
 
-Plán celé dvojjazyčnosti a co ještě chybí: [docs/dvojjazycny-web.md](../dvojjazycny-web.md).
+Plán celé dvojjazyčnosti a co ještě chybí: [docs/dvojjazycny-web.md](../dvojjazycny-web.md). Co je hotové, rozhodnutí a další kroky: [anglicky-web-stav](anglicky-web-stav.md).
 
 ## Vstupní body
 

@@ -1,6 +1,6 @@
 # Analýza: dvojjazyčný web (čeština + angličtina)
 
-Analýza ke stavu `main` na `f2c491d90` (19. 10. 2026).
+Analýza ke stavu `main` na `f2c491d90` (19. 10. 2026). Co je z plánu hotové a jak se pokračuje: [docs/generated/anglicky-web-stav.md](generated/anglicky-web-stav.md).
 
 ## Shrnutí
 
