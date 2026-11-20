@@ -47,7 +47,9 @@ final class DatumVJazyce
     private static function format(\DateTimeInterface $datum, string $vzor, ?Jazyk $jazyk): string
     {
         $locale = ($jazyk ?? AktualniJazyk::jazyk())->locale();
-        $casovaZona = $datum->getTimezone() ?: new \DateTimeZone(date_default_timezone_get());
+        // vždy ve výchozí časové zóně (Europe/Prague) jako dřívější date(), ne v zóně předaného objektu
+        // (datum z UTC by jinak ukázalo jiný den i čas); formatter převede časové razítko do své zóny
+        $casovaZona = new \DateTimeZone(date_default_timezone_get());
         $klic = $locale . '|' . $vzor . '|' . $casovaZona->getName();
         // vytvořit formatter je dražší než formátovat, stránka jich přitom potřebuje jen pár druhů
         self::$formattery[$klic] ??= new \IntlDateFormatter(

@@ -11,8 +11,17 @@ use PHPUnit\Framework\TestCase;
 
 class DatumVJazyceTest extends TestCase
 {
+    private string $puvodniCasovaZona;
+
+    protected function setUp(): void
+    {
+        $this->puvodniCasovaZona = date_default_timezone_get();
+        date_default_timezone_set('Europe/Prague');
+    }
+
     protected function tearDown(): void
     {
+        date_default_timezone_set($this->puvodniCasovaZona);
         AktualniJazyk::reset();
     }
 
@@ -32,6 +41,15 @@ class DatumVJazyceTest extends TestCase
         self::assertSame('1 July', DatumVJazyce::denAMesic($datum, Jazyk::ANGLICTINA));
         self::assertSame('1 July 14:05', DatumVJazyce::denAMesicSCasem($datum, Jazyk::ANGLICTINA));
         self::assertSame('Wednesday', DatumVJazyce::denVTydnu($datum, Jazyk::ANGLICTINA));
+    }
+
+    public function testFormatujeVeVychoziCasoveZoneJakoDrivDate(): void
+    {
+        $vUtc = new \DateTimeImmutable('2026-07-01 23:30:00', new \DateTimeZone('UTC'));
+
+        self::assertSame('2. července 01:30', DatumVJazyce::denAMesicSCasem($vUtc, Jazyk::CESTINA));
+        self::assertSame('2. července', DatumVJazyce::denAMesic($vUtc, Jazyk::CESTINA));
+        self::assertSame('Thursday', DatumVJazyce::denVTydnu($vUtc, Jazyk::ANGLICTINA));
     }
 
     public function testBezJazykaBereJazykPozadavku(): void
