@@ -20,7 +20,9 @@
 
     {chyba}
 
-    {obsah}
+    <div<!-- begin: jinyJazykObsahu --> lang="{jazykObsahu}"<!-- end: jinyJazykObsahu -->>
+        {obsah}
+    </div>
 
     <!-- begin: paticka -->
     <div class="paticka">

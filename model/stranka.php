@@ -1,21 +1,31 @@
 <?php
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Jazyk\Jazyk;
 
 /**
  * For Doctrine entity equivalent @see \App\Entity\Page
  */
 class Stranka extends DbObject
 {
+    /**
+     * Ručně psaná anglická úvodní stránka. Ukazuje se na /en/ (web/index.php), dokud není přeložená titulka.
+     */
+    public const URL_ANGLICKE_TITULKY = 'en';
 
     protected static $tabulka = 'stranky';
     protected static $pk      = 'id_stranky';
-    private ?string  $html;
+    /** @var array<string, string|null> HTML podle jazyka textu */
+    private array $html = [];
 
-    public function html()
+    /**
+     * @param Jazyk|null $jazyk jazyk textu stránky (ne stránky webu), podle něj markdown volí typografii; výchozí čeština
+     */
+    public function html(?Jazyk $jazyk = null): ?string
     {
-        if (!isset($this->html)) {
-            $html       = markdown($this->r['obsah']);
+        $jazyk ??= Jazyk::vychozi();
+        if (!array_key_exists($jazyk->value, $this->html)) {
+            $html       = markdown($this->r['obsah'], $jazyk);
             $html       = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
                 $w = Widget::zNazvu($m[2]);
                 if ($w) {
@@ -25,9 +35,9 @@ class Stranka extends DbObject
             }, $html);
             // naříklad %PRVNI_VLNA_KDY|datum:FORMAT_ZACATEK_UDALOSTI%
             $html       = nahradPlaceholderyZaNastaveni($html);
-            $this->html = $html;
+            $this->html[$jazyk->value] = $html;
         }
-        return $this->html;
+        return $this->html[$jazyk->value];
     }
 
     public function nadpis(): string

@@ -27,8 +27,9 @@ class Info
     private $url;
     /** @var array<string, string|int> */
     private array $kanonickyDotaz = [];
-    /** Kanonická cesta bez prefixu jazyka, z ní se skládají odkazy na jazykové verze stránky (hreflang). */
+    /** Kanonická cesta bez prefixu jazyka, z ní se skládá kanonická adresa i odkazy na jazykové verze stránky (hreflang). */
     private ?string $kanonickaCesta = null;
+    private bool $obsahPrelozeny = false;
 
     public function html(): string
     {
@@ -56,7 +57,7 @@ class Info
             $o[] = '<meta property="og:image" content="' . self::escapuj($e) . '">';
         }
         $o[] = '<meta property="og:type" content="website">';
-        $o[] = '<meta property="og:locale" content="' . AktualniJazyk::jazyk()->locale() . '">';
+        $o[] = '<meta property="og:locale" content="' . $this->getJazykObsahu()->locale() . '">';
         array_push($o, ...$this->alternativniJazyky());
 
         return implode("\n", $o);
@@ -65,12 +66,13 @@ class Info
     /**
      * Odkazy na tutéž stránku v ostatních jazycích, aby ji vyhledávače nabízely ve správném jazyce.
      * Skládají se z kanonické cesty i dotazu, takže každá jazyková verze ukazuje na kanonickou adresu té druhé.
+     * Jen u přeložené stránky: nepřeložená by vyhledávačům hlásila český obsah pod `/en/` jako anglický.
      *
      * @return list<string>
      */
     private function alternativniJazyky(): array
     {
-        if ($this->kanonickaCesta === null) {
+        if (! $this->obsahPrelozeny || $this->kanonickaCesta === null) {
             return [];
         }
         $odkazy = [];
@@ -86,8 +88,11 @@ class Info
 
     private function getKanonickaUrlVJazyce(Jazyk $jazyk): string
     {
-        $url = self::getKanonickaUrlZCesty(urlWebu('', $jazyk), (string) $this->kanonickaCesta);
+        return $this->pridejKanonickyDotaz(self::getKanonickaUrlZCesty(urlWebu('', $jazyk), (string) $this->kanonickaCesta));
+    }
 
+    private function pridejKanonickyDotaz(string $url): string
+    {
         return $this->kanonickyDotaz === []
             ? $url
             : $url . '?' . http_build_query($this->kanonickyDotaz);
@@ -214,13 +219,15 @@ class Info
 
     /**
      * Canonical address of the page without query. It is printed as both `og:url` and `rel="canonical"`.
+     * An address set this way has no language versions (hreflang), unlike setKanonickaCesta().
      */
     public function url()
     {
         if (func_num_args() == 0) {
-            return $this->url;
+            return $this->getKanonickaUrlBezDotazu();
         } else if (func_num_args() == 1) {
             $this->url = func_get_arg(0);
+            $this->kanonickaCesta = null;
             return $this;
         } else {
             throw new \BadMethodCallException();
@@ -228,15 +235,42 @@ class Info
     }
 
     /**
-     * Kanonická adresa z cesty bez prefixu jazyka: v jazyce požadavku (`/en/program` pod angličtinou),
-     * a k ní odkazy na stejnou stránku v ostatních jazycích (hreflang).
+     * Kanonická adresa z cesty bez prefixu jazyka, v jazyce obsahu (viz getJazykObsahu()):
+     * u přeložené stránky pod angličtinou `/en/program` a k ní odkazy na stejnou stránku v ostatních
+     * jazycích (hreflang), u nepřeložené vždy česká adresa.
      */
     public function setKanonickaCesta(string $cesta): static
     {
         $this->kanonickaCesta = $cesta;
-        $this->url            = self::getKanonickaUrlZCesty(urlWebu(), $cesta);
+        $this->url = null;
 
         return $this;
+    }
+
+    /**
+     * Hlavní obsah stránky existuje ve všech jazycích webu, viz Modul::setObsahPrelozeny(). Výchozí je nepřeložený.
+     */
+    public function setObsahPrelozeny(bool $obsahPrelozeny): static
+    {
+        $this->obsahPrelozeny = $obsahPrelozeny;
+
+        return $this;
+    }
+
+    public function isObsahPrelozeny(): bool
+    {
+        return $this->obsahPrelozeny;
+    }
+
+    /**
+     * Jazyk hlavního obsahu stránky: jazyk požadavku u přeložené stránky, jinak čeština (nepřeložená stránka
+     * pod `/en/` má anglické jen menu a patičku). Podle něj je kanonická adresa a `og:locale`.
+     */
+    public function getJazykObsahu(): Jazyk
+    {
+        return $this->obsahPrelozeny
+            ? AktualniJazyk::jazyk()
+            : Jazyk::vychozi();
     }
 
     /**
@@ -252,13 +286,18 @@ class Info
 
     public function getKanonickaUrl(): ?string
     {
-        if (! $this->url) {
-            return null;
-        }
+        $url = $this->getKanonickaUrlBezDotazu();
 
-        return $this->kanonickyDotaz === []
-            ? $this->url
-            : $this->url . '?' . http_build_query($this->kanonickyDotaz);
+        return $url
+            ? $this->pridejKanonickyDotaz($url)
+            : null;
+    }
+
+    private function getKanonickaUrlBezDotazu(): ?string
+    {
+        return $this->kanonickaCesta !== null
+            ? self::getKanonickaUrlZCesty(urlWebu('', $this->getJazykObsahu()), $this->kanonickaCesta)
+            : $this->url;
     }
 
     /**

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Service\LegacySessionService;
 use Gamecon\Antibot\Altcha;
 use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
@@ -356,6 +357,11 @@ class ObnovaHeslaController extends AbstractController
                 'info'       => '<title>' . htmlspecialchars($nazev, ENT_QUOTES) . ' – GameCon</title>',
                 'letosniRok' => date('Y'),
             ]);
+            if (AktualniJazyk::jazyk() !== Jazyk::vychozi()) {
+                // stránky obnovy hesla zatím nejsou přeložené: pod /en/ je anglicky jen menu a patička, viz web/index.php
+                $sablona->assign('jazykObsahu', Jazyk::vychozi()->value);
+                $sablona->parse('index.jinyJazykObsahu');
+            }
             $sablona->parse('index.paticka');
             $sablona->parse('index');
             $html = $sablona->text('index');

@@ -81,7 +81,8 @@ class JazykPozadavkuTest extends TestCase
         ]);
 
         self::assertNull($jazykPozadavku->jazykPrepnuti());
-        self::assertNull($jazykPozadavku->jazykKZapamatovani());
+        self::assertNull($jazykPozadavku->getJazykDoCookie('GET', false));
+        self::assertNull($jazykPozadavku->getJazykDoUctu());
     }
 
     public function testCeskaAdresaSeZvolenouAnglictinouPresmerujeNaAnglickou(): void
@@ -106,6 +107,55 @@ class JazykPozadavkuTest extends TestCase
         self::assertNull(JazykPozadavku::zCesty('prihlaska')->presmerovani(Jazyk::ANGLICTINA, 'POST', false));
         self::assertNull(JazykPozadavku::zCesty('program')->presmerovani(Jazyk::ANGLICTINA, 'GET', true));
         self::assertNull(JazykPozadavku::zCesty('api/aktivityUzivatel')->presmerovani(Jazyk::ANGLICTINA, 'GET', false));
+        self::assertNull(
+            JazykPozadavku::zCesty('altcha-challenge')->presmerovani(Jazyk::ANGLICTINA, 'GET', false, 'cors'),
+            'fetch() (výzva Altchy) není navigace',
+        );
+        self::assertNull(
+            JazykPozadavku::zCesty('program', [
+                'jazyk' => 'cs',
+            ])->presmerovani(Jazyk::ANGLICTINA, 'GET', false, 'cors'),
+        );
+    }
+
+    public function testPresmerujeNavigaciSHlavickouIBezNi(): void
+    {
+        $jazykPozadavku = JazykPozadavku::zCesty('program');
+
+        self::assertSame(URL_WEBU . '/en/program', $jazykPozadavku->presmerovani(Jazyk::ANGLICTINA, 'GET', false, 'navigate'));
+        self::assertSame(
+            URL_WEBU . '/en/program',
+            $jazykPozadavku->presmerovani(Jazyk::ANGLICTINA, 'GET', false, ''),
+            'Bez hlavičky Sec-Fetch-Mode (starší prohlížeč, test) rozhodne metoda a AJAX.',
+        );
+    }
+
+    /**
+     * @return array<string, array{string, bool, string, bool}>
+     */
+    public static function pozadavky(): array
+    {
+        return [
+            'odkaz'                    => ['GET', false, 'navigate', true],
+            'bez hlavičky'             => ['get', false, '', true],
+            'formulář'                 => ['POST', false, 'navigate', false],
+            'AJAX'                     => ['GET', true, '', false],
+            'fetch()'                  => ['GET', false, 'cors', false],
+            'fetch() ze stejného webu' => ['GET', false, 'same-origin', false],
+            'obrázek, skript'          => ['GET', false, 'no-cors', false],
+        ];
+    }
+
+    #[DataProvider('pozadavky')]
+    public function testPoznaNavigaci(string $metoda, bool $jeAjax, string $secFetchMode, bool $jeNavigace): void
+    {
+        self::assertSame($jeNavigace, JazykPozadavku::zCesty('en/program')->isNavigace($metoda, $jeAjax, $secFetchMode));
+    }
+
+    public function testApiNeniNavigace(): void
+    {
+        self::assertFalse(JazykPozadavku::zCesty('en/api/aktivityUzivatel')->isNavigace('GET', false, 'navigate'));
+        self::assertFalse(JazykPozadavku::zCesty('en/api')->isNavigace('GET', false));
     }
 
     public function testPrepnutiPresmerujeNaAdresuBezParametru(): void
@@ -124,15 +174,61 @@ class JazykPozadavkuTest extends TestCase
         );
     }
 
-    public function testZapamatujeSiJenVyslovnouVolbu(): void
+    public function testCookieSiZapamatujePrefixPriNavigaciAPrepinacVzdy(): void
     {
-        self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::zCesty('en/program')->jazykKZapamatovani());
+        self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::zCesty('en/program')->getJazykDoCookie('GET', false, 'navigate'));
+        self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::zCesty('en/')->getJazykDoCookie('GET', false));
         self::assertSame(Jazyk::CESTINA, JazykPozadavku::zCesty('program', [
             'jazyk' => 'cs',
-        ])->jazykKZapamatovani());
+        ])->getJazykDoCookie('GET', false));
+        self::assertSame(
+            Jazyk::CESTINA,
+            JazykPozadavku::zCesty('en/program', [
+                'jazyk' => 'cs',
+            ])->getJazykDoCookie('POST', true, 'cors'),
+            'Přepínač je výslovná volba, platí vždy.',
+        );
         self::assertNull(
-            JazykPozadavku::zCesty('program')->jazykKZapamatovani(),
+            JazykPozadavku::zCesty('program')->getJazykDoCookie('GET', false),
             'Česká adresa mohla přijít z natvrdo psaného odkazu, volbu nemění.',
         );
+    }
+
+    public function testPrefixMimoNavigaciCookieNemeni(): void
+    {
+        $anglicky = JazykPozadavku::zCesty('en/prihlaska');
+
+        self::assertNull($anglicky->getJazykDoCookie('POST', false), 'formulář');
+        self::assertNull($anglicky->getJazykDoCookie('GET', true), 'AJAX');
+        self::assertNull($anglicky->getJazykDoCookie('GET', false, 'cors'), 'fetch()');
+        self::assertNull(
+            JazykPozadavku::zCesty('en/api/aktivityUzivatel')->getJazykDoCookie('GET', false),
+            'Stará anglická záložka volající API nesmí přepnout volbu zpět.',
+        );
+    }
+
+    public function testDoUctuSeUkladaJenPrepinac(): void
+    {
+        self::assertNull(
+            JazykPozadavku::zCesty('en/program')->getJazykDoUctu(),
+            'Sdílený odkaz na /en/ ani infopult přihlášený za účastníka v anglickém prohlížeči nesmí přepnout účet.',
+        );
+        self::assertNull(JazykPozadavku::zCesty('program')->getJazykDoUctu());
+        self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::zCesty('program', [
+            'jazyk' => 'en',
+        ])->getJazykDoUctu());
+        self::assertSame(Jazyk::CESTINA, JazykPozadavku::zCesty('en/program', [
+            'jazyk' => 'cs',
+        ])->getJazykDoUctu());
+    }
+
+    public function testZvolenyJazykJeZCookieJinakZUctu(): void
+    {
+        self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::getZvolenyJazyk('en', Jazyk::CESTINA));
+        self::assertSame(Jazyk::CESTINA, JazykPozadavku::getZvolenyJazyk('cs', Jazyk::ANGLICTINA));
+        self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::getZvolenyJazyk(null, Jazyk::ANGLICTINA));
+        self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::getZvolenyJazyk('xx', Jazyk::ANGLICTINA), 'neznámá hodnota cookie');
+        self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::getZvolenyJazyk(['cs'], Jazyk::ANGLICTINA), 'gc_jazyk[]=cs');
+        self::assertNull(JazykPozadavku::getZvolenyJazyk(null, null));
     }
 }

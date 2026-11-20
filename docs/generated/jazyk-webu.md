@@ -6,17 +6,29 @@ Plán celé dvojjazyčnosti a co ještě chybí: [docs/dvojjazycny-web.md](../dv
 
 - `model/Jazyk/Jazyk.php`: enum jazyků (`cs` výchozí bez prefixu, `en` s prefixem `en/`).
 - `model/Jazyk/JazykPozadavku.php::zGlobals()`: volá ho `web/index.php` hned po `Uzivatel::zSession()`. Odtrhne prefix z `$_GET['req']`, takže `Url`, `Modul::zUrl`, `Stranka::zUrl` i Symfony cesty v `web/_symfony.php` pracují s cestou bez jazyka.
-- `JazykPozadavku::zpracuj()`: cookie `gc_jazyk`, `uzivatele_hodnoty.jazyk`, přesměrování.
+- `JazykPozadavku::zpracuj()`: cookie `gc_jazyk`, `uzivatele_hodnoty.jazyk`, přesměrování. Sám jen čte `$_SERVER`/`$_COOKIE` a provádí; rozhodují čisté metody `isNavigace()`, `getJazykDoCookie()`, `getJazykDoUctu()`, `getZvolenyJazyk()` a `presmerovani()`, testované v `JazykPozadavkuTest`.
+- `Modul::setObsahPrelozeny()` (`web/tridy/modul.php`): stránka prohlásí, že její obsah je přeložený. Podle toho `Info` skládá kanonickou adresu, `hreflang` a `og:locale` a `index.xtpl` označí jazyk obsahu, viz [Přeložená stránka](#přeložená-stránka-hreflang-a-kanonická-adresa).
 - `model/Jazyk/AktualniJazyk.php`: jazyk právě vykreslovaného požadavku. Mimo web (admin, cron, CLI) není nastavený, platí čeština.
 - `model/Jazyk/Preklad.php` a globální `t()` / `urlWebu()` v `model/funkce/web-funkce.php`.
 - `model/XTemplate/XTemplate.php::convertVariables()`: `{t:menu.program}` se zkompiluje na `<?=htmlspecialchars(t('menu.program'))?>`, šablona v cache je tedy jedna pro všechny jazyky. Text se escapuje, protože je i v atributech, takže HTML do katalogu nepatří (hlídá `PrekladyKatalogTest`).
 - Preact: `ui/src/i18n/` (`t()`, slovníky `cs.ts` a `en.ts`), jazyk z `GAMECON_KONSTANTY.JAZYK` (`Program::gameconKonstanty()`).
 
+## Escapování: `t()` vrací prostý text
+
+- `t()` a `Preklad::t()` vrací **prostý text, ne HTML**. Parametry (`['jmeno' => …]`) jsou taky prostý text a vkládají se bez úprav, nic se neescapuje.
+- Kdo výsledek vkládá do HTML, escapuje ho celý (`htmlspecialchars()`), parametry tím projdou taky. `{t:klic}` v šabloně to dělá sám, `t()` přiřazené do proměnné šablony ne: `$sablona->assign('x', htmlspecialchars(t('…')))` (`MenuWebu`, štítek jazyka v `web/moduly/aktivity.php`). Totéž platí pro `JazykAktivity::popisek()`, je to text z `t()`.
+- `Info::nazev()` / `popis()` escapuje `Info::html()` sám (`web/moduly/program.php` mu předává `t()` rovnou).
+- Do JSONu a do e-mailu v prostém textu jde `t()` bez escapování.
+
 ## Pravidla
 
 - Jazyk se pozná jen z prefixu URL. Podle jazyka prohlížeče se nepřesměrovává `(záměr)`.
-- Volba se ukládá jen výslovně: návštěvou adresy s prefixem nebo přepínačem `?jazyk=cs|en`. Česká adresa bez přepínače volbu nemění, mohla přijít z natvrdo psaného odkazu.
-- Kdo má zvolenou angličtinu (cookie, jinak uložená u přihlášeného) a přijde na českou adresu, dostane 302 na anglickou. Jen u GET, ne u AJAXu a `api/…`.
+- **Kam se volba ukládá:**
+  - cookie `gc_jazyk` (prohlížeč): z přepínače `?jazyk=cs|en` vždy, z adresy s prefixem `/en/` jen při navigaci (viz níže);
+  - `uzivatele_hodnoty.jazyk` (účet přihlášeného): **jen z přepínače** a při registraci. Ne z prefixu: sdílený odkaz na `/en/`, který org jednou otevře, by mu jinak přepnul účet a s ním e-maily i přesměrování na všech zařízeních, a infopult přihlášený „jako uživatel“ v prohlížeči s anglickou cookie (session cookie je sdílená na `.gamecon.cz`) by zapsal angličtinu do účtu účastníka `(záměr)`.
+  - Česká adresa bez přepínače nemění nic, mohla přijít z natvrdo psaného odkazu.
+- **Navigace** (`JazykPozadavku::isNavigace()`) = GET, ne AJAX (`is_ajax()`), ne `api/…` a `Sec-Fetch-Mode: navigate`; chybějící hlavička (starší prohlížeč, curl v testech) se bere jako navigace. Formulář, `fetch()` (výzva Altchy, Preact) ani stará anglická záložka volající `/en/api/…` tak volbu nepřepnou.
+- Zvolený jazyk je cookie, jinak jazyk uložený u přihlášeného (`getZvolenyJazyk()`). Kdo má zvolenou angličtinu a přijde na českou adresu, dostane 302 na anglickou. Jen při navigaci, stejná podmínka jako u cookie.
 - Přepínač jazyka vede vždy přes `?jazyk=`. Bez parametru by návrat do češtiny přebila cookie s angličtinou. Parametr `jazyk` proto nesmí použít nic jiného: `JazykPozadavku` ho odebírá z každého přesměrování a odkazu přepínače (filtr jazyka aktivit v programu má `?jazykAktivity=`).
 - `uzivatele_hodnoty.jazyk` je jazyk e-mailů, které jdou mimo request uživatele. Nový účet dostane jazyk, ve kterém se registroval (`registrujUprav()` ho doplňuje až po validaci, protože validace pouští jen povolená pole; `rychloregistrace()` taky).
 - Chybějící anglický text spadne na český (`setFallbackLocales`), chybějící klíč vrátí sám sebe.
@@ -26,31 +38,49 @@ Plán celé dvojjazyčnosti a co ještě chybí: [docs/dvojjazycny-web.md](../dv
 
 - `<base href>` je `urlWebu()`, takže relativní odkazy (`href="program"`, i v obsahu stránek z CMS) zůstávají v jazyce stránky.
 - Absolutní odkazy skládej přes `urlWebu('cesta')`, ne `URL_WEBU . '/cesta'`. Platí to i pro přesměrování a pro Symfony controllery, které vykreslují `index.xtpl` (`ObnovaHeslaController::strankaResponse()` musí předat `base` i `jazyk` stejně jako `web/index.php`). Výjimka jsou odkazy, které se tisknou nebo sdílí jako kanonické (QR kódy, `Novinka::urlNaWebu()`); ty zůstávají české a návštěvníka s volbou angličtiny přesměruje cookie.
-- Kanonická adresa (`og:url`, `rel="canonical"`) je v jazyce stránky: `Info::setKanonickaCesta()` dostane cestu bez prefixu a složí z ní přes `urlWebu()` adresu pod `/en/` i odkazy `hreflang` na ostatní jazyky, včetně parametrů z `setKanonickyParametr()`. `Info::url(URL_WEBU . …)` by anglickou stránku kanonicky odkázal na českou, a ta by si s `hreflang` odporovala.
+- Kanonická adresa (`og:url`, `rel="canonical"`) je v jazyce **obsahu**: `Info::setKanonickaCesta()` dostane cestu bez prefixu a složí z ní přes `urlWebu()` adresu (u přeložené stránky pod `/en/`, u nepřeložené českou) i odkazy `hreflang` na ostatní jazyky, včetně parametrů z `setKanonickyParametr()`. Skládá je až v `html()`, protože o přeloženosti se ví až po spuštění modulu. `Info::url(URL_WEBU . …)` jazykové verze nemá a přebije kanonickou cestu.
 - Relativní odkazy na soubory (`soubory/…`) vedou pod `/en/`. Obsluhuje je pravidlo ve `web/.htaccess`: adresář `en/` neexistuje, Apache proto dá do `REQUEST_FILENAME` jen `…/web/en` (zbytek cesty je PATH_INFO) a pravidlo skládá cestu ze zachycené části URL.
 - Preact volá API v jazyce stránky (`BASE_PATH_API` = `…/en/api/`), aby texty z API seděly k rozhraní.
 - Cesta v `JazykPozadavku` je z `$_GET['req']`, tedy už dekódovaná. Do odkazů a do `Location` se vrací zakódovaná (`cestaProUrl()`), jinak by šlo přes URL vložit HTML do přepínače jazyka.
+
+## Přeložená stránka: hreflang a kanonická adresa
+
+Pod `/en/` je zrcadlo celého webu, ale přeložené je jen rozhraní (menu, patička, nadpisy programu). Obsah stránek z CMS, blogu, novinek, přihlášky, financí… je česky. Kdyby se každá stránka hlásila jako anglická verze, vyhledávače by `/en/X` braly za duplikát a český návštěvník by z vyhledávání uvízl v angličtině. Proto:
+
+- **Přeložená stránka** (modul zavolá `$this->setObsahPrelozeny(true)`): kanonická adresa v jazyce stránky (`/en/X` pod angličtinou), `hreflang` cs / en / x-default, `og:locale` podle jazyka stránky.
+- **Nepřeložená** (výchozí): žádný `hreflang`. Pod `/en/` má kanonickou adresu (i `og:url`) českou, tutéž cestu i s kanonickým dotazem, a `og:locale` `cs_CZ`; pod češtinou kanonicky sama sebe. `<html lang>` zůstává jazyk rozhraní (`en`), obsah ale dostane `<div lang="cs">` (blok `jinyJazykObsahu` v `index.xtpl` kolem `{obsah}`, parsuje ho `web/index.php`, jen když se jazyk obsahu liší od jazyka stránky). Obalový `<div>` je tam vždy, aby struktura byla v obou jazycích stejná; žádný selektor v `web/soubory/blackarrow/**/*.less` ani v `ui` na přímých potomcích `body` nestojí.
+- Stránka 404 (`nenalezeno`) je nepřeložená, takže `hreflang` nemá.
+- `web/index.php` předá příznak z modulu do `Info` až po `spust()` (`$i->setObsahPrelozeny($m->isObsahPrelozeny())`), modul se tak může prohlásit sám. Symfony stránky vykreslují `index.xtpl` samy: `ObnovaHeslaController::strankaResponse()` blok parsuje pod angličtinou vždy, protože obnova hesla zatím přeložená není.
+- **Dnes přeložená je jen titulka:** česká `/` (`web/moduly/titulka.php`) a anglická `/en/` (stránka `en` z CMS, výjimka ve `web/index.php`) jsou jazykovými verzemi jedna druhé. Modul `titulka` se prohlašuje za přeložený jen v češtině, protože vykresluje českou titulku (pod `/en/titulka` je nepřeložená).
+- **Jak stránku označit za přeloženou:** až je hlavní obsah stránky v obou jazycích (texty přes `t()` / `{t:…}`, obsah z DB v `_en` sloupcích, datum přes `DatumVJazyce`), zavolej v modulu `$this->setObsahPrelozeny(true)`. Kanonickou cestu a `hreflang` pak `Info` složí samo. Stránka, která má přeloženou jen část (např. jen nadpisy), přeložená není. U stránek z CMS (`web/moduly/stranka.php`) to půjde, až budou mít anglický obsah; rozhodovat se pak musí podle toho, jestli ho ta konkrétní stránka má.
 
 ## Katalogy
 
 - PHP: `symfony/translations/messages+intl-icu.{cs,en}.yaml`, formát zpráv ICU (`{pocet, plural, one {…} few {…} other {…}}`, `{pohlavi, select, f {…} other {…}}`). Legacy si skládá vlastní `Translator`, aby nebootoval Symfony kernel (veřejný web ho jinak bootuje jen pro pár cest). Čte tytéž soubory jako Symfony `framework.translator` (`symfony/config/packages/translation.yaml`); výchozí jazyk i záloha musí být na obou místech čeština.
 - `Preklad` běží bez debug režimu Translatoru. Změněný YAML pozná podle času změny katalogů v `cacheVary`, takže po nasazení se cache přegeneruje sama.
-- `tests/Model/Jazyk/PrekladyKatalogTest.php` hlídá: stejné klíče ve všech jazycích, každý `t('…')` a `{t:…}` v kódu je v katalogu, v katalogu nic nepoužitého, stejné parametry a platné ICU. Klíč skládaný za běhu (`t('menu.' . $x)`) test nenajde, proto ho nepiš.
+- Testy přesměrují `Preklad` na fixture katalogy přes `Preklad::setAdresarKatalogu($adresar)` (`null` vrátí katalogy webu, `tests/Model/Jazyk/resources/preklady`). Fixture má v `cacheVary` i adresář: git checkout dá souborům stejný čas změny a klíč cache (jen 7 znaků hashe `cacheVary`) by se jinak shodoval s katalogy webu. Katalogům webu klíč zůstal, jaký byl.
+- `tests/Model/Jazyk/PrekladyKatalogTest.php` hlídá: stejné klíče ve všech jazycích, každý `t('…')`, `\t("…")`, `Preklad::t('…')` a `{t:…}` v kódu je v katalogu, v katalogu nic nepoužitého, stejné argumenty a platné ICU. Volání v PHP hledá přes tokeny (komentáře se nepočítají), `{t:…}` jen v `.xtpl`. Klíč skládaný za běhu (`t('menu.' . $x)`, `t("menu.$x")`) test odmítne, protože by ho hledání nenašlo.
+- Argumenty se porovnávají jen podle názvů: text větví `{pohlavi, select, f {ona} other {on}}` argument není. Test pak každou zprávu zformátuje s ukázkovými hodnotami (u `plural` a `select` pro každou větev) a výstup nesmí obsahovat `{` ani `}`. Chytí tím past apostrofu v ICU: `'{den}'` je doslovný text „{den}“, ne den v uvozovkách; uvozovky piš „…“, apostrof jako `''`.
+- Záloha na češtinu a escapování jsou v `PrekladTest` (fixture) a `XTemplateTest::testPrekladSeEscapuje()`. Chybějící anglický text se formátuje podle českých pravidel množného čísla (Translator vezme locale katalogu, ze kterého text je).
 - Preact: `ui/src/i18n/en.ts` je typovaný `Slovník`, takže chybějící klíč zastaví `tsc` (a tedy build). Parametry `{nazev}`.
 - Klíč, který je v PHP katalogu i ve slovníku Preactu (titulky programu, `jazyk_aktivity.*`), musí mít v obou stejný text. Hlídá to `PrekladyKatalogTest::testTextySdileneSPreactemSeShoduji()`, který slovník Preactu čte regexem: drž v něm formát `"klic": "text",` na jednom řádku.
 
 ## Data, typografie a klíče
 
 - `DateTimeCz::format()` vrací dny česky vždy, i na anglické stránce. Jeho výstup je i klíč (slugy dnů programu v `web/moduly/program.php::nazevStranky()`, párování dnů v importu aktivit), proto se nepřepíná. Text pro člověka skládá `model/Cas/DatumVJazyce.php` přes `IntlDateFormatter` (`denVTydnu()`, `denAMesic()`, `denAMesicSCasem()`); na něm stojí i `datum3()` a `datum4()`.
+- `DatumVJazyce` formátuje vždy ve výchozí časové zóně (`date_default_timezone_get()`, Europe/Prague) jako dřívější `date()`, ne v zóně předaného objektu: 2026-07-01 23:30 UTC je „2. července 01:30“.
+- Statický JSON programu (`ProgramStaticFileGenerator::generate*()`) sdílí všechny jazyky a regeneraci spouští i `/en/api/programManifest`. Generuje se proto vždy ve výchozím jazyce (`AktualniJazyk::provedVJazyce()`), texty překládá Preact. `aktivitaDoPole()` volá i uživatelské API v jazyce požadavku, proto do ní nepatří `t()` ani `DatumVJazyce` (obě cesty se musí shodovat). Hlídá `ProgramStaticFileGeneratorTest::generovaniVAnglictineDaStejneSouboryJakoVCestine()`.
 - `relativni()` a `relativniVBudoucnu()` zůstávají česky, používá je jen admin a cron.
 - Datum uvnitř věty, která ještě není přeložená, musí dostat jazyk věty (`datum3($datum, Jazyk::CESTINA)` ve `web/moduly/finance.php`), jinak vznikne „zaplatit do 17 July“.
+- Filtr jazyka v programu (`?jazykAktivity=`): aktivita vedená česky i anglicky vyhoví češtině i angličtině, jazykově nezávislá vyhoví každé volbě (zahraje si ji každý); volba „jazykově nezávislé“ ukáže jen nezávislé (`jazykyFiltruAktivity()` v `ui/src/utils/jazykAktivity.ts`). Hodnota z URL se ověřuje (`jazykyFiltruZUrl()`), neznámý kód by jinak shodil program. Štítek v buňce programu: `EN`, `CZ/EN` a na anglické stránce i `CZ` u čistě české aktivity; nezávislá štítek nemá.
 - `JazykAktivity::nazev()` je český název, podle kterého páruje import a export aktivit. Návštěvníkovi webu se ukazuje `popisek()` v jazyce stránky.
+- Sloupce `akce_seznam.jazyk` a `uzivatele_hodnoty.jazyk` mají collation `utf8mb4_czech_ci`, která nerozlišuje velikost písmen ani mezery na konci. CHECK proto porovnává `BINARY jazyk IN (…)`, jinak by pustil `'EN'` i `'en '`, které `tryFrom()` enumu nezná. Doctrine entity (`Activity::setJazyk()`, `User::setJazyk()`) jinou hodnotu než z enumu odmítnou výjimkou.
 - `markdown($text, $jazyk)`: `$jazyk` je jazyk **textu**, ne stránky (česká záloha na anglické stránce dostane české uvozovky). Podle něj `Smartyp` volí typografii a cache markdownu má pro angličtinu vlastní skupinu (`kvs('markdown-en', …)`), protože výstup stejného textu se liší.
 - Preact: klíče skupin v tabulce programu i slugy dnů v URL zůstávají česky (`formátujDenVTýdnu`). Zobrazuje se přes `ui/src/i18n/datum.ts` (`popisekSkupiny()`, `názevDneVTýdnu()`, `formátujDatumProČtenáře()`).
 
 ## Gotchas
 
-- Anglická titulka `/en/` ukazuje stránku `en` z CMS (ručně psané „Welcome“, dřív na adrese `/en`, kterou zabral prefix jazyka). Rozhoduje o tom `web/index.php` `(záměr, dokud není přeložená titulka)`. Až se titulka přeloží, výjimku z routeru odstraň a stránku `en` smaž nebo přesměruj.
+- Anglická titulka `/en/` ukazuje stránku `en` z CMS (ručně psané „Welcome“, dřív na adrese `/en`, kterou zabral prefix jazyka). Rozhoduje o tom `web/index.php` `(záměr, dokud není přeložená titulka)`: předá modulu `stranka` parametr `jazykTextu` (`Stranka::html(Jazyk::ANGLICTINA)`, jinak by markdown dal anglickému textu české uvozovky „…“) a prohlásí ji za přeloženou. Stránka `en` na jiné adrese (`/en/en`, `/EN`) přesměruje 301 na `/en/`, aby nebyla kopií titulky. Až se titulka přeloží, výjimku z routeru odstraň, `Stranka::URL_ANGLICKE_TITULKY` a stránku `en` smaž nebo přesměruj a v `titulka.php` nech `setObsahPrelozeny(true)`.
 - Slugy dnů programu (`/program/patek`) jsou klíče a musí zůstat česky i v angličtině. `nazevStranky()` je skládá z `format('l')`, viz výše.
 - Logika legacy e-shopu stojí na českých názvech předmětů (`Shop::bezDne()`, `'Spacák'`, `LIKE 'Snídaně%'`). Nevadí to, dokud se názvy jen zobrazují; anglické názvy předmětů patří až do nového e-shopu z PR #1058.
 - Chybová stránka `model/Vyjimkovac/vyjimkovac-omluva.xtpl` má `lang="cs"` natvrdo; přepnout až spolu s překladem jejího textu.

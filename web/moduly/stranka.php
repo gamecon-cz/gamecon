@@ -1,6 +1,7 @@
 <?php
 
 /** @var Stranka|null $stranka */
+/** @var \Gamecon\Jazyk\Jazyk|null $jazykTextu jazyk textu stránky, když není česky (anglická titulka z web/index.php) */
 
 if (empty($stranka)) {
     include __DIR__ . '/nenalezeno.php';
@@ -23,5 +24,5 @@ $typ = $stranka->typ();
       <a class="stranka_zpet" href="<?= $typ->url() ?>">zpět na <?= $typ->nazev() ?></a>
     <?php
     } ?>
-    <?= $stranka->html() ?>
+    <?= $stranka->html($jazykTextu ?? null) ?>
 </div>

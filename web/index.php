@@ -84,13 +84,16 @@ $kanonickaCesta = $url?->cela() ?? '';
 // Titulka zatím není přeložená. Do té doby je anglickou úvodní stránkou ručně psaná stránka `en`
 // z CMS, která dřív byla na adrese /en (tu teď zabral prefix jazyka).
 $anglickaUvodniStranka = $url?->cela() === '' && AktualniJazyk::jazyk() === Jazyk::ANGLICTINA
-    ? Stranka::zUrl('en')
+    ? Stranka::zUrl(Stranka::URL_ANGLICKE_TITULKY)
     : null;
 
 // určení modulu, který zpracuje požadavek (router)
 if ($anglickaUvodniStranka) {
     $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
     $m->param('stranka', $anglickaUvodniStranka);
+    // text stránky je anglický (typografie markdownu) a s českou titulkou jsou jazykovými verzemi téže stránky
+    $m->param('jazykTextu', Jazyk::ANGLICTINA);
+    $m->setObsahPrelozeny(true);
 } else {
     $m = $url
         ? Modul::zUrl(null, $systemoveNastaveni)
@@ -108,6 +111,11 @@ if (! $m && $url?->cast(1) === ArchivPrednasekStranka::PODSTRANKA && $url->cast(
 if (! $m && ($stranka = Stranka::zUrl())) {
     if ($stranka->isRedirect()) {
         header('Location: ' . $stranka->redirectUrl(), true, 301);
+        exit;
+    }
+    if ($stranka->url() === Stranka::URL_ANGLICKE_TITULKY) {
+        // anglická titulka má jedinou adresu /en/ (výjimka výš), /en/en by byla její kopií
+        header('Location: ' . urlWebu('', Jazyk::ANGLICTINA), true, 301);
         exit;
     }
     $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
@@ -147,6 +155,9 @@ try {
 } catch (Neprihlasen $e) {
     $m = Modul::zNazvu('neprihlasen', null, $systemoveNastaveni)->spust();
 }
+// Až po spuštění, modul se tím prohlásí sám. Podle toho Info skládá kanonickou adresu, hreflang a og:locale.
+// $i, ne $m->info(): modul z catch výš Info nemá, a jazyk obsahu se pozná i pro něj.
+$i->setObsahPrelozeny($m->isObsahPrelozeny());
 
 // sestavení menu
 $menu = '';
@@ -175,6 +186,11 @@ $t->assign([
 ]);
 $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
 $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
+if ($i->getJazykObsahu() !== AktualniJazyk::jazyk()) {
+    // nepřeložená stránka pod /en/: menu a patička jsou anglicky (<html lang>), obsah česky
+    $t->assign('jazykObsahu', $i->getJazykObsahu()->value);
+    $t->parse('index.jinyJazykObsahu');
+}
 if (! $m->bezPaticky()) {
     if ($u?->jeOrganizator()) {
         $t->parse('index.paticka.qrka');
