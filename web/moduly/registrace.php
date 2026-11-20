@@ -18,7 +18,8 @@ use Gamecon\Uzivatel\Registrace;
 
 $this->blackarrowStyl(true);
 $this->bezPaticky(true);
-$this->info()->nazev('Registrace');
+$this->info()->nazev(t('registrace.nazev'));
+$this->setObsahPrelozeny(true);
 
 $registrace = new Registrace($systemoveNastaveni, $u);
 

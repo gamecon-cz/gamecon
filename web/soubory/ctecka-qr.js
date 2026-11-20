@@ -26,6 +26,15 @@
     // adresa stránky schválení bez parametrů, jinam čtečka nikoho nepošle
     var adresaSchvaleni = tlacitko.getAttribute('data-adresa-schvaleni');
     var adresaJsQr = tlacitko.getAttribute('data-jsqr');
+    // texty v jazyce stránky (data-zpravy z Registrace::zobrazHtml()), bez nich česky
+    var zpravy = Object.assign({
+        nacteno: 'Kód načten, otevírám schválení…',
+        ciziKod: 'Tohle není QR kód pro přihlášení do GameConu. Namiř na kód na přihlašovací stránce.',
+        bezFotoaparatu: 'Tenhle prohlížeč fotoaparát nepoužije. Naskenuj kód aplikací Fotoaparát.',
+        namir: 'Namiř fotoaparát na QR kód na přihlašovací stránce.',
+        fotoaparatZakazan: 'Bez přístupu k fotoaparátu to nepůjde. Povol ho v nastavení prohlížeče, nebo naskenuj kód aplikací Fotoaparát.',
+        fotoaparatSelhal: 'Fotoaparát se nepodařilo spustit. Naskenuj kód aplikací Fotoaparát.',
+    }, JSON.parse(tlacitko.getAttribute('data-zpravy') || '{}'));
     var stream = null;
     var bezi = false;
     // Každé spuštění kamery má své číslo. Kamera spuštěná pod číslem, které už neplatí (okno se mezitím zavřelo,
@@ -130,11 +139,11 @@
         }
         if (adresa && adresa.origin + adresa.pathname === adresaSchvaleni) {
             zastavKameru();
-            napis('Kód načten, otevírám schválení…');
+            napis(zpravy.nacteno);
             window.location.assign(adresa.href);
             return true;
         }
-        napis('Tohle není QR kód pro přihlášení do GameConu. Namiř na kód na přihlašovací stránce.');
+        napis(zpravy.ciziKod);
         return false;
     }
 
@@ -162,10 +171,10 @@
         tlacitko.hidden = true;
         okno.hidden = false;
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            napis('Tenhle prohlížeč fotoaparát nepoužije. Naskenuj kód aplikací Fotoaparát.');
+            napis(zpravy.bezFotoaparatu);
             return;
         }
-        napis('Namiř fotoaparát na QR kód na přihlašovací stránce.');
+        napis(zpravy.namir);
         bezi = true;
         var totoSpusteni = ++spusteni;
         var platne = function () {
@@ -194,8 +203,8 @@
                 }
                 zastavKameru();
                 napis(chyba && chyba.name === 'NotAllowedError'
-                    ? 'Bez přístupu k fotoaparátu to nepůjde. Povol ho v nastavení prohlížeče, nebo naskenuj kód aplikací Fotoaparát.'
-                    : 'Fotoaparát se nepodařilo spustit. Naskenuj kód aplikací Fotoaparát.');
+                    ? zpravy.fotoaparatZakazan
+                    : zpravy.fotoaparatSelhal);
             });
     }
 

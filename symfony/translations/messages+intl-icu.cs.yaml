@@ -149,3 +149,206 @@ web:
 
 podstranka:
     zpet: zpět na {linie}
+
+ucet:
+    nejsi_robot: Ověř prosím, že nejsi robot.
+    pohlavi:
+        zena: žena
+        muz: muž
+    zobrazeni_na_webu:
+        pouze_prezdivka: Pouze přezdívka
+        jmeno_a_prijmeni: Jméno + příjmení
+        jmeno_s_prezdivkou_a_prijmenim: Jméno + přezdívka + příjmení
+
+registrace:
+    nazev: Registrace
+    nastaveni: Nastavení
+    podtitul: Jsi jenom krok od toho stát se součástí naprosto boží akce!
+    mam_ucet: Již mám účet
+    prihlasit_se: přihlásit se
+    prihlasovani_se_spusti: "Přihlašování na GameCon se spustí {zacatek, date,d. M. y} ve {zacatek, time,HH:mm}"
+    ucet_predem: Můžeš si předem vytvořit účet a přihlašování ti připomeneme e-mailem.
+    osobni:
+        nadpis: Osobní
+        proc: Proč potřebujeme osobní údaje?
+        potrebujeme_je: "Potřebujeme je, abychom:"
+        identifikace: tě identifikovali při registraci na místě
+        odbaveni: urychlili Tvé odbavení
+        ubytovani: tě mohli ubytovat a splnit související zákonné povinnosti
+    email: E-mailová adresa
+    telefon: Telefonní číslo
+    telefon_priklad: např. +420 789 123 456
+    ostatni: Ostatní
+    prezdivka: Přezdívka
+    zobrazeni_na_webu:
+        nazev: Zobrazení na webu
+        kde: Kde se použije?
+        jen_verejny_web: Tohle nastavení ovlivní jen veřejný web, například detail aktivity, medailonky vypravěčů a veřejné seznamy.
+        administrace: V administraci a interních seznamech se zobrazení jména nemění.
+    pohlavi:
+        nazev: Pohlaví
+        proc: Proč potřebujeme znát pohlaví?
+        jen_interne: Informace slouží pouze interně pro
+        ubytovani: přidělování ubytování bez preference spolubydlících,
+        mista: zpřístupnění genderově omezených míst pro aktivity.
+        vyplneni: Informaci vyplň co nejvíce autentickým/komfortním způsobem nejen pro sebe, ale také pro případné spolubydlící a spoluhráče.
+    heslo: Heslo
+    heslo_kontrola: Heslo pro kontrolu
+    souhlas:
+        veta: Souhlasím se {odkaz}
+        odkaz: zpracováním osobních údajů
+        shrnuti: Shrnutí souhlasu
+        komu_predame: Tvé údaje předáme jen těm, komu to ze zákona či z provozní potřeby musíme doložit (např. poskytovateli ubytování či vypravěčům).
+        kontakt: Kontaktovat Tě budeme pouze v rozumné míře a v souvislosti s GameConem.
+        plne_zneni: Plné právní znění najdeš {odkaz}.
+        plne_zneni_odkaz: zde
+    ulozit: Uložit
+    prihlasit_na_gc: Přihlásit na GameCon
+    jen_vytvorit_ucet: Jen vytvořit účet
+    ok: Účet vytvořen. Informaci o spuštění přihlašování ti včas pošleme e-mailem.
+    ok_a_prihlaska: Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.
+    uprava_ok: Změny registračních údajů uloženy.
+    zarizeni:
+        nadpis: Přihlášená zařízení
+        popis: Odhlásí tě na všech ostatních zařízeních a prohlížečích, tady zůstaneš {pohlavi, select, f {přihlášena} other {přihlášen}}. Totéž udělá změna hesla. Neuložené změny nastavení výš se zahodí.
+        odhlasit_ostatni: Odhlásit ostatní zařízení
+        odhlaseno: Na ostatních zařízeních jsi {pohlavi, select, f {odhlášena} other {odhlášen}}.
+    jine_zarizeni:
+        nadpis: Přihlásit jiné zařízení
+        popis: Na přihlašovací stránce jiného zařízení, na webu i v administraci, zvol {tlacitko} a kód naskenuj fotoaparátem telefonu, nebo tady.
+        nacist_qr: Načíst QR kód
+        zavrit: Zavřít
+        nacteno: Kód načten, otevírám schválení…
+        cizi_kod: Tohle není QR kód pro přihlášení do GameConu. Namiř na kód na přihlašovací stránce.
+        bez_fotoaparatu: Tenhle prohlížeč fotoaparát nepoužije. Naskenuj kód aplikací Fotoaparát.
+        namir: Namiř fotoaparát na QR kód na přihlašovací stránce.
+        fotoaparat_zakazan: Bez přístupu k fotoaparátu to nepůjde. Povol ho v nastavení prohlížeče, nebo naskenuj kód aplikací Fotoaparát.
+        fotoaparat_selhal: Fotoaparát se nepodařilo spustit. Naskenuj kód aplikací Fotoaparát.
+    povinne_udaje:
+        jmeno: Jméno
+        prijmeni: Příjmení
+        datum_narozeni: Datum narození
+        statni_obcanstvi: Státní občanství
+        statni_obcanstvi_priklad: například ČR
+        ubytovatel_veta: Tím je {ubytovatel}.
+        ubytovatel: Vysoká škola báňská - Technická univerzita Ostrava, Koleje Poruba Studentská 1770/1 708 00 Ostrava-Poruba
+        chybne_vyplneni: Chybné vyplnění polí může vést u infopultu k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních.
+        adresa:
+            nadpis: Adresa trvalého pobytu
+            proc: Proč potřebujeme adresu?
+            ze_zakona: Informaci o trvalém bydlišti jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.
+            ulice: Ulice a číslo popisné
+            mesto: Město
+            psc: PSČ
+            zeme: Země
+            cesko: Česká republika
+            slovensko: Slovenská republika
+            jiny_stat: (jiný stát)
+        doklad:
+            nadpis: Platný doklad totožnosti
+            proc: Proč potřebujeme doklad?
+            ze_zakona: Číslo identifikačního dokladu jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.
+            typ: Typ dokladu
+            op: Občanský průkaz
+            pas: Cestovní pas
+            jiny: Jiný
+            cislo: Číslo dokladu
+    chyba:
+        jiny_uzivatel_prihlasen: Jiný uživatel v tomto prohlížeči už je přihlášený.
+        odhlaseno: Došlo k odhlášení, přihlaš se prosím znovu.
+        registrace: Registrace se nepodařila. Oprav prosím zvýrazněné položky.
+        uprava: Úprava se nepodařila, oprav prosím zvýrazněné položky.
+        prezdivka: vyber si prosím přezdívku
+        prezdivka_zabrana_prihlas_se: přezdívka už je zabraná; pokud je tvoje, přihlaš se nebo si resetuj heslo
+        prezdivka_zabrana: přezdívka už je zabraná, vyber si prosím jinou
+        email: zadej prosím platný e-mail
+        email_zaregistrovany: e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo
+        email_zabrany: e-mail už je zabraný. Pokud je tvůj, resetuj si heslo
+        datum_narozeni: vyplň prosím platné datum narození
+        heslo: vyplň prosím heslo
+        hesla_se_neshoduji: hesla se neshodují
+        telefon: vyplň prosím telefon, např. +420 789 123 456
+        jmeno: jméno nesmí být prázdné
+        prijmeni: příjmení nesmí být prázdné
+        statni_obcanstvi: vyplň prosím státní občanství
+        ulice: vyplň prosím ulici, např. Česká 27
+        ulice_v_cizine: vyplň prosím ulici a číslo domu
+        mesto: vyplň prosím město
+        psc: vyplň prosím PSČ, např. 602 00
+        psc_v_cizine: vyplň prosím PSČ, jen písmena, číslice, mezery a pomlčky
+        stat: vyber prosím stát
+        typ_dokladu: vyber prosím typ dokladu totožnosti
+        cislo_dokladu: vyplň prosím celé číslo dokladu
+        zobrazeni_na_webu: vyber prosím způsob zobrazení na webu
+        pohlavi: vyber prosím pohlaví
+
+prihlaseni:
+    nazev: Přihlášení
+    email: E-mailová adresa
+    zapomenute_heslo: zapomenuté heslo
+    heslo: Heslo
+    trvale: Trvale přihlásit
+    prihlasit_se: Přihlásit se
+    qr_kodem: Přihlásit QR kódem
+    nemam_ucet: Nemám účet
+    registrovat: registrovat
+    chyba: Špatné uživatelské jméno nebo heslo.
+    qr:
+        nadpis: Přihlášení QR kódem
+        alt: QR kód pro přihlášení
+        naskenuj: Na telefonu, kde máš přihlášený účet na webu GameConu, naskenuj kód fotoaparátem, nebo na webu v Nastavení tlačítkem {tlacitko}.
+        vyber_cislo: "Na telefonu vyber tohle číslo:"
+        platnost: Kód platí {minut, plural, one {# minutu} few {# minuty} other {# minut}}.
+        novy_kod: Nový kód
+        heslem: Přihlásit heslem
+        zamitnuto: Přihlášení na telefonu někdo zamítl, nebo vybral jiné číslo. Vygeneruj nový kód.
+        vyprselo: Kód vypršel, vygeneruj nový.
+        neplatny: Kód už neplatí, vygeneruj nový.
+        moc_kodu: Vygeneroval jsi teď moc kódů. Zkus to za pár minut, nebo se přihlas heslem.
+        moc_zadosti_ze_site: Z tvé sítě teď přišlo moc žádostí o přihlášení QR kódem. Přihlas se heslem, nebo to zkus za pár minut.
+
+obnova_hesla:
+    zapomenute_heslo: Zapomenuté heslo
+    zkontroluj_email: Zkontroluj e-mail
+    odkaz_poslan: "Pokud k zadané e-mailové adrese existuje účet, poslali jsme na něj odkaz pro nastavení nového hesla. Odkaz platí 1 hodinu."
+    zpet_na_prihlaseni: Zpět na přihlášení
+    zadej_email: Zadej svůj e-mail. Pošleme ti odkaz, na kterém si nastavíš nové heslo.
+    muj_email: Můj e-mail
+    odeslat_odkaz: Odeslat odkaz
+    moc_zadosti: Z tvé sítě přišlo za poslední hodinu moc žádostí o obnovu hesla. Zkus to prosím později.
+    neplatny_odkaz: Neplatný odkaz
+    neplatny_odkaz_popis: Odkaz pro obnovu hesla platí jen omezenou dobu a po nastavení hesla přestane fungovat. Nech si prosím poslat nový.
+    poslat_novy_odkaz: Poslat nový odkaz
+    zadej_nove_heslo: Zadej nové heslo
+    nove_heslo: Nové heslo
+    nastavit_nove_heslo: Nastavit nové heslo
+    heslo_zmeneno: Heslo bylo změněno. Můžeš se přihlásit.
+    heslo_kratke: Heslo musí mít aspoň {pocet, plural, one {# znak} few {# znaky} other {# znaků}}.
+    heslo_dlouhe: Heslo může mít nejvýše {pocet, plural, one {# znak} few {# znaky} other {# znaků}}.
+
+prihlasit_zarizeni:
+    nazev: Přihlásit zařízení
+    nadpis: Přihlásit jiné zařízení
+    schvaleno: Hotovo, zařízení se teď přihlásí.
+    spatne_cislo: "{pohlavi, select, f {Vybrala} other {Vybral}} jsi jiné číslo, než ukazuje zařízení, a tak jsme přihlášení zamítli. Jestli kód nebyl z tvé obrazovky, chtěl se k tvému účtu přihlásit někdo jiný."
+    vyrizeno: Kód mezitím vypršel nebo už je vyřízený. Na zařízení vygeneruj nový.
+    zamitnuto: Přihlášení jsi {pohlavi, select, f {zamítla} other {zamítl}}.
+    nelze_zamitnout: Zamítnout už nešlo, kód mezitím vypršel nebo ho někdo vyřídil.
+    prihlas_se: Ke schválení musíš být na tomhle telefonu přihlášený na webu GameConu. Po přihlášení tě vrátíme sem.
+    platnost: Kód platí jen {minut, plural, one {# minutu} few {# minuty} other {# minut}}. Když mezitím vyprší, vygeneruj na zařízení nový a naskenuj ho znovu.
+    prepnuto: Jsi přepnutý na jiného uživatele. Přihlášení zařízení schval ze svého účtu.
+    neznamy_kod: Tenhle kód neznáme. Naskenuj ho prosím znovu.
+    stav_schvaleno: Přihlášení je schválené, zařízení se během chvilky přihlásí.
+    stav_zamitnuto: Přihlášení je zamítnuté. Kdo se chce přihlásit, musí vygenerovat nový kód.
+    stav_vyprselo: Kód vypršel. Na zařízení vygeneruj nový a naskenuj ho znovu.
+    prihlasis: Přihlásíš {kam, select, admin {do administrace GameConu} other {na web GameConu}} zařízení, které kód ukazuje, a to jako {jmeno}.
+    prohlizec: Prohlížeč
+    neznamy_prohlizec: neznámý prohlížeč
+    ip_adresa: IP adresa
+    kod_vznikl: Kód vznikl
+    pred_sekundami: před {sekund} s
+    pred_minutami: před {minut} min
+    varovani: "Číslo vyber jen podle obrazovky zařízení, které máš před sebou. Když ti kód nebo číslo někdo poslal nebo ti říká, které vybrat, chce se dostat k tvému účtu: přihlášení zamítni."
+    vyber_cislo: "Vyber číslo, které ukazuje zařízení:"
+    nemas_zarizeni: Nemáš to zařízení před sebou, nebo ti kód či číslo někdo poslal? Přihlášení zamítni.
+    zamitnout: Zamítnout

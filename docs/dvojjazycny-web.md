@@ -135,8 +135,8 @@ Bez ní anglický obsah potichu zastará:
 - **Cache markdownu** ([`markdown()`](../model/funkce/funkce.php#L174)) má jako klíč samotný text, ale ukládá výstup až po Smartypu. Jakmile bude typografie záviset na jazyce, musí jazyk přibýt i do klíče. Jinak stejný text v obou verzích (třeba krátký název) dostane typografii toho jazyka, ve kterém se vykreslil dřív.
 - **Placeholdery** `%KLIC|datum:…%` ve stránkách formátují datum česky.
 - **Registrace cizinců:**
-  - [Validace](../model/uzivatel.php#L2109) počítá s českými údaji: PSČ smí mít jen číslice a mezery (britské `SW1A 1AA` neprojde) a ulice musí končit číslem popisným (`10 Downing Street` neprojde). Chybové hlášky dávají české příklady.
-  - Zahraniční telefon validací projde, s `+420` a devíti číslicemi počítá jen formátování v [`Uzivatel::telefon()`](../model/uzivatel.php#L2430).
+  - ~~Validace počítá s českými údaji~~ Hotovo: se státem „(jiný stát)“ [`Uzivatel::registrujUprav()`](../model/uzivatel.php) bere ulici s aspoň jedním písmenem (`10 Downing Street`, `Rose Cottage, Church Lane`) a PSČ z písmen a číslic ve skupinách oddělených mezerou nebo pomlčkou (`SW1A 1AA`, `LV-1010`, `12345-6789`). Pro Česko, Slovensko i bez vybraného státu platí česká pravidla beze změny; anglická hláška k nim radí vybrat jiný stát. Bez PSČ (země, které ho nemají) to v přihlášce na GameCon pořád nejde, pole je tam povinné.
+  - Zahraniční telefon validací projde (číslice, mezery a `+`, tedy ne `(555) 123-4567`). [`Uzivatel::telefon()`](../model/uzivatel.php) nechá číslo s cizí předvolbou (`+` nebo `00` a jiná než 420 / 421), jak ho účastník napsal; dřív z `+44 20 7946 0958` udělal `+442 079 460 958`.
   - Stát lze vybrat jen CZ, SK nebo „jiný".
   - Statická PDF (souhlas rodičů, velikosti mikin) jsou jen česky.
 
