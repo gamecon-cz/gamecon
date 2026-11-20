@@ -2455,7 +2455,7 @@ SQL,
             Sql::MESTO_UZIVATELE      => ['.+', \t('registrace.chyba.mesto')],
             Sql::PSC_UZIVATELE        => $adresaVJinemState
                 // písmena a číslice ve skupinách oddělených mezerou nebo pomlčkou (SW1A 1AA, LV-1010, 12345-6789)
-                ? ['^[a-zA-Z\d]+([ -][a-zA-Z\d]+)*$', \t('registrace.chyba.psc_v_cizine')]
+                ? ['^[a-zA-Z0-9]+([ -][a-zA-Z0-9]+)*$', \t('registrace.chyba.psc_v_cizine')]
                 : ['^[\d ]+$', \t('registrace.chyba.psc')],
             Sql::STAT_UZIVATELE       => ['^(1|2|-1)$', \t('registrace.chyba.stat')],
             // Platný doklad totožnosti
