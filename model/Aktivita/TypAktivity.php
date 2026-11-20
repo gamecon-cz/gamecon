@@ -90,6 +90,9 @@ class TypAktivity extends \DbObject
     protected static $pk           = 'id_typu';
     protected static $sloupecNazev = 'typ_1pmn';
 
+    /** @var \Stranka|null|false false = ještě nenačtená, viz getStrankaO() */
+    private \Stranka|null|false $strankaO = false;
+
     public function id(): int
     {
         return (int)parent::id();
@@ -145,7 +148,12 @@ class TypAktivity extends \DbObject
      */
     public function getStrankaO(): ?\Stranka
     {
-        return \Stranka::zId($this->r['stranka_o']);
+        // stránka linie se ptá víckrát (příznak přeložení, nadpis, úvod), načte se jednou
+        if ($this->strankaO === false) {
+            $this->strankaO = \Stranka::zId($this->r['stranka_o']);
+        }
+
+        return $this->strankaO;
     }
 
     public function popisKratky()
@@ -160,11 +168,6 @@ class TypAktivity extends \DbObject
     public function getNazevVJazyce(?Jazyk $jazyk = null): string
     {
         return $this->getTextVJazyce(TypAktivitySqlStruktura::TYP_1PMN, $jazyk);
-    }
-
-    public function getNazevJednotnehoCislaVJazyce(?Jazyk $jazyk = null): string
-    {
-        return $this->getTextVJazyce(TypAktivitySqlStruktura::TYP_1P, $jazyk);
     }
 
     public function getPopisKratkyVJazyce(?Jazyk $jazyk = null): string
