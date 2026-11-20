@@ -12,8 +12,8 @@ class Pohlavi
     public static function seznamProSelect(): array
     {
         return [
-            self::ZENA_KOD => 'žena',
-            self::MUZ_KOD  => 'muž',
+            self::ZENA_KOD => \t('ucet.pohlavi.zena'),
+            self::MUZ_KOD  => \t('ucet.pohlavi.muz'),
         ];
     }
 

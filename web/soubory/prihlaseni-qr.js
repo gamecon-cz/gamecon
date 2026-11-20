@@ -23,10 +23,12 @@
     // prázdné = obnovit stránku (admin zůstane na stránce, kterou chtěl otevřít)
     var poPrihlaseni = kontejner.getAttribute('data-po-prihlaseni');
     var zprava = kontejner.querySelector('[data-prihlaseni-qr-zprava]');
+    // web posílá texty v jazyce stránky (data-zprava-…), admin je jen česky
     var koncoveZpravy = {
-        zamitnuto: 'Přihlášení na telefonu někdo zamítl, nebo vybral jiné číslo. Vygeneruj nový kód.',
-        vyprselo: 'Kód vypršel, vygeneruj nový.',
-        zadna: 'Kód už neplatí, vygeneruj nový.',
+        zamitnuto: kontejner.getAttribute('data-zprava-zamitnuto')
+            || 'Přihlášení na telefonu někdo zamítl, nebo vybral jiné číslo. Vygeneruj nový kód.',
+        vyprselo: kontejner.getAttribute('data-zprava-vyprselo') || 'Kód vypršel, vygeneruj nový.',
+        zadna: kontejner.getAttribute('data-zprava-zadna') || 'Kód už neplatí, vygeneruj nový.',
     };
 
     function skonci(stav) {

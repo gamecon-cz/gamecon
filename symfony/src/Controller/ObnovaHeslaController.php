@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Service\LegacySessionService;
 use Gamecon\Antibot\Altcha;
 use Gamecon\Jazyk\AktualniJazyk;
-use Gamecon\Jazyk\Jazyk;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
@@ -50,36 +49,36 @@ class ObnovaHeslaController extends AbstractController
     public function zadost(Request $request): Response
     {
         $this->legacySession->initializeLegacyEnvironment();
+        $h = htmlspecialchars(...);
 
         if ($request->isMethod('POST')) {
             \omezCsrf();
 
             if (! Altcha::zGlobals()->overReseni((string) $request->request->get('altcha', ''))) {
-                \Chyba::nastav('Ověř prosím, že nejsi robot.', \Chyba::CHYBA);
+                \Chyba::nastav(htmlspecialchars(\t('ucet.nejsi_robot')), \Chyba::CHYBA);
 
                 return new RedirectResponse(\urlWebu('zapomenute-heslo'));
             }
 
             $email = trim((string) $request->request->get('mail', ''));
             if (! $this->vyridZadost($email, (string) $request->getClientIp())) {
-                \Chyba::nastav('Z tvé sítě přišlo za poslední hodinu moc žádostí o obnovu hesla. Zkus to prosím později.', \Chyba::CHYBA);
+                \Chyba::nastav(htmlspecialchars(\t('obnova_hesla.moc_zadosti')), \Chyba::CHYBA);
 
-                return new RedirectResponse(URL_WEBU . '/zapomenute-heslo');
+                return new RedirectResponse(\urlWebu('zapomenute-heslo'));
             }
 
             // Neutrální hláška bez ohledu na existenci účtu a na limit účtu —
             // neprozrazujeme, jestli e-mail v systému je.
             return $this->strankaResponse(
-                'Zapomenuté heslo',
+                \t('obnova_hesla.zapomenute_heslo'),
                 <<<HTML
                 <div class="formular formular_stranka formular_stranka-login">
                     <div class="bg"></div>
 
-                    <div class="formular_strankaNadpis">Zkontroluj e-mail</div>
+                    <div class="formular_strankaNadpis">{$h(\t('obnova_hesla.zkontroluj_email'))}</div>
 
-                    <p>Pokud k zadané e-mailové adrese existuje účet, poslali jsme na něj
-                    odkaz pro nastavení nového hesla. Odkaz platí 1&nbsp;hodinu.</p>
-                    <p><a href="prihlaseni">Zpět na přihlášení</a></p>
+                    <p>{$h(\t('obnova_hesla.odkaz_poslan'))}</p>
+                    <p><a href="prihlaseni">{$h(\t('obnova_hesla.zpet_na_prihlaseni'))}</a></p>
                 </div>
                 HTML,
             );
@@ -88,20 +87,20 @@ class ObnovaHeslaController extends AbstractController
         $widget = \altchaWidget();
 
         return $this->strankaResponse(
-            'Zapomenuté heslo',
+            \t('obnova_hesla.zapomenute_heslo'),
             <<<HTML
             <form method="post" class="formular formular_stranka formular_stranka-login">
                 <div class="bg"></div>
 
-                <div class="formular_strankaNadpis">Zapomenuté heslo</div>
+                <div class="formular_strankaNadpis">{$h(\t('obnova_hesla.zapomenute_heslo'))}</div>
 
-                <p>Zadej svůj e-mail. Pošleme ti odkaz, na kterém si nastavíš nové heslo.</p>
+                <p>{$h(\t('obnova_hesla.zadej_email'))}</p>
                 <label class="formular_polozka">
-                    Můj e-mail
+                    {$h(\t('obnova_hesla.muj_email'))}
                     <input type="email" name="mail" id="emailProObnovuHesla" autocomplete="username" required>
                 </label>
                 {$widget}
-                <input type="submit" value="Odeslat odkaz" class="formular_primarni formular_primarni-sipka">
+                <input type="submit" value="{$h(\t('obnova_hesla.odeslat_odkaz'))}" class="formular_primarni formular_primarni-sipka">
             </form>
             HTML,
         );
@@ -118,17 +117,18 @@ class ObnovaHeslaController extends AbstractController
 
         $uzivatel = $this->uzivatelZTokenu($token);
         if (! $uzivatel) {
+            $h = htmlspecialchars(...);
+
             return $this->strankaResponse(
-                'Neplatný odkaz',
+                \t('obnova_hesla.neplatny_odkaz'),
                 <<<HTML
                 <div class="formular formular_stranka formular_stranka-login">
                     <div class="bg"></div>
 
-                    <div class="formular_strankaNadpis">Neplatný odkaz</div>
+                    <div class="formular_strankaNadpis">{$h(\t('obnova_hesla.neplatny_odkaz'))}</div>
 
-                    <p>Odkaz pro obnovu hesla platí jen omezenou dobu a po nastavení
-                    hesla přestane fungovat. Nech si prosím poslat nový.</p>
-                    <p><a href="zapomenute-heslo">Poslat nový odkaz</a></p>
+                    <p>{$h(\t('obnova_hesla.neplatny_odkaz_popis'))}</p>
+                    <p><a href="zapomenute-heslo">{$h(\t('obnova_hesla.poslat_novy_odkaz'))}</a></p>
                 </div>
                 HTML,
                 Response::HTTP_BAD_REQUEST,
@@ -145,7 +145,7 @@ class ObnovaHeslaController extends AbstractController
                 // (chybu přenese cookie přes Chyba). Bez redirectu Firefox bere
                 // POST odpověď jako dokončené odeslání a nabízí uložit i
                 // zamítnuté (neshodující se) heslo.
-                \Chyba::nastav($chyba, \Chyba::CHYBA);
+                \Chyba::nastav(htmlspecialchars($chyba), \Chyba::CHYBA);
 
                 return new RedirectResponse(\urlWebu('obnova-hesla') . '?token=' . urlencode($token));
             }
@@ -154,7 +154,7 @@ class ObnovaHeslaController extends AbstractController
 
             // Cookie hláška (TTL pár sekund) přežije redirect a zobrazí se na
             // přihlašovací stránce přes Chyba::vyzvedniHtml().
-            \Chyba::nastav('Heslo bylo změněno. Můžeš se přihlásit.', \Chyba::OZNAMENI);
+            \Chyba::nastav(htmlspecialchars(\t('obnova_hesla.heslo_zmeneno')), \Chyba::OZNAMENI);
 
             return new RedirectResponse(\urlWebu('prihlaseni'));
         }
@@ -193,37 +193,45 @@ class ObnovaHeslaController extends AbstractController
     {
         $tokenHtml = htmlspecialchars($token, ENT_QUOTES);
         $emailHtml = htmlspecialchars($email, ENT_QUOTES);
+        $h = htmlspecialchars(...);
 
         // Skryté pole s e-mailem (autocomplete=username) napojí formulář na
         // konkrétní uložené přihlášení — bez něj správce hesel neumí spárovat
         // změnu s účtem a nenabídne aktualizaci uloženého hesla po úspěchu.
         return $this->strankaResponse(
-            'Zadej nové heslo',
+            \t('obnova_hesla.zadej_nove_heslo'),
             <<<HTML
             <form method="post" action="obnova-hesla" class="formular formular_stranka formular_stranka-login">
                 <div class="bg"></div>
 
-                <div class="formular_strankaNadpis">Nové heslo</div>
+                <div class="formular_strankaNadpis">{$h(\t('obnova_hesla.nove_heslo'))}</div>
 
                 <input type="hidden" name="token" value="{$tokenHtml}">
                 <input type="email" name="email" value="{$emailHtml}" autocomplete="username" readonly hidden>
                 <label class="formular_polozka">
-                    Nové heslo
+                    {$h(\t('obnova_hesla.nove_heslo'))}
                     <input type="password" name="heslo" autocomplete="new-password" required minlength="8" autofocus>
                 </label>
-                <input type="submit" value="Nastavit nové heslo" class="formular_primarni formular_primarni-sipka">
+                <input type="submit" value="{$h(\t('obnova_hesla.nastavit_nove_heslo'))}" class="formular_primarni formular_primarni-sipka">
             </form>
             HTML,
         );
     }
 
+    /**
+     * @return string|null proč heslo nejde, prostý text
+     */
     private function zkontrolujHeslo(string $heslo): ?string
     {
         if (mb_strlen($heslo) < self::MIN_DELKA_HESLA) {
-            return 'Heslo musí mít aspoň ' . self::MIN_DELKA_HESLA . ' znaků.';
+            return \t('obnova_hesla.heslo_kratke', [
+                'pocet' => self::MIN_DELKA_HESLA,
+            ]);
         }
         if (strlen($heslo) > self::MAX_DELKA_HESLA) {
-            return 'Heslo může mít nejvýše ' . self::MAX_DELKA_HESLA . ' znaků.';
+            return \t('obnova_hesla.heslo_dlouhe', [
+                'pocet' => self::MAX_DELKA_HESLA,
+            ]);
         }
 
         return null;
@@ -358,11 +366,6 @@ class ObnovaHeslaController extends AbstractController
                 'info'       => '<title>' . htmlspecialchars($nazev, ENT_QUOTES) . ' – GameCon</title>',
                 'letosniRok' => date('Y'),
             ]);
-            if (AktualniJazyk::jazyk() !== Jazyk::vychozi()) {
-                // stránky obnovy hesla zatím nejsou přeložené: pod /en/ je anglicky jen menu a patička, viz web/index.php
-                $sablona->assign('jazykObsahu', Jazyk::vychozi()->value);
-                $sablona->parse('index.jinyJazykObsahu');
-            }
             $sablona->parse('index.paticka');
             $sablona->parse('index');
             $html = $sablona->text('index');

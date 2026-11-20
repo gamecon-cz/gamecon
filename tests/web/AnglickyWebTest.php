@@ -399,7 +399,7 @@ SQL,
         self::assertStringContainsString('>programme</a>', $telo, 'Symfony stránka vykresluje menu webu, i to má být anglicky.');
         self::assertStringContainsString('<html lang="en">', $telo);
         self::assertStringContainsString('<base href="' . URL_WEBU . '/en/">', $telo, 'Relativní odkazy mají zůstat v angličtině.');
-        self::assertStringContainsString('<div lang="cs">', $telo, 'Obnova hesla zatím přeložená není, obsah je česky.');
+        self::assertStringNotContainsString('<div lang="cs">', $telo, 'Obnova hesla je přeložená, obsah není česky.');
     }
 
     public function testCestaZUrlSeVPrepinaciJazykaNeprovede(): void

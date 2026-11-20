@@ -18,6 +18,33 @@ function t(string $klic, array $parametry = [], ?Jazyk $jazyk = null): string
 }
 
 /**
+ * Značka argumentu věty pro {@see htmlSVlozkami()}: znak ze soukromé oblasti Unicode, `htmlspecialchars()` ho nechá
+ * a v textu není.
+ */
+function znackaVlozky(string $argument): string
+{
+    return "\u{E000}{$argument}\u{E000}";
+}
+
+/**
+ * Věta z katalogu s kusem HTML uprostřed (odkaz, tučné slovo) jako HTML. Věta je v katalogu celá s argumentem,
+ * slovosled tak zůstává na překladu. t() vrací prostý text, věta se proto escapuje celá a značky argumentů se
+ * nahradí HTML až potom:
+ * `htmlSVlozkami(t('klic', ['odkaz' => znackaVlozky('odkaz')]), ['odkaz' => '<a href="legal">…</a>'])`.
+ *
+ * @param array<string, string> $vlozky argument => HTML, které se za jeho značku dosadí
+ */
+function htmlSVlozkami(string $veta, array $vlozky): string
+{
+    $htmlPodleZnacky = [];
+    foreach ($vlozky as $argument => $html) {
+        $htmlPodleZnacky[znackaVlozky($argument)] = $html;
+    }
+
+    return strtr(htmlspecialchars($veta), $htmlPodleZnacky);
+}
+
+/**
  * Absolutní URL stránky veřejného webu v jazyce požadavku, např. `urlWebu('program')`.
  * Relativní odkazy jazyk drží samy přes `<base href>`, tohle je pro odkazy s `URL_WEBU`.
  */

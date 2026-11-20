@@ -151,3 +151,206 @@ web:
 
 podstranka:
     zpet: back to {linie}
+
+ucet:
+    nejsi_robot: Please confirm that you’re not a robot.
+    pohlavi:
+        zena: woman
+        muz: man
+    zobrazeni_na_webu:
+        pouze_prezdivka: Nickname only
+        jmeno_a_prijmeni: First name + surname
+        jmeno_s_prezdivkou_a_prijmenim: First name + nickname + surname
+
+registrace:
+    nazev: Sign up
+    nastaveni: Settings
+    podtitul: You’re just one step away from being part of an absolutely epic event!
+    mam_ucet: Already have an account?
+    prihlasit_se: log in
+    prihlasovani_se_spusti: GameCon registration opens on {zacatek, date,d MMMM y} at {zacatek, time,HH:mm}
+    ucet_predem: You can create an account in advance and we’ll remind you by e-mail when registration opens.
+    osobni:
+        nadpis: Personal details
+        proc: Why do we need your personal details?
+        potrebujeme_je: "We need them to:"
+        identifikace: identify you when you check in at the festival
+        odbaveni: speed up your check-in
+        ubytovani: provide your accommodation and meet the related legal obligations
+    email: E-mail address
+    telefon: Phone number
+    telefon_priklad: e.g. +44 20 7946 0958
+    ostatni: Other
+    prezdivka: Nickname
+    zobrazeni_na_webu:
+        nazev: Name on the website
+        kde: Where is it used?
+        jen_verejny_web: This setting only affects the public website, such as activity details, game master profiles and public lists.
+        administrace: It does not change how your name is shown in the admin and internal lists.
+    pohlavi:
+        nazev: Gender
+        proc: Why do we need to know your gender?
+        jen_interne: We only use this information internally for
+        ubytovani: allocating accommodation if you have no roommate preference,
+        mista: opening gender-restricted places in activities.
+        vyplneni: Please fill it in the way that is most authentic and comfortable, not only for you but also for your possible roommates and fellow players.
+    heslo: Password
+    heslo_kontrola: Confirm password
+    souhlas:
+        veta: I agree to the {odkaz}
+        odkaz: processing of my personal data
+        shrnuti: Consent summary
+        komu_predame: We will only pass your details on to those we must provide them to by law or for operational reasons (e.g. the accommodation provider or game masters).
+        kontakt: We will only contact you to a reasonable extent and in connection with GameCon.
+        plne_zneni: You can find the full legal text {odkaz}.
+        plne_zneni_odkaz: here
+    ulozit: Save
+    prihlasit_na_gc: Register for GameCon
+    jen_vytvorit_ucet: Just create an account
+    ok: Account created. We’ll let you know by e-mail in good time when GameCon registration opens.
+    ok_a_prihlaska: Your details have been saved. Fill in the following form to register for GameCon.
+    uprava_ok: Your account details have been saved.
+    zarizeni:
+        nadpis: Logged-in devices
+        popis: "{pohlavi, select, other {This logs you out on all other devices and browsers; you will stay logged in here.}} Changing your password does the same. Unsaved changes to the settings above will be lost."
+        odhlasit_ostatni: Log out other devices
+        odhlaseno: "{pohlavi, select, other {You have been logged out on all other devices.}}"
+    jine_zarizeni:
+        nadpis: Log in another device
+        popis: On the login page of the other device, on the website or in the admin, choose {tlacitko} and scan the code with your phone’s camera, or here.
+        nacist_qr: Scan QR code
+        zavrit: Close
+        nacteno: Code scanned, opening the approval…
+        cizi_kod: This is not a QR code for logging in to GameCon. Point the camera at the code on the login page.
+        bez_fotoaparatu: This browser can’t use the camera. Scan the code with your Camera app.
+        namir: Point the camera at the QR code on the login page.
+        fotoaparat_zakazan: This won’t work without access to the camera. Allow it in your browser settings, or scan the code with your Camera app.
+        fotoaparat_selhal: The camera could not be started. Scan the code with your Camera app.
+    povinne_udaje:
+        jmeno: First name
+        prijmeni: Surname
+        datum_narozeni: Date of birth
+        statni_obcanstvi: Nationality
+        statni_obcanstvi_priklad: e.g. German
+        ubytovatel_veta: That is {ubytovatel}.
+        ubytovatel: VSB – Technical University of Ostrava, Poruba Halls of Residence, Studentská 1770/1, 708 00 Ostrava-Poruba
+        chybne_vyplneni: If the fields are filled in incorrectly, you may be sent to the back of the queue at the info desk, so that fixing them does not hold up the check-in of others.
+        adresa:
+            nadpis: Permanent address
+            proc: Why do we need your address?
+            ze_zakona: Unfortunately, we are required by law to pass your permanent address on to the accommodation provider.
+            ulice: Street and house number
+            mesto: Town or city
+            psc: Postcode
+            zeme: Country
+            cesko: Czech Republic
+            slovensko: Slovakia
+            jiny_stat: (other country)
+        doklad:
+            nadpis: Valid identity document
+            proc: Why do we need your ID?
+            ze_zakona: Unfortunately, we are required by law to pass the number of your identity document on to the accommodation provider.
+            typ: Document type
+            op: ID card
+            pas: Passport
+            jiny: Other
+            cislo: Document number
+    chyba:
+        jiny_uzivatel_prihlasen: Another user is already logged in in this browser.
+        odhlaseno: You have been logged out, please log in again.
+        registrace: Sign-up failed. Please correct the highlighted fields.
+        uprava: Your changes could not be saved, please correct the highlighted fields.
+        prezdivka: please choose a nickname
+        prezdivka_zabrana_prihlas_se: this nickname is already taken; if it is yours, log in or reset your password
+        prezdivka_zabrana: this nickname is already taken, please choose another one
+        email: please enter a valid e-mail address
+        email_zaregistrovany: this e-mail address is already registered. Log in or reset your password
+        email_zabrany: this e-mail address is already in use. If it is yours, reset your password
+        datum_narozeni: please enter a valid date of birth
+        heslo: please enter a password
+        hesla_se_neshoduji: the passwords do not match
+        telefon: please enter your phone number with the country code, using only digits, spaces and +, e.g. +44 20 7946 0958
+        jmeno: first name must not be empty
+        prijmeni: surname must not be empty
+        statni_obcanstvi: please enter your nationality
+        ulice: please enter the street and house number, e.g. Česká 27. Living outside the Czech Republic and Slovakia? Choose “(other country)” as your country.
+        ulice_v_cizine: please enter the street and house number, e.g. 10 Downing Street
+        mesto: please enter your town or city
+        psc: please enter the postcode, e.g. 602 00. Living outside the Czech Republic and Slovakia? Choose “(other country)” as your country.
+        psc_v_cizine: please enter the postcode using only letters, digits, spaces and hyphens, e.g. SW1A 1AA
+        stat: please choose a country
+        typ_dokladu: please choose the type of identity document
+        cislo_dokladu: please enter the full document number
+        zobrazeni_na_webu: please choose how your name is shown on the website
+        pohlavi: please choose your gender
+
+prihlaseni:
+    nazev: Log in
+    email: E-mail address
+    zapomenute_heslo: forgotten password
+    heslo: Password
+    trvale: Stay logged in
+    prihlasit_se: Log in
+    qr_kodem: Log in with a QR code
+    nemam_ucet: Don’t have an account?
+    registrovat: sign up
+    chyba: Incorrect username or password.
+    qr:
+        nadpis: Logging in with a QR code
+        alt: QR code for logging in
+        naskenuj: On a phone where you are logged in to the GameCon website, scan the code with the camera, or use the {tlacitko} button in Settings on the website.
+        vyber_cislo: "On the phone, choose this number:"
+        platnost: The code is valid for {minut, plural, one {# minute} other {# minutes}}.
+        novy_kod: New code
+        heslem: Log in with password
+        zamitnuto: Someone rejected the login on the phone or chose a different number. Generate a new code.
+        vyprselo: The code has expired, generate a new one.
+        neplatny: The code is no longer valid, generate a new one.
+        moc_kodu: You have generated too many codes. Try again in a few minutes, or log in with your password.
+        moc_zadosti_ze_site: Too many QR code login requests have come from your network. Log in with your password, or try again in a few minutes.
+
+obnova_hesla:
+    zapomenute_heslo: Forgotten password
+    zkontroluj_email: Check your e-mail
+    odkaz_poslan: "If an account exists for the e-mail address you entered, we have sent a link to set a new password to it. The link is valid for 1 hour."
+    zpet_na_prihlaseni: Back to login
+    zadej_email: Enter your e-mail address. We’ll send you a link where you can set a new password.
+    muj_email: My e-mail
+    odeslat_odkaz: Send link
+    moc_zadosti: Too many password reset requests have come from your network in the last hour. Please try again later.
+    neplatny_odkaz: Invalid link
+    neplatny_odkaz_popis: A password reset link is only valid for a limited time and stops working once the password has been set. Please ask for a new one.
+    poslat_novy_odkaz: Send a new link
+    zadej_nove_heslo: Enter a new password
+    nove_heslo: New password
+    nastavit_nove_heslo: Set new password
+    heslo_zmeneno: Your password has been changed. You can now log in.
+    heslo_kratke: The password must have at least {pocet, plural, one {# character} other {# characters}}.
+    heslo_dlouhe: The password can have at most {pocet, plural, one {# character} other {# characters}}.
+
+prihlasit_zarizeni:
+    nazev: Log in a device
+    nadpis: Log in another device
+    schvaleno: Done, the device will now log in.
+    spatne_cislo: "{pohlavi, select, other {You chose a different number from the one the device shows, so we rejected the login.}} If the code was not from your screen, someone else was trying to log in to your account."
+    vyrizeno: The code has expired or has already been dealt with. Generate a new one on the device.
+    zamitnuto: "{pohlavi, select, other {You rejected the login.}}"
+    nelze_zamitnout: It could no longer be rejected, the code has expired or someone has dealt with it in the meantime.
+    prihlas_se: To approve it, you need to be logged in to the GameCon website on this phone. After logging in, we’ll bring you back here.
+    platnost: The code is only valid for {minut, plural, one {# minute} other {# minutes}}. If it expires in the meantime, generate a new one on the device and scan it again.
+    prepnuto: You are switched to another user. Approve the device login from your own account.
+    neznamy_kod: We don’t recognise this code. Please scan it again.
+    stav_schvaleno: The login has been approved, the device will log in in a moment.
+    stav_zamitnuto: The login has been rejected. Whoever wants to log in has to generate a new code.
+    stav_vyprselo: The code has expired. Generate a new one on the device and scan it again.
+    prihlasis: You will log the device showing the code in to {kam, select, admin {the GameCon admin} other {the GameCon website}} as {jmeno}.
+    prohlizec: Browser
+    neznamy_prohlizec: unknown browser
+    ip_adresa: IP address
+    kod_vznikl: Code created
+    pred_sekundami: "{sekund} s ago"
+    pred_minutami: "{minut} min ago"
+    varovani: "Only choose the number shown on the screen of the device in front of you. If someone sent you the code or the number, or is telling you which one to choose, they are trying to get into your account: reject the login."
+    vyber_cislo: "Choose the number the device shows:"
+    nemas_zarizeni: Don’t have the device in front of you, or did someone send you the code or the number? Reject the login.
+    zamitnout: Reject
