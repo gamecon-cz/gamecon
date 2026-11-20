@@ -7,10 +7,11 @@ namespace Gamecon\Jazyk;
 /**
  * Jazyk požadavku na veřejný web podle prefixu cesty: `/en/program` je anglicky, `/program` česky.
  *
- * Volbu si web pamatuje v cookie a u přihlášeného i v `uzivatele_hodnoty.jazyk`
- * (z toho čtou jazyk e-maily, které jdou mimo request). Kdo si zvolil angličtinu
- * a přijde na českou adresu (odkaz z e-mailu, natvrdo psaný odkaz), přesměruje se
- * na anglickou. Zpátky do češtiny vede přepínač přes `?jazyk=cs`.
+ * Volbu si web pamatuje v cookie prohlížeče: z přepínače `?jazyk=cs|en` vždy, z adresy s prefixem
+ * jen při navigaci (viz isNavigace()). U přihlášeného ji ukládá i do `uzivatele_hodnoty.jazyk`
+ * (z toho čtou jazyk e-maily, které jdou mimo request), ale jen z přepínače, viz getJazykDoUctu().
+ * Kdo si zvolil angličtinu a přijde na českou adresu (odkaz z e-mailu, natvrdo psaný odkaz),
+ * přesměruje se na anglickou. Zpátky do češtiny vede přepínač přes `?jazyk=cs`.
  * Podle jazyka prohlížeče se záměrně nepřesměrovává.
  */
 final class JazykPozadavku
@@ -117,13 +118,31 @@ final class JazykPozadavku
     }
 
     /**
-     * Kam přesměrovat, aby návštěvník zůstal v jazyce, který si zvolil, nebo null, když se zůstává.
+     * Jestli požadavek načítá stránku do okna prohlížeče (odkaz, zadaná adresa, přesměrování).
+     * Formulář, AJAX, `fetch()` ani API to nejsou: z adresy s prefixem si nesmí odvodit volbu jazyka
+     * (stará anglická záložka volající `/en/api/…` by ji jinak přepnula zpět) a nepřesměrovávají se
+     * (výzva Altchy přes `fetch()` by dostala 302).
      *
-     * @param Jazyk|null $zvoleny volba z cookie, případně uložená u přihlášeného uživatele
+     * @param string $secFetchMode hlavička `Sec-Fetch-Mode`, prázdná když chybí: starší prohlížeče a testy
+     *                             ji neposílají, pak rozhodne metoda a AJAX
      */
-    public function presmerovani(?Jazyk $zvoleny, string $metoda, bool $jeAjax): ?string
+    public function isNavigace(string $metoda, bool $jeAjax, string $secFetchMode = ''): bool
     {
-        if (strtoupper($metoda) !== 'GET' || $jeAjax || $this->jeApi()) {
+        return ! $jeAjax
+            && ($secFetchMode === '' || $secFetchMode === 'navigate')
+            && strtoupper($metoda) === 'GET'
+            && ! $this->jeApi();
+    }
+
+    /**
+     * Kam přesměrovat, aby návštěvník zůstal v jazyce, který si zvolil, nebo null, když se zůstává.
+     * Přesměrovává se jen navigace, viz isNavigace().
+     *
+     * @param Jazyk|null $zvoleny volba z cookie, případně uložená u přihlášeného uživatele, viz getZvolenyJazyk()
+     */
+    public function presmerovani(?Jazyk $zvoleny, string $metoda, bool $jeAjax, string $secFetchMode = ''): ?string
+    {
+        if (! $this->isNavigace($metoda, $jeAjax, $secFetchMode)) {
             return null;
         }
         $prepnuti = $this->jazykPrepnuti();
@@ -139,15 +158,45 @@ final class JazykPozadavku
     }
 
     /**
-     * Jazyk, který si má web zapamatovat jako volbu návštěvníka, nebo null, když se volba nemění.
+     * Jazyk, který si má zapamatovat cookie prohlížeče, nebo null, když se nemění.
+     * Přepínač vždy, adresa s prefixem jazyka jen při navigaci (viz isNavigace()).
      * Česká adresa bez přepínače nic nemění: mohla přijít z natvrdo psaného odkazu.
      */
-    public function jazykKZapamatovani(): ?Jazyk
+    public function getJazykDoCookie(string $metoda, bool $jeAjax, string $secFetchMode = ''): ?Jazyk
     {
-        return $this->jazykPrepnuti()
-            ?? ($this->maPrefix
-                ? $this->jazyk
-                : null);
+        $prepnuti = $this->jazykPrepnuti();
+        if ($prepnuti !== null) {
+            return $prepnuti;
+        }
+
+        return $this->maPrefix && $this->isNavigace($metoda, $jeAjax, $secFetchMode)
+            ? $this->jazyk
+            : null;
+    }
+
+    /**
+     * Jazyk, který se má uložit přihlášenému do `uzivatele_hodnoty.jazyk`, nebo null, když se nemění.
+     * Jen z přepínače: sdílený odkaz na `/en/…` otevřený jednou nesmí přepnout účet (a s ním e-maily
+     * i přesměrování na všech zařízeních) a infopult, který se přihlásí jako účastník v prohlížeči
+     * s anglickou cookie, nesmí zapsat angličtinu do jeho účtu. Registrace si jazyk ukládá sama.
+     */
+    public function getJazykDoUctu(): ?Jazyk
+    {
+        return $this->jazykPrepnuti();
+    }
+
+    /**
+     * Volba návštěvníka: cookie prohlížeče, jinak jazyk uložený u přihlášeného.
+     *
+     * @param mixed $cookie hodnota cookie, jak přišla (`gc_jazyk[]=…` je pole)
+     */
+    public static function getZvolenyJazyk(mixed $cookie, ?Jazyk $jazykUctu): ?Jazyk
+    {
+        $zCookie = is_string($cookie)
+            ? Jazyk::tryFrom($cookie)
+            : null;
+
+        return $zCookie ?? $jazykUctu;
     }
 
     /**
@@ -155,29 +204,31 @@ final class JazykPozadavku
      */
     public function zpracuj(?\Uzivatel $uzivatel): void
     {
-        $zapamatovat = $this->jazykKZapamatovani();
-        if ($zapamatovat !== null) {
-            if (($_COOKIE[self::COOKIE] ?? null) !== $zapamatovat->value) {
-                setcookie(self::COOKIE, $zapamatovat->value, [
-                    'expires'  => time() + 365 * 24 * 3600,
-                    'path'     => '/',
-                    'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-                    'httponly' => true,
-                    'samesite' => 'Lax',
-                ]);
-                $_COOKIE[self::COOKIE] = $zapamatovat->value;
-            }
-            if ($uzivatel && $uzivatel->jazyk() !== $zapamatovat) {
-                $uzivatel->nastavJazyk($zapamatovat);
-            }
+        $metoda = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $jeAjax = is_ajax();
+        $secFetchMode = (string) ($_SERVER['HTTP_SEC_FETCH_MODE'] ?? '');
+
+        $doCookie = $this->getJazykDoCookie($metoda, $jeAjax, $secFetchMode);
+        if ($doCookie !== null && ($_COOKIE[self::COOKIE] ?? null) !== $doCookie->value) {
+            setcookie(self::COOKIE, $doCookie->value, [
+                'expires'  => time() + 365 * 24 * 3600,
+                'path'     => '/',
+                'secure'   => ! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+            $_COOKIE[self::COOKIE] = $doCookie->value;
+        }
+        $doUctu = $this->getJazykDoUctu();
+        if ($doUctu !== null && $uzivatel !== null && $uzivatel->jazyk() !== $doUctu) {
+            $uzivatel->nastavJazyk($doUctu);
         }
 
-        $zvoleny = Jazyk::tryFrom((string)($_COOKIE[self::COOKIE] ?? ''))
-            ?? $uzivatel?->jazyk();
         $presmerovani = $this->presmerovani(
-            $zvoleny,
-            (string)($_SERVER['REQUEST_METHOD'] ?? 'GET'),
-            is_ajax(),
+            self::getZvolenyJazyk($_COOKIE[self::COOKIE] ?? null, $uzivatel?->jazyk()),
+            $metoda,
+            $jeAjax,
+            $secFetchMode,
         );
         if ($presmerovani !== null) {
             header('Location: ' . $presmerovani, true, 302);

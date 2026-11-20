@@ -23,6 +23,7 @@ class Modul
     protected $info;
     protected $cssUrls        = [];
     protected $jsUrls         = [];
+    private bool $obsahPrelozeny = false;
 
     /** Načte modul ze zadané cesty k souboru */
     protected function __construct(
@@ -85,6 +86,24 @@ class Modul
             $this->blackarrowStyl = $val;
         }
         return $this->blackarrowStyl;
+    }
+
+    /**
+     * Hlavní obsah stránky existuje ve všech jazycích webu (menu a patička se nepočítají, ty jsou přeložené vždy).
+     * Jen přeložená stránka se vyhledávačům hlásí jako jazykové verze (hreflang) a pod `/en/` má kanonickou
+     * adresu anglickou. Nepřeložená má kanonickou adresu českou a její obsah se označí jako český,
+     * viz web/index.php a Info::setObsahPrelozeny(). Výchozí je nepřeložená.
+     */
+    public function setObsahPrelozeny(bool $obsahPrelozeny): static
+    {
+        $this->obsahPrelozeny = $obsahPrelozeny;
+
+        return $this;
+    }
+
+    public function isObsahPrelozeny(): bool
+    {
+        return $this->obsahPrelozeny;
     }
 
     public function cssUrls()

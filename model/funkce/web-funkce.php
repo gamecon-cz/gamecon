@@ -8,6 +8,7 @@ use Gamecon\Jazyk\Preklad;
 
 /**
  * Text rozhraní v jazyce požadavku (nebo v předaném jazyce), viz {@see Preklad}.
+ * Vrací prostý text, ne HTML: do HTML ho escapuj (`htmlspecialchars`), `{t:…}` v šabloně to dělá sám.
  *
  * @param array<string, mixed> $parametry hodnoty pro `{nazev}` v textu
  */
@@ -241,7 +242,8 @@ function altchaWidget(): string
     // application/json). display=invisible + auto=onload = neviditelná ochrana:
     // widget nic nevykreslí a výzvu vyřeší tiše na pozadí hned po načtení,
     // uživatel o ničem neví. Skryté pole „altcha" se naplní pro odeslání.
-    $challengeUrl = htmlspecialchars(URL_WEBU . '/altcha-challenge', ENT_QUOTES);
+    // v jazyce stránky jako ostatní absolutní adresy webu, viz urlWebu()
+    $challengeUrl = htmlspecialchars(urlWebu('altcha-challenge'), ENT_QUOTES);
 
     return $script
         . '<altcha-widget display="invisible" auto="onload"'

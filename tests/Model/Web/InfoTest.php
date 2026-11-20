@@ -131,14 +131,17 @@ class InfoTest extends TestCase
     /**
      * @test
      */
-    public function anglickaStrankaMaKanonickouAdresuPodPrefixemJazyka(): void
+    public function prelozenaAnglickaStrankaMaKanonickouAdresuPodPrefixemJazyka(): void
     {
         AktualniJazyk::nastav(Jazyk::ANGLICTINA);
 
-        $info = $this->vytvorInfo()->setKanonickaCesta('program');
+        $info = $this->vytvorInfo()->setKanonickaCesta('program')->setObsahPrelozeny(true);
 
         self::assertSame(URL_WEBU . '/en/program', $info->getKanonickaUrl());
-        self::assertStringContainsString('<link rel="canonical" href="' . URL_WEBU . '/en/program">', $info->html());
+        self::assertSame(URL_WEBU . '/en/program', $info->url());
+        $html = $info->html();
+        self::assertStringContainsString('<link rel="canonical" href="' . URL_WEBU . '/en/program">', $html);
+        self::assertStringContainsString('<meta property="og:locale" content="en_GB">', $html);
     }
 
     /**
@@ -151,6 +154,7 @@ class InfoTest extends TestCase
         $html = $this->vytvorInfo()
             ->setKanonickaCesta('rpg')
             ->setKanonickyParametr('rocnik', 2024)
+            ->setObsahPrelozeny(true)
             ->html();
 
         self::assertStringContainsString('<link rel="alternate" hreflang="cs" href="' . URL_WEBU . '/rpg?rocnik=2024">', $html);
@@ -163,7 +167,7 @@ class InfoTest extends TestCase
      */
     public function titulkaMaVKazdemJazyceSvouAdresu(): void
     {
-        $html = $this->vytvorInfo()->setKanonickaCesta('')->html();
+        $html = $this->vytvorInfo()->setKanonickaCesta('')->setObsahPrelozeny(true)->html();
 
         self::assertStringContainsString('<link rel="canonical" href="' . URL_WEBU . '/">', $html);
         self::assertStringContainsString('<link rel="alternate" hreflang="en" href="' . URL_WEBU . '/en/">', $html);
@@ -174,9 +178,68 @@ class InfoTest extends TestCase
      */
     public function bezKanonickeCestyHlavickaNeobsahujeJazykoveVerze(): void
     {
-        $html = $this->vytvorInfo()->url('https://gamecon.cz/program')->html();
+        $html = $this->vytvorInfo()->url('https://gamecon.cz/program')->setObsahPrelozeny(true)->html();
 
         self::assertStringNotContainsString('hreflang', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function neprelozenaStrankaNemaJazykoveVerzeAKanonickaJeSama(): void
+    {
+        $info = $this->vytvorInfo()->setKanonickaCesta('rpg')->setKanonickyParametr('rocnik', 2024);
+
+        $html = $info->html();
+
+        self::assertFalse($info->isObsahPrelozeny(), 'Výchozí je nepřeložená stránka.');
+        self::assertStringNotContainsString('hreflang', $html);
+        self::assertStringContainsString('<link rel="canonical" href="' . URL_WEBU . '/rpg?rocnik=2024">', $html);
+        self::assertStringContainsString('<meta property="og:locale" content="cs_CZ">', $html);
+    }
+
+    /**
+     * @test
+     */
+    public function neprelozenaStrankaPodAnglictinouOdkazujeKanonickyNaCeskou(): void
+    {
+        AktualniJazyk::nastav(Jazyk::ANGLICTINA);
+
+        $info = $this->vytvorInfo()->setKanonickaCesta('rpg')->setKanonickyParametr('rocnik', 2024);
+
+        $html = $info->html();
+
+        self::assertSame(Jazyk::CESTINA, $info->getJazykObsahu());
+        self::assertSame(URL_WEBU . '/rpg?rocnik=2024', $info->getKanonickaUrl());
+        self::assertStringContainsString('<link rel="canonical" href="' . URL_WEBU . '/rpg?rocnik=2024">', $html);
+        self::assertStringContainsString('<meta property="og:url" content="' . URL_WEBU . '/rpg?rocnik=2024">', $html);
+        self::assertStringContainsString('<meta property="og:locale" content="cs_CZ">', $html, 'Obsah je česky, anglické je jen menu.');
+        self::assertStringNotContainsString('hreflang', $html, 'Český obsah pod /en/ se nesmí hlásit jako anglická verze.');
+    }
+
+    /**
+     * @test
+     */
+    public function prelozenaStrankaMaJazykObsahuPodleJazykaPozadavku(): void
+    {
+        AktualniJazyk::nastav(Jazyk::ANGLICTINA);
+
+        self::assertSame(Jazyk::ANGLICTINA, $this->vytvorInfo()->setObsahPrelozeny(true)->getJazykObsahu());
+        self::assertSame(Jazyk::CESTINA, $this->vytvorInfo()->getJazykObsahu());
+    }
+
+    /**
+     * @test
+     */
+    public function pozdejiNastavenaAdresaPrebijeKanonickouCestu(): void
+    {
+        $info = $this->vytvorInfo()
+            ->setKanonickaCesta('program')
+            ->setObsahPrelozeny(true)
+            ->url('https://gamecon.cz/jinde');
+
+        self::assertSame('https://gamecon.cz/jinde', $info->getKanonickaUrl());
+        self::assertStringNotContainsString('hreflang', $info->html(), 'Z hotové adresy jazykové verze složit nejde.');
     }
 
     private function vytvorInfo(): Info
