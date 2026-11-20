@@ -500,6 +500,21 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         }
     }
 
+    public function testPredvyplneneUdajeVNastaveniSeEscapuji(): void
+    {
+        // přezdívku si píše účastník sám; uvozovka nesmí ukončit atribut value (vidí to i infopult přepnutý na něj)
+        $u = $this->novyUzivatel([
+            Sql::LOGIN_UZIVATELE => 'a"><b>x',
+        ]);
+
+        ob_start();
+        (new Registrace(\Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(), $u))->zobrazHtml();
+        $html = (string) ob_get_clean();
+
+        self::assertStringContainsString('value="a&quot;&gt;&lt;b&gt;x"', $html);
+        self::assertStringNotContainsString('<b>x', $html);
+    }
+
     public function testFormularRegistraceVCestineZustavaCesky(): void
     {
         ob_start();
