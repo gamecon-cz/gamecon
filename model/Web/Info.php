@@ -4,7 +4,6 @@ namespace Gamecon\Web;
 
 use Gamecon\Jazyk\AktualniJazyk;
 use Gamecon\Jazyk\Jazyk;
-use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
@@ -28,6 +27,8 @@ class Info
     private $url;
     /** @var array<string, string|int> */
     private array $kanonickyDotaz = [];
+    /** Kanonická cesta bez prefixu jazyka, z ní se skládají odkazy na jazykové verze stránky (hreflang). */
+    private ?string $kanonickaCesta = null;
 
     public function html(): string
     {
@@ -63,24 +64,33 @@ class Info
 
     /**
      * Odkazy na tutéž stránku v ostatních jazycích, aby ji vyhledávače nabízely ve správném jazyce.
+     * Skládají se z kanonické cesty i dotazu, takže každá jazyková verze ukazuje na kanonickou adresu té druhé.
      *
      * @return list<string>
      */
     private function alternativniJazyky(): array
     {
-        $jazykPozadavku = JazykPozadavku::aktualni();
-        if ($jazykPozadavku === null) {
+        if ($this->kanonickaCesta === null) {
             return [];
         }
         $odkazy = [];
         foreach (Jazyk::cases() as $jazyk) {
             $odkazy[] = '<link rel="alternate" hreflang="' . $jazyk->value . '" href="'
-                . htmlspecialchars($jazykPozadavku->urlVJazyce($jazyk, false)) . '">';
+                . htmlspecialchars($this->getKanonickaUrlVJazyce($jazyk)) . '">';
         }
         $odkazy[] = '<link rel="alternate" hreflang="x-default" href="'
-            . htmlspecialchars($jazykPozadavku->urlVJazyce(Jazyk::vychozi(), false)) . '">';
+            . htmlspecialchars($this->getKanonickaUrlVJazyce(Jazyk::vychozi())) . '">';
 
         return $odkazy;
+    }
+
+    private function getKanonickaUrlVJazyce(Jazyk $jazyk): string
+    {
+        $url = self::getKanonickaUrlZCesty(urlWebu('', $jazyk), (string) $this->kanonickaCesta);
+
+        return $this->kanonickyDotaz === []
+            ? $url
+            : $url . '?' . http_build_query($this->kanonickyDotaz);
     }
 
     /**
@@ -215,6 +225,18 @@ class Info
         } else {
             throw new \BadMethodCallException();
         }
+    }
+
+    /**
+     * Kanonická adresa z cesty bez prefixu jazyka: v jazyce požadavku (`/en/program` pod angličtinou),
+     * a k ní odkazy na stejnou stránku v ostatních jazycích (hreflang).
+     */
+    public function setKanonickaCesta(string $cesta): static
+    {
+        $this->kanonickaCesta = $cesta;
+        $this->url            = self::getKanonickaUrlZCesty(urlWebu(), $cesta);
+
+        return $this;
     }
 
     /**

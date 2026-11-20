@@ -8,6 +8,7 @@ export const en: Slovník = {
   "program.vyber.ucastnik": "Participant",
   "program.vyber.vsechny_dny": "all days",
   "program.filtry": "Filters",
+  "program.vypraveci": "Storytellers",
   "program.filtr.jazyk": "Language",
   "jazyk_filtru.cesky": "in Czech",
   "jazyk_filtru.anglicky": "in English",

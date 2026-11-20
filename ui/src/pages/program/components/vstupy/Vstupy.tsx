@@ -85,7 +85,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
             {/* přehled vypravěčů je jen letošní */}
             {!GAMECON_KONSTANTY.JE_ADMIN && jeLetošníRočník && (
               <a href="vypraveci" class="program_filtry_tlacitko program_vypraveci">
-                Vypravěči
+                {t("program.vypraveci")}
               </a>
             )}
             <button
