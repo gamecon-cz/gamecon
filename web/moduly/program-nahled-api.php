@@ -30,7 +30,7 @@ echo json_encode([
         },
         $a->organizatori(),
     ),
-    'stitky'      => array_map('mb_ucfirst', $a->tagy()),
+    'stitky'      => array_map('mb_ucfirst', $a->getNazvyTaguVJazyce()),
     'cena'        => $a->cenaTextem(),
     'cas'         => $a->zacatek()->format('G') . ':00&ndash;' . $a->konec()->format('G') . ':00',
     'obsazenost'  => $a->obsazenost(),

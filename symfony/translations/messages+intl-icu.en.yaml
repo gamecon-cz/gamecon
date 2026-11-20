@@ -1,5 +1,19 @@
 # Public website texts, ICU message format (see Gamecon\Jazyk\Preklad).
 # Every key must also be in messages+intl-icu.cs.yaml, PrekladyKatalogTest checks it.
+# Write an ICU date pattern (`{konec, date,d MMMM}`) without a space after the second comma, ICU would print it.
+
+aktivity:
+    vypravec: "Storyteller:"
+    zobrazit_vice: show more
+    informace: "Details:"
+    terminy: "Times:"
+    neomezene: unlimited
+    termin: "{zacatek, date,EEEE HH:mm}–{konec, time,HH:mm}"
+    nastaveni_tymu: Team settings
+    prihlasit_tym: Sign up a team
+    vypraveci: Storytellers
+    archiv_prednasek: Lecture archive
+    vypravec_bez_popisu: we don’t have a description from this storyteller yet
 
 jazyk:
     prepnout: Switch to English
@@ -35,10 +49,78 @@ paticka:
     kontakt: contact
     archiv_mdrd: mDrD archive
 
+prihlasovatko:
+    prihlasit: sign up
+    odhlasit: cancel sign-up
+    ucast: attended
+    jako_nahradnik: as a substitute
+    neucast: did not attend
+    pozdni_odhlaseni: late cancellation
+    hajeni_tymu: "The team captain has {hodin, plural, one {# hour} other {# hours}} in total to fill the team"
+    jen_zenska_mista: women’s places only
+    jen_muzska_mista: men’s places only
+    sledovat: watch
+    zrusit_sledovani: stop watching
+
 program:
     nadpis:
         muj: My programme
         den: Programme – {den}
 
+stranka:
+    jen_cesky: This page is only available in Czech for now.
+
+titulka:
+    info:
+        nazev: GameCon – the largest festival of non-computer games
+        popis: GameCon is the largest festival of non-computer games in the Czech Republic, held every year on the third weekend of July. Once again you can look forward to dozens of RPGs, board games, larps, action games, wargaming, lectures, contests in Tales of the Empire, the traditional DrD Championship and, last but not least, amazing people and experiences that will stay with you at least until next year.
+    hlavicka:
+        claim: The largest festival of non-computer games
+        zacatek: "{zacatek, date,d}"
+        konec: "{konec, date,d MMMM}"
+        prehrat_video: play video
+    karty:
+        pro_vsechny:
+            nadpis: Something for everyone
+            text: Every fan of active fun and non-computer games will find something to enjoy at GameCon.
+        aktivni_zabava:
+            nadpis: A festival of active fun
+            text: At GameCon you’ll find everything from a board game library open all day, through role-playing games, to a concert.
+        zadne_vstupne:
+            nadpis: No entry fee
+            text: Registration for GameCon is free. You only pay for the services and activities you choose and order yourself.
+    popisbox:
+        # titulka.php puts in the links, the word order is up to the translation
+        veta: "{deskove}, {rpg} and {larpy}, {akcni_hry}, {wargaming}, a {turnaj}, movement {workshopy}, a concert and a party. All this and much more is GameCon, the festival of non-computer games."
+        odkaz:
+            deskove: Board games
+            rpg: RPGs
+            larpy: larps
+            akcni_hry: action games
+            wargaming: wargaming
+            turnaj: D&D tournament
+            workshopy: workshops
+    cisla:
+        ikona_ucastniku: participants icon
+        ikona_aktivit: activities icon
+        ikona_trvani: duration icon
+        ikona_koncertu: concert icon
+        spokojenych_ucastniku: happy participants
+        ruznych_aktivit: different activities
+        dny_zabavy: days of fun
+        super_koncert: awesome concert
+    fotky:
+        koncert: Concert
+    linie:
+        nadpis: What’s waiting for you at GameCon?
+    odpocet:
+        prihlasovani_zacne: Registration opens on {zacatek, date,d MMMM y} at {zacatek, time,HH:mm}
+        do_gameconu_zbyva: GameCon starts in
+        prihlasit_se: Register
+    sponzori: Thank you to our sponsors and partners!
+
 web:
-    popis: The largest festival of non-computer games. Every fan of board games, role-playing, larps and other active fun will find something at GameCon, whatever their age.
+    popis: The largest festival of non-computer games. Every fan of board games, role-playing, larps and other active fun will find something at GameCon.
+
+podstranka:
+    zpet: back to {linie}

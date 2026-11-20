@@ -74,7 +74,7 @@ class CestyKSitemapeTest extends AbstractTestDb
             [\Stranka::URL_ANGLICKE_TITULKY],
         );
 
-        // na /en je anglická titulka s kanonickou adresou /en/, česká sitemapa ji neohlašuje
+        // stará anglická titulka, /en/en i /EN přesměrují na /en/, česká sitemapa ji neohlašuje
         self::assertNotContains(\Stranka::URL_ANGLICKE_TITULKY, (new CestyKSitemape())->getCesty());
     }
 

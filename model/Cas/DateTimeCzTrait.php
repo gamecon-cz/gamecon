@@ -3,6 +3,7 @@
 namespace Gamecon\Cas;
 
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\Jazyk\Jazyk;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 
 /**
@@ -194,7 +195,11 @@ trait DateTimeCzTrait
         return self::$dny;
     }
 
-    public static function formatujProSablonu($hodnota, array $parametry): string
+    /**
+     * @param Jazyk|null $jazykTextu jazyk textu, do kterého datum přijde; výchozí čeština. Jiný jazyk dostane datum
+     *                               zapsané po svém (@see DatumVJazyce::podleFormatuZeSablony()), když ho pro formát má.
+     */
+    public static function formatujProSablonu($hodnota, array $parametry, ?Jazyk $jazykTextu = null): string
     {
         $datum = $hodnota instanceof \DateTimeInterface
             ? $hodnota
@@ -216,7 +221,10 @@ trait DateTimeCzTrait
                 continue;
             }
             $format = constant($classConstant);
-            return $datum->format($format);
+            $vJazyceTextu = $jazykTextu === null || $jazykTextu->jeVychozi()
+                ? null
+                : DatumVJazyce::podleFormatuZeSablony($datum, $parametr, $jazykTextu);
+            return $vJazyceTextu ?? $datum->format($format);
         }
         return (string)$hodnota;
     }

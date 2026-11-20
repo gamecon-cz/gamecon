@@ -25,7 +25,8 @@ final class KontextTextu
         );
 
         return new self(
-            (string) ($stranka->raw()['obsah'] ?? ''),
+            // obrázky pod editorem jsou společné oběma jazykům stránky
+            (string) ($stranka->raw()['obsah'] ?? '') . "\n" . (string) ($stranka->raw()['obsah_en'] ?? ''),
             'stranky/' . ($segmenty !== [] ? implode('/', $segmenty) : 'stranka-' . $stranka->id()),
             'k této stránce',
         );

@@ -33,6 +33,14 @@ class Page
     ])]
     private string $obsah;
 
+    /**
+     * Empty (NULL or blank) = the page is only in Czech, @see \Stranka::isPrelozena()
+     */
+    #[ORM\Column(name: 'obsah_en', type: 'text', nullable: true, options: [
+        'comment' => 'markdown, Obsah anglicky (prázdné = stránka je jen česky)',
+    ])]
+    private ?string $obsahEn = null;
+
     #[ORM\Column(name: 'redirect', type: Types::BOOLEAN, options: [
         'default' => false,
     ])]
@@ -69,6 +77,18 @@ class Page
     public function setObsah(string $obsah): self
     {
         $this->obsah = $obsah;
+
+        return $this;
+    }
+
+    public function getObsahEn(): ?string
+    {
+        return $this->obsahEn;
+    }
+
+    public function setObsahEn(?string $obsahEn): self
+    {
+        $this->obsahEn = $obsahEn;
 
         return $this;
     }

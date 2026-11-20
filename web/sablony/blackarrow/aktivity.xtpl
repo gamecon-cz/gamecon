@@ -44,10 +44,10 @@
     <a href="{stranka.url}" class="aktivity_stranka">{stranka.nadpis}</a>
     <!-- end: stranka -->
     <!-- begin: vypraveciLinie -->
-    <a href="vypraveci/{urlLinie}" class="aktivity_stranka">Vypravěči</a>
+    <a href="vypraveci/{urlLinie}" class="aktivity_stranka">{t:aktivity.vypraveci}</a>
     <!-- end: vypraveciLinie -->
     <!-- begin: archivPrednasek -->
-    <a href="{urlArchivuPrednasek}" class="aktivity_stranka">Archiv přednášek</a>
+    <a href="{urlArchivuPrednasek}" class="aktivity_stranka">{t:aktivity.archiv_prednasek}</a>
     <!-- end: archivPrednasek -->
 </div>
 
@@ -57,11 +57,11 @@
     <!-- begin: aktivita -->
     <div class="aktivity_aktivita" id="{htmlId}">
         <label class="aktivity_vice_bezstylu" for="aktivity_nahledId{aktivita.id}"><img class="aktivity_obrazek" src="{obrazek}"></label>
-        <h2 class="aktivity_nazev">
+        <h2 class="aktivity_nazev"{jazykTextu}>
             <label class="aktivity_vice_bezstylu" for="aktivity_nahledId{aktivita.id}">{aktivita.nazev}</label><a href="{kotva}" class="aktivity_kotva">#</a>
         </h2>
         <!-- begin: vypraveci -->
-        <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
+        <div class="aktivity_vypravec"><b>{t:aktivity.vypravec}</b> {organizatori}</div>
         <!-- end: vypraveci -->
         <div class="aktivity_stitky">
             <!-- begin: jazyk -->
@@ -73,19 +73,19 @@
         </div>
 
         <div class="aktivity_popis">
-            {aktivita.kratkyPopis}
-            <label class="aktivity_vice" for="aktivity_nahledId{aktivita.id}">zobrazit více</label>
+            <span{jazykTextu}>{aktivita.kratkyPopis}</span>
+            <label class="aktivity_vice" for="aktivity_nahledId{aktivita.id}">{t:aktivity.zobrazit_vice}</label>
         </div>
 
         <div class="aktivity_terminy">
             <!-- begin: termin -->
             <div class="aktivity_termin">
-                <b class="aktivity_terminCas">{aktivita.denCasSkutecny}</b>
+                <b class="aktivity_terminCas">{denCas}</b>
                 <span class="aktivity_terminObsazenost">{obsazenost}</span>
                 <div class="aktivity_terminPrihlasit">{prihlasit}</div>
 
                 <!-- begin: vypravec -->
-                <div class="aktivity_terminVypravec"><b>Vypravěč:</b> {vypravec}</div>
+                <div class="aktivity_terminVypravec"><b>{t:aktivity.vypravec}</b> {vypravec}</div>
                 <!-- end: vypravec -->
                 <br>
             </div>
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => zachovejScroll(document.quer
     <label class="aktivity_nahledZavrit" for="aktivity_nahledId{aktivita.id}">✕</label>
 
     <div class="aktivity_nahledTextPole" id="aktivity_nahledText{aktivita.id}">
-        <h2>{aktivita.nazev}</h2>
+        <h2{jazykTextu}>{aktivita.nazev}</h2>
         <div class="aktivity_stitky">
             <!-- begin: jazyk -->
             <div class="aktivity_stitek aktivity_stitek-nahled aktivity_stitek-jazyk">{jazyk}</div>
@@ -118,25 +118,25 @@ document.addEventListener('DOMContentLoaded', () => zachovejScroll(document.quer
             <div class="aktivity_stitek aktivity_stitek-nahled">{stitek}</div>
             <!-- end: stitek -->
         </div>
-        <p><b>{aktivita.kratkyPopis}</b></p>
-        {aktivita.popis}
+        <p{jazykTextu}><b>{aktivita.kratkyPopis}</b></p>
+        <div{jazykTextu}>{aktivita.popis}</div>
     </div>
 
     <div class="aktivity_nahledInfoPole">
         <!-- begin: vypraveci -->
-        <h3>Vypravěč:</h3>
+        <h3>{t:aktivity.vypravec}</h3>
         {organizatoriNahled}
         <!-- end: vypraveci -->
 
-        <h3>Informace:</h3>
+        <h3>{t:aktivity.informace}</h3>
         <div class="programNahled_obsazenost aktivity_nahledInfo">{kapacita}</div>
         <div class="programNahled_cas aktivity_nahledInfo">{aktivita.delka}&thinsp;h</div>
         <div class="programNahled_cena aktivity_nahledInfo">{aktivita.cenaZaklad}</div>
 
-        <h3>Termíny:</h3>
+        <h3>{t:aktivity.terminy}</h3>
         <!-- begin: termin -->
         <div class="aktivity_termin">
-            <b>{aktivita.denCasSkutecny}</b>&ensp;
+            <b>{denCas}</b>&ensp;
             {obsazenost}&ensp;
             <!-- begin: vypravec -->
             <div class="aktivity_nahledTerminVypravec">{vypravec}</div>

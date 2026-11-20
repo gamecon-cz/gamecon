@@ -10,6 +10,9 @@ use App\Structure\Entity\CategoryTagEntityStructure;
 use App\Structure\Entity\TagEntityStructure;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\Tag;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+use Gamecon\KategorieTagu;
 use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Tests\Factory\ActivityFactory;
 use Gamecon\Tests\Factory\ActivityInstanceFactory;
@@ -178,6 +181,46 @@ class AktivitaTagyTest extends AbstractTestDb
         $nazvyZeZIds = array_map(static fn (
             Tag $tag) => $tag->nazev(), $tagyZeZIds);
         self::assertSame($ocekavaneRazeni, $nazvyZeZIds, 'Tag::zIds() musí vracet tagy seřazené podle pořadí kategorie a pak podle názvu');
+    }
+
+    /**
+     * Čtenář webu vidí štítky v jazyce stránky, bez anglického názvu česky. tagy() zůstává česky,
+     * podle českých názvů páruje editor aktivity, import a export.
+     */
+    public function testNazvyTaguVJazyce(): void
+    {
+        $kategorie = CategoryTagFactory::createOne([
+            CategoryTagEntityStructure::nazev   => 'Kategorie s překladem',
+            CategoryTagEntityStructure::nazevEn => 'translated category',
+            CategoryTagEntityStructure::poradi  => 5,
+        ]);
+        TagFactory::createOne([
+            TagEntityStructure::nazev       => 'Přeložený',
+            TagEntityStructure::nazevEn     => 'Translated',
+            TagEntityStructure::categoryTag => $kategorie,
+        ]);
+        TagFactory::createOne([
+            TagEntityStructure::nazev       => 'Jen český',
+            TagEntityStructure::categoryTag => $kategorie,
+        ]);
+
+        $aktivita = Aktivita::zId(1);
+        self::assertNotNull($aktivita);
+        $aktivita->nastavTagy(['Přeložený', 'Jen český']);
+
+        self::assertSame(['Jen český', 'Přeložený'], $aktivita->tagy(), 'tagy() zůstává česky, je to klíč');
+        self::assertSame(['Jen český', 'Translated'], $aktivita->getNazvyTaguVJazyce(Jazyk::ANGLICTINA));
+        self::assertSame(['Jen český', 'Přeložený'], $aktivita->getNazvyTaguVJazyce(Jazyk::CESTINA));
+        self::assertSame(
+            ['Jen český', 'Translated'],
+            AktualniJazyk::provedVJazyce(Jazyk::ANGLICTINA, static fn () => $aktivita->getNazvyTaguVJazyce()),
+            'Bez předaného jazyka platí jazyk stránky',
+        );
+        self::assertSame(['Jen český', 'Přeložený'], $aktivita->getNazvyTaguVJazyce(), 'Mimo web platí čeština');
+
+        $kategorieTagu = KategorieTagu::zId($kategorie->getId());
+        self::assertSame('translated category', $kategorieTagu->getNazevVJazyce(Jazyk::ANGLICTINA));
+        self::assertSame('Kategorie s překladem', $kategorieTagu->getNazevVJazyce(Jazyk::CESTINA));
     }
 
     /**

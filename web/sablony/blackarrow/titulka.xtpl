@@ -41,37 +41,37 @@
     <div class="p p2" data-aos="zoom-out" data-aos-delay="250" data-aos-offset="0">ME</div>
     <div class="p p3" data-aos="zoom-out" data-aos-delay="550" data-aos-offset="0">C</div>
     <div class="p p4" data-aos="zoom-out" data-aos-delay="600" data-aos-offset="0">ON</div>
-    <div class="gchlavicka_claim" data-aos="zoom-out">Největší festival nepočítačových her</div>
+    <div class="gchlavicka_claim" data-aos="zoom-out">{t:titulka.hlavicka.claim}</div>
     <div class="gchlavicka_datum"
         data-aos="fade-top"
         data-aos-delay="200">{gcOd} &ndash; {gcDo} <span class="gchlavicka_rok">{gcRok}</span></div>
     <div class="gchlavicka_misto" data-aos="zoom-out">O S T R A V A</div>
-    <a class="gchlavicka_video" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank" data-aos="zoom-out" data-aos-offset="-200">přehrát video</a>
+    <a class="gchlavicka_video" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank" data-aos="zoom-out" data-aos-offset="-200">{t:titulka.hlavicka.prehrat_video}</a>
 </div>
 
 <div class="karty">
 <!-- begin: karty -->
     <div class="karty_karta" data-aos="fade-right">
         <img alt="" src="{src1}">
-        <h2>Akce pro všechny</h2>
-        <div class="karty_text">Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.</div>
+        <h2>{t:titulka.karty.pro_vsechny.nadpis}</h2>
+        <div class="karty_text">{t:titulka.karty.pro_vsechny.text}</div>
     </div>
     <div class="karty_karta" data-aos="fade-right" data-aos-delay="200">
         <img alt="" src="{src2}">
-        <h2>Festival aktivní zábavy</h2>
-        <div class="karty_text">Na GameConu najdeš všechno od celodenně otevřené deskoherny, přes rolové hry až po koncert.</div>
+        <h2>{t:titulka.karty.aktivni_zabava.nadpis}</h2>
+        <div class="karty_text">{t:titulka.karty.aktivni_zabava.text}</div>
     </div>
     <div class="karty_karta" data-aos="fade-right" data-aos-delay="400">
         <img alt="" src="{src3}">
-        <h2>Žádné vstupné</h2>
-        <div class="karty_text">Registrace na GameCon je zdarma. Platíš jen za služby a aktivity, které si sám vybereš a objednáš.</div>
+        <h2>{t:titulka.karty.zadne_vstupne.nadpis}</h2>
+        <div class="karty_text">{t:titulka.karty.zadne_vstupne.text}</div>
     </div>
 <!-- end: karty -->
 </div>
 
 <div class="popisbox">
     <div class="popisbox_obsah" data-aos="fade-up">
-        <a href="deskoherna">Deskové</a> hry, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, <a href="dnd">Turnaj</a> v D&amp;D/JaD, pohybové <a href="bonusy">workshopy</a>, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon.
+        {popisFestivalu}
     </div>
     <script>
         document.querySelectorAll('.popisbox_obsah a').forEach(e => {
@@ -84,31 +84,31 @@
 <div class="cisla">
 <!-- begin: cisla -->
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="200">
-        <img alt="ikona účastníků" src="{src1}" style="margin: -30px 0 0 87px">
+        <img alt="{t:titulka.cisla.ikona_ucastniku}" src="{src1}" style="margin: -30px 0 0 87px">
         <div class="cisla_cislo">{stovkySpokojenychUcastniku}+</div>
-        <div class="cisla_text">spokojených účastníků</div>
+        <div class="cisla_text">{t:titulka.cisla.spokojenych_ucastniku}</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up">
-        <img alt="ikona aktivit" src="{src2}" style="margin: -13px 0 0 73px">
+        <img alt="{t:titulka.cisla.ikona_aktivit}" src="{src2}" style="margin: -13px 0 0 73px">
         <div class="cisla_cislo">{stovkyAktivit}+</div>
-        <div class="cisla_text">různých aktivit</div>
+        <div class="cisla_text">{t:titulka.cisla.ruznych_aktivit}</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="100">
-        <img alt="ikona trvání" src="{src3}" style="margin: -23px 0 0 30px">
+        <img alt="{t:titulka.cisla.ikona_trvani}" src="{src3}" style="margin: -23px 0 0 30px">
         <div class="cisla_cislo">4</div>
-        <div class="cisla_text">dny zábavy</div>
+        <div class="cisla_text">{t:titulka.cisla.dny_zabavy}</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="50">
-        <img alt="ikona koncert" src="{src4}" style="margin: -13px 0 0 30px">
+        <img alt="{t:titulka.cisla.ikona_koncertu}" src="{src4}" style="margin: -13px 0 0 30px">
         <div class="cisla_cislo">1</div>
-        <div class="cisla_text">super koncert</div>
+        <div class="cisla_text">{t:titulka.cisla.super_koncert}</div>
     </div>
 <!-- end: cisla -->
 </div>
 
 <div class="fotky">
 <!-- begin: fotky -->
-    <img loading="lazy" alt="Koncert" src="{src1}" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
+    <img loading="lazy" alt="{t:titulka.fotky.koncert}" src="{src1}" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
     <img loading="lazy" alt="" src="{src2}" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
     <img loading="lazy" alt="" src="{src3}" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
     <img loading="lazy" alt="" src="{src4}" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
@@ -120,7 +120,7 @@
 <div class="zazijes">
     <div class="zazijes_vrsek"></div>
     <div class="zazijes_spodek"></div>
-    <h2 class="zazijes_nadpis">Co na GameConu zažiješ?</h2>
+    <h2 class="zazijes_nadpis">{t:titulka.linie.nadpis}</h2>
     <div class="zazijes_karty">
         <!-- begin: linie -->
         <a href="{url}" class="zazijes_karta" style="background-image: url({obrazek})" data-aos="fade-up" data-aos-offset="{aosOffset}">
@@ -160,7 +160,7 @@
         <b>S</b>
     </div>
     <!-- begin: odpocetPrihlasit -->
-    <a href="prihlaska" class="odpocet_prihlasit">Přihlásit se</a>
+    <a href="prihlaska" class="odpocet_prihlasit">{t:titulka.odpocet.prihlasit_se}</a>
     <!-- end: odpocetPrihlasit -->
 
     <script>
@@ -196,7 +196,7 @@
 </div>
 
 <div class="sponzori">
-    <h2 id="sponzori"><a href="sponzori">Děkujeme našim sponzorům a partnerům!</a></h2>
+    <h2 id="sponzori"><a href="sponzori">{t:titulka.sponzori}</a></h2>
     <div class="sponzori_loga" id="sponzori-loga">
         <!-- begin: sponzor -->
         <div class="sponzori_logo">

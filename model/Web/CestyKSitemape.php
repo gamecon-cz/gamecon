@@ -36,7 +36,7 @@ class CestyKSitemape
             static fn (TypAktivity $typAktivity) => $typAktivity->url(),
             TypAktivity::zViditelnych(),
         );
-        // stránka `en` je anglická titulka na /en/ (web/index.php), její adresa /en kanonická není
+        // stránka `en` je stará anglická titulka, web/index.php ji přesměruje na /en/
         $cestyStranek = dbOneArray(<<<'SQL'
             SELECT url_stranky
             FROM stranky

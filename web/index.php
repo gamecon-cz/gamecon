@@ -81,24 +81,10 @@ try {
 // a line or a CMS page is found case-insensitively (/RPG, /rpg), its canonical address is the stored one
 $kanonickaCesta = $url?->cela() ?? '';
 
-// Titulka zatím není přeložená. Do té doby je anglickou úvodní stránkou ručně psaná stránka `en`
-// z CMS, která dřív byla na adrese /en (tu teď zabral prefix jazyka).
-$anglickaUvodniStranka = $url?->cela() === '' && AktualniJazyk::jazyk() === Jazyk::ANGLICTINA
-    ? Stranka::zUrl(Stranka::URL_ANGLICKE_TITULKY)
-    : null;
-
 // určení modulu, který zpracuje požadavek (router)
-if ($anglickaUvodniStranka) {
-    $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
-    $m->param('stranka', $anglickaUvodniStranka);
-    // text stránky je anglický (typografie markdownu) a s českou titulkou jsou jazykovými verzemi téže stránky
-    $m->param('jazykTextu', Jazyk::ANGLICTINA);
-    $m->setObsahPrelozeny(true);
-} else {
-    $m = $url
-        ? Modul::zUrl(null, $systemoveNastaveni)
-        : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
-}
+$m = $url
+    ? Modul::zUrl(null, $systemoveNastaveni)
+    : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
 // archive of lectures under the page of their line (/prednasky/archiv); a directory web/moduly/prednasky would make
 // the sitemap take /prednasky and its pages for a module (CestyKSitemape::isCestaKterouRouterVrati)
 if (! $m && $url?->cast(1) === ArchivPrednasekStranka::PODSTRANKA && $url->cast(2) === null
@@ -114,7 +100,7 @@ if (! $m && ($stranka = Stranka::zUrl())) {
         exit;
     }
     if ($stranka->url() === Stranka::URL_ANGLICKE_TITULKY) {
-        // anglická titulka má jedinou adresu /en/ (výjimka výš), /en/en by byla její kopií
+        // stará ručně psaná anglická titulka z doby, kdy titulka nebyla přeložená; zastaralá, místo ní je /en/
         header('Location: ' . urlWebu('', Jazyk::ANGLICTINA), true, 301);
         exit;
     }
