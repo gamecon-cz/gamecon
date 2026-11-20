@@ -26,6 +26,25 @@ final class AktualniJazyk
     }
 
     /**
+     * Provede $akce v daném jazyce a pak vrátí jazyk, který platil předtím (i po výjimce).
+     * Pro data sdílená všemi jazyky (statický JSON programu), aby do nich nepronikl jazyk návštěvníka.
+     *
+     * @template T
+     * @param callable(): T $akce
+     * @return T
+     */
+    public static function provedVJazyce(Jazyk $jazyk, callable $akce): mixed
+    {
+        $puvodni = self::$jazyk;
+        self::$jazyk = $jazyk;
+        try {
+            return $akce();
+        } finally {
+            self::$jazyk = $puvodni;
+        }
+    }
+
+    /**
      * Pro testy, aby si jazyk nepřenášely mezi sebou.
      */
     public static function reset(): void

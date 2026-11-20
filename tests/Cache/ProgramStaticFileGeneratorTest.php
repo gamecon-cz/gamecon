@@ -13,6 +13,8 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -765,6 +767,39 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
 
         self::assertSame('en', $jazykPodleId[$idAnglicke] ?? null);
         self::assertSame('cs', $jazykPodleId[$idBezJazyka] ?? null, 'Výchozí jazyk aktivity je čeština.');
+    }
+
+    /**
+     * @test
+     * Statické JSONy sdílí všechny jazyky webu a regeneraci spouští i /en/api/programManifest.
+     * Jazyk návštěvníka, který ji zrovna spustil, se do nich nesmí zapéct.
+     */
+    public function generovaniVAnglictineDaStejneSouboryJakoVCestine(): void
+    {
+        $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita pro oba jazyky webu',
+            Sql::POPIS      => 'Popis s "uvozovkami" - a pomlčkou',
+            Sql::JAZYK      => JazykAktivity::CESKY_I_ANGLICKY->value,
+        ]);
+
+        $vygenerujVse = fn () => [
+            ProgramStaticFileType::AKTIVITY->value    => $this->createGenerator()->generateActivities(self::ROK),
+            ProgramStaticFileType::POPISY->value      => $this->createGenerator()->generatePopisy(self::ROK),
+            ProgramStaticFileType::OBSAZENOSTI->value => $this->createGenerator()->generateObsazenosti(self::ROK),
+            ProgramStaticFileType::TAGY->value        => $this->createGenerator()->generateStitky(self::ROK),
+        ];
+
+        $cesky = $vygenerujVse();
+        try {
+            AktualniJazyk::nastav(Jazyk::ANGLICTINA);
+            $anglicky = $vygenerujVse();
+            self::assertSame(Jazyk::ANGLICTINA, AktualniJazyk::jazyk(), 'Po generování platí zase jazyk požadavku.');
+        } finally {
+            AktualniJazyk::reset();
+        }
+
+        // jméno souboru obsahuje hash obsahu
+        self::assertSame($cesky, $anglicky, 'Generování v angličtině musí dát tytéž soubory jako v češtině.');
     }
 
     /**

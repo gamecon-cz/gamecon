@@ -8,6 +8,8 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\EditorTagu;
 use Gamecon\Aktivita\FiltrAktivity;
 use Gamecon\BackgroundProcess\BackgroundProcessService;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Contracts\Service\ResetInterface;
@@ -31,17 +33,35 @@ class ProgramStaticFileGenerator implements ResetInterface
 
     public function generateActivities(int $rok): string
     {
-        $activities = $this->loadActivities($rok);
+        return self::veSdilenemJazyce(function () use ($rok): string {
+            $activities = $this->loadActivities($rok);
 
-        $aktivityNeprihlasen = [];
-        foreach ($activities as $activity) {
-            if (! $activity->zacatek() || ! $activity->konec() || ! $activity->viditelnaPro(null)) {
-                continue;
+            $aktivityNeprihlasen = [];
+            foreach ($activities as $activity) {
+                if (! $activity->zacatek() || ! $activity->konec() || ! $activity->viditelnaPro(null)) {
+                    continue;
+                }
+                $aktivityNeprihlasen[] = self::aktivitaDoPole($activity);
             }
-            $aktivityNeprihlasen[] = self::aktivitaDoPole($activity);
-        }
 
-        return $this->writeJsonFile('aktivity', $rok, $aktivityNeprihlasen);
+            return $this->writeJsonFile('aktivity', $rok, $aktivityNeprihlasen);
+        });
+    }
+
+    /**
+     * Statické JSONy sdílí všechny jazyky webu a regeneraci spouští i `/en/api/programManifest`.
+     * Vznikají proto vždy ve výchozím jazyce (jako ve workeru, kde jazyk požadavku není), ne v jazyce
+     * návštěvníka, který regeneraci zrovna spustil. Texty pro návštěvníka překládá až Preact.
+     *
+     * @template T
+     *
+     * @param callable(): T $generovani
+     *
+     * @return T
+     */
+    private static function veSdilenemJazyce(callable $generovani): mixed
+    {
+        return AktualniJazyk::provedVJazyce(Jazyk::vychozi(), $generovani);
     }
 
     /**
@@ -54,6 +74,9 @@ class ProgramStaticFileGenerator implements ResetInterface
      * aby se struktura nemohla rozejít mezi různými cestami.
      *
      * Předpokládá, že $activity má naplněný zacatek() a konec().
+     *
+     * Nedávej sem texty v jazyce stránky (t(), DatumVJazyce): uživatelské API ji volá v jazyce
+     * požadavku, statické JSONy ve výchozím jazyce, a obě cesty se musí shodovat. Překládá Preact.
      *
      * @return array<string, mixed>
      */
@@ -100,53 +123,59 @@ class ProgramStaticFileGenerator implements ResetInterface
 
     public function generatePopisy(int $rok): string
     {
-        $aktivity = $this->loadActivities($rok);
+        return self::veSdilenemJazyce(function () use ($rok): string {
+            $aktivity = $this->loadActivities($rok);
 
-        $popisy = [];
-        foreach ($aktivity as $aktivita) {
-            $popisy[] = [
-                'id'    => $aktivita->popisId(),
-                'popis' => $aktivita->popis(),
-            ];
-        }
+            $popisy = [];
+            foreach ($aktivity as $aktivita) {
+                $popisy[] = [
+                    'id'    => $aktivita->popisId(),
+                    'popis' => $aktivita->popis(),
+                ];
+            }
 
-        return $this->writeJsonFile('popisy', $rok, $popisy);
+            return $this->writeJsonFile('popisy', $rok, $popisy);
+        });
     }
 
     public function generateStitky(int $rok): string
     {
-        $editorTagu = new EditorTagu();
-        $tagy = $editorTagu->getTagy();
+        return self::veSdilenemJazyce(function () use ($rok): string {
+            $editorTagu = new EditorTagu();
+            $tagy = $editorTagu->getTagy();
 
-        $tagyProJson = array_map(
-            static function (
-                $tag,
-            ) {
-                return [
-                    'id'             => (int) $tag['id'],
-                    'nazev'          => $tag['nazev'],
-                    'nazevKategorie' => $tag['nazev_kategorie'],
-                ];
-            },
-            $tagy,
-        );
+            $tagyProJson = array_map(
+                static function (
+                    $tag,
+                ) {
+                    return [
+                        'id'             => (int) $tag['id'],
+                        'nazev'          => $tag['nazev'],
+                        'nazevKategorie' => $tag['nazev_kategorie'],
+                    ];
+                },
+                $tagy,
+            );
 
-        return $this->writeJsonFile('tagy', $rok, $tagyProJson);
+            return $this->writeJsonFile('tagy', $rok, $tagyProJson);
+        });
     }
 
     public function generateObsazenosti(int $rok): string
     {
-        $aktivity = $this->loadActivities($rok);
+        return self::veSdilenemJazyce(function () use ($rok): string {
+            $aktivity = $this->loadActivities($rok);
 
-        $aktivityObsazenost = [];
-        foreach ($aktivity as $aktivita) {
-            $aktivityObsazenost[] = [
-                'idAktivity' => $aktivita->id(),
-                'obsazenost' => $aktivita->obsazenostObj(),
-            ];
-        }
+            $aktivityObsazenost = [];
+            foreach ($aktivity as $aktivita) {
+                $aktivityObsazenost[] = [
+                    'idAktivity' => $aktivita->id(),
+                    'obsazenost' => $aktivita->obsazenostObj(),
+                ];
+            }
 
-        return $this->writeJsonFile('obsazenosti', $rok, $aktivityObsazenost);
+            return $this->writeJsonFile('obsazenosti', $rok, $aktivityObsazenost);
+        });
     }
 
     /**
