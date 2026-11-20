@@ -40,6 +40,7 @@ enum JazykAktivity: string
 
     /**
      * Název pro návštěvníka webu v jazyce stránky. {@see nazev()} zůstává česky, podle něj páruje import.
+     * Prostý text z t(), do HTML ho escapuj.
      */
     public function popisek(?Jazyk $jazyk = null): string
     {

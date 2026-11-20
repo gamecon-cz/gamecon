@@ -48,7 +48,12 @@ class MenuWebu
                 'uJmenoMenu' => $jmenoDoMenu,
             ]);
             $sablona->assign([
-                'gcPrihlaska' => $uzivatel->gcPrihlasen() ? \t('menu.upravit_prihlasku') : \t('menu.prihlaska_na_gc'),
+                // t() vrací prostý text, do HTML se escapuje
+                'gcPrihlaska' => htmlspecialchars(
+                    $uzivatel->gcPrihlasen()
+                        ? \t('menu.upravit_prihlasku')
+                        : \t('menu.prihlaska_na_gc'),
+                ),
             ]);
             if ($uzivatel->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
                 $sablona->assign([
@@ -66,7 +71,7 @@ class MenuWebu
         } else {
             $sablona->parse('menu.neprihlasen');
             $sablona->assign([
-                'gcPrihlaska' => \t('menu.prihlaska_na_gc'),
+                'gcPrihlaska' => htmlspecialchars(\t('menu.prihlaska_na_gc')),
             ]);
         }
 

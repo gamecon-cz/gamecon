@@ -207,7 +207,8 @@ foreach ($skupiny as $skupina) {
     }
 
     if ($aktivita->jazyk() !== JazykAktivity::CESKY) {
-        $t->assign('jazyk', $aktivita->jazyk()->popisek());
+        // popisek() je prostý text z t(), do HTML se escapuje
+        $t->assign('jazyk', htmlspecialchars($aktivita->jazyk()->popisek()));
         $t->parse('aktivity.aktivita.jazyk');
         $t->parse('aktivity.nahled.jazyk');
     }
