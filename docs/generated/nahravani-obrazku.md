@@ -29,7 +29,7 @@ Nahrávání obrázků a souborů ke stažení z administrace místo FTP: kde kt
 | obrázky v textech | `obsah/**` (volná struktura z doby FTP), nové do `obsah/stranky/<url>/`, `obsah/blog/<url>/`, `obsah/novinky/<url>/` | Apache přímo podle odkazu v textu | blok „Obrázky" pod editorem stránky/novinky (105) |
 | soubory ke stažení u textu (PDF, dokumenty, zvuk, ZIP) | nové do stejných adresářů jako obrázky; soubor z doby FTP, na který text odkazuje, leží kdekoli v `obsah/**` kromě adresářů log a e-shopu (press kit v `obsah/presskit/`) a nahrazuje se na místě | Apache přímo podle odkazu v textu | blok „Soubory ke stažení" pod editorem stránky/novinky (105), `SouboryObsahu` |
 | loga | `obsah/{sponzori,partneri}/` a `…/titulka/` | `ZpracovaneObrazky` | Web → Loga (112, ale otevře ho i 105) |
-| PDF, dokumenty, zvuk, ZIP, XLSX a obrázky ke stažení | `obsah/drd/`, `obsah/download/`, `obsah/materialy/<ročník>/`, `obsah/celohra/` (každá složka přijímá všechny tyto typy, `SouboryWebu::FORMATY`), podsložky do dvou pater | odkazy v textech stránek (`drd`, přihláška), `web/moduly/qrka.php` a `prihlaska.xtpl` v kódu | Web → Soubory (105), `SouboryWebu` |
+| PDF, dokumenty, zvuk, ZIP, XLSX a obrázky ke stažení | `obsah/drd/`, `obsah/download/`, `obsah/materialy/<ročník>/`, `obsah/celohra/` (každá složka přijímá všechny tyto typy, `SouboryWebu::FORMATY`), podsložky do dvou pater | odkazy v textech stránek (`drd`, přihláška), `web/moduly/qrka.php` a `web/moduly/prihlaska/prihlaska.php` v kódu | Web → Soubory (105), `SouboryWebu` |
 
 ## Pravidla
 
