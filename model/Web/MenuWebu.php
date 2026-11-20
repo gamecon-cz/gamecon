@@ -36,8 +36,14 @@ class MenuWebu
     {
         $sablona = new XTemplate(WWW . '/sablony/blackarrow/menu.xtpl');
 
-        $typy = \serazenePodle(TypAktivity::zViditelnych(), 'poradi');
-        $sablona->parseEach($typy, 'typ', 'menu.typAktivit');
+        foreach (\serazenePodle(TypAktivity::zViditelnych(), 'poradi') as $typ) {
+            $sablona->assign([
+                'urlTypu'   => $typ->url(),
+                // prostý text v jazyce stránky, do HTML se escapuje
+                'nazevTypu' => htmlspecialchars($typ->getNazevVJazyce()),
+            ]);
+            $sablona->parse('menu.typAktivit');
+        }
 
         // Jídelníček má v menu smysl jen během GameConu. Přihlášený účastník
         // ho před GC najde u objednávky jídla v přihlášce.

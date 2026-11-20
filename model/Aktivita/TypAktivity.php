@@ -136,8 +136,16 @@ class TypAktivity extends \DbObject
 
     public function oTypu()
     {
-        $s = \Stranka::zId($this->r['stranka_o']);
+        $s = $this->getStrankaO();
         return $s ? $s->html() : null;
+    }
+
+    /**
+     * Úvodní stránka linie z CMS (`akce_typy.stranka_o`).
+     */
+    public function getStrankaO(): ?\Stranka
+    {
+        return \Stranka::zId($this->r['stranka_o']);
     }
 
     public function popisKratky()

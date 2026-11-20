@@ -131,7 +131,8 @@ class AnonymizovanaDatabaze
             $dbConnectionAnonymDb,
             <<<SQL
                 UPDATE `{$db}`.stranky
-                SET obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
+                SET obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com'),
+                    obsah_en = REGEXP_REPLACE(obsah_en, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
                 WHERE TRUE
             SQL,
         );

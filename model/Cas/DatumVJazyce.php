@@ -36,6 +36,32 @@ final class DatumVJazyce
         return self::format($datum, self::vzorDneAMesice($jazyk) . ' HH:mm', $jazyk);
     }
 
+    /**
+     * Datum z textu stránky (`%PRISTI_VLNA_KDY|datum:FORMAT_ZACATEK_UDALOSTI%`, @see DateTimeCzTrait::formatujProSablonu())
+     * zapsané tak, jak se píše v jazyce textu: „17 July 2026 at 10:00“ místo „17. 7. 2026 v 10:00“.
+     *
+     * @param string $nazevFormatu název konstanty z DateTimeCzTrait, třeba `FORMAT_ZACATEK_UDALOSTI`
+     * @return string|null null pro češtinu a pro formát, který se v jazyce píše stejně (strojové formáty), ten platí z `DateTimeCz`
+     */
+    public static function podleFormatuZeSablony(\DateTimeInterface $datum, string $nazevFormatu, Jazyk $jazyk): ?string
+    {
+        $vzor = match ($jazyk) {
+            Jazyk::CESTINA    => null,
+            Jazyk::ANGLICTINA => match ($nazevFormatu) {
+                'FORMAT_DATUM_LETOS'            => 'd MMMM',
+                'FORMAT_DATUM_STANDARD'         => 'd MMMM y',
+                'FORMAT_DATUM_A_CAS_STANDARD'   => 'd MMMM y HH:mm:ss',
+                'FORMAT_CAS_NA_MINUTY_STANDARD' => 'd MMMM y HH:mm',
+                'FORMAT_ZACATEK_UDALOSTI'       => "d MMMM y 'at' HH:mm",
+                default                         => null,
+            },
+        };
+
+        return $vzor === null
+            ? null
+            : self::format($datum, $vzor, $jazyk);
+    }
+
     private static function vzorDneAMesice(?Jazyk $jazyk): string
     {
         return match ($jazyk ?? AktualniJazyk::jazyk()) {

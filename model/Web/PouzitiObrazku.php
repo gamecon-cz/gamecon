@@ -219,7 +219,8 @@ class PouzitiObrazku
                 'zdroj'        => 'stranky',
                 'tabulka'      => 'stranky',
                 'klic'         => 'id_stranky',
-                'sloupceTextu' => ['obsah'],
+                // anglický obsah odkazuje na tytéž obrázky, smazat ani převést se bez něj nesmí
+                'sloupceTextu' => ['obsah', 'obsah_en'],
                 'razeni'       => 'url_stranky',
                 'popisMista'   => static fn (array $stranka): array => [
                     'popis' => 'stránka ' . $stranka['url_stranky'],

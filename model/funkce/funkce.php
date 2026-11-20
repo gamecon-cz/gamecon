@@ -800,8 +800,14 @@ function removeDiacritics(
     return $withoutDiacritics;
 }
 
+/**
+ * Nahradí `%KLIC%` a `%KLIC|datum:FORMAT_…%` hodnotou veřejného systémového nastavení.
+ *
+ * @param Jazyk|null $jazykTextu jazyk textu (ne stránky), podle něj se píše datum; výchozí čeština
+ */
 function nahradPlaceholderyZaNastaveni(
     ?string $value,
+    ?Jazyk  $jazykTextu = null,
 ): ?string
 {
     if (!$value) {
@@ -816,7 +822,7 @@ function nahradPlaceholderyZaNastaveni(
             ['hodnota' => $kodNastaveni, 'modifikatory' => $modifikatory] = parsujModifikatory($puvodniKodNastaveni);
             $hodnotaNastaveni = $systemoveNastaveni->dejVerejnouHodnotu($kodNastaveni);
             if ($modifikatory) {
-                $hodnotaNastaveni = aplikujModifikatory($hodnotaNastaveni, $modifikatory);
+                $hodnotaNastaveni = aplikujModifikatory($hodnotaNastaveni, $modifikatory, $jazykTextu);
             }
             if ($hodnotaNastaveni instanceof DateTimeInterface) {
                 $hodnotaNastaveni = $hodnotaNastaveni->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD);
@@ -835,12 +841,13 @@ function nahradPlaceholderyZaNastaveni(
 function aplikujModifikatory(
     $hodnota,
     array $modifikatory,
+    ?Jazyk $jazykTextu = null,
 )
 {
     foreach ($modifikatory as ['modifikator' => $modifikator, 'parametry' => $parametry]) {
         $hodnota = match ($modifikator) {
             'datum' => $hodnota
-                ? DateTimeCz::formatujProSablonu($hodnota, $parametry)
+                ? DateTimeCz::formatujProSablonu($hodnota, $parametry, $jazykTextu)
                 : '',
             default => $hodnota
         };

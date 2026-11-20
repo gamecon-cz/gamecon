@@ -45,7 +45,7 @@
           <div class="menu_nazevkategorie">{t:menu.aktivity}</div>
           <div class="menu_polozky">
             <!-- begin: typAktivit -->
-            <a href="{typ.url}" class="menu_polozka">{typ.nazev}</a>
+            <a href="{urlTypu}" class="menu_polozka">{nazevTypu}</a>
             <!-- end: typAktivit -->
           </div>
         </div>

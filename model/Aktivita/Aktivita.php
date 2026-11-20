@@ -17,6 +17,7 @@ use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kostymy\PujcovnaKostymu;
 use Gamecon\Pravo;
@@ -3356,28 +3357,28 @@ SQL
                     $out .=
                         '<form method="post" style="display:inline">' .
                         '<input type="hidden" name="odhlasit" value="' . $this->id() . '">' .
-                        '<a href="#" onclick="this.parentNode.submit(); return false">odhlásit</a>' .
+                        '<a href="#" onclick="this.parentNode.submit(); return false">' . htmlspecialchars(\t('prihlasovatko.odhlasit')) . '</a>' .
                         '</form>';
                 }
                 if ($stav == StavPrihlaseni::PRIHLASEN_A_DORAZIL) {
-                    $out .= '<em>účast</em>';
+                    $out .= '<em>' . htmlspecialchars(\t('prihlasovatko.ucast')) . '</em>';
                 }
                 if ($stav == StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK) {
-                    $out .= '<em>jako náhradník</em>';
+                    $out .= '<em>' . htmlspecialchars(\t('prihlasovatko.jako_nahradnik')) . '</em>';
                 }
                 if ($stav == StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL) {
-                    $out .= '<em>neúčast</em>';
+                    $out .= '<em>' . htmlspecialchars(\t('prihlasovatko.neucast')) . '</em>';
                 }
                 if ($stav == StavPrihlaseni::POZDE_ZRUSIL) {
-                    $out .= '<em>pozdní odhlášení</em>';
+                    $out .= '<em>' . htmlspecialchars(\t('prihlasovatko.pozdni_odhlaseni')) . '</em>';
                 }
             } elseif ($u->organizuje($this)) {
                 $out = $this->formatujDuvodProTesting('Tuto aktivitu organizuješ');
             } elseif (AktivitaTym::maAktivitaTym($this->id())) {
-                $hajeniTymuHodin = AktivitaTym::HAJENI_TEAMU_HODIN;
+                $hajeniTymu = htmlspecialchars(\t('prihlasovatko.hajeni_tymu', ['hodin' => AktivitaTym::HAJENI_TEAMU_HODIN]));
                 // todo(tym): tady se nedá přihlašovat pomocí nového způsobu
                 $out = <<<HTML
-<span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">Kapitán týmu má celkem {$hajeniTymuHodin} hodin na vyplnění svého týmu</span></span>
+<span class="hinted">&#128274;<!--🔒 zámek --><span class="hint">{$hajeniTymu}</span></span>
 HTML
                        . $this->formatujDuvodProTesting('Aktivita už je zamknutá');
             } else {
@@ -3388,13 +3389,13 @@ HTML
                         ? $this->getPrihlasovatkoSUpozornenimNaVek($upozorneniNaVek)
                         : '<form method="post" style="display:inline">' .
                           '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
-                          '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
+                          '<a href="#" onclick="this.parentNode.submit(); return false">' . htmlspecialchars(\t('prihlasovatko.prihlasit')) . '</a>' .
                           '</form>';
                 } elseif ($volnoPro === VolnoProEnum::JEN_ZENY) {
                     // volno už je jen pro ženy → pro tohoto uživatele (muže) je plno, smí proto sledovat
-                    $out = 'pouze ženská místa' . $this->prihlasovatkoSledovani($u, ' | ');
+                    $out = htmlspecialchars(\t('prihlasovatko.jen_zenska_mista')) . $this->prihlasovatkoSledovani($u, ' | ');
                 } elseif ($volnoPro === VolnoProEnum::JEN_MUZI) {
-                    $out = 'pouze mužská místa' . $this->prihlasovatkoSledovani($u, ' | ');
+                    $out = htmlspecialchars(\t('prihlasovatko.jen_muzska_mista')) . $this->prihlasovatkoSledovani($u, ' | ');
                 } else {
                     $out = $this->prihlasovatkoSledovani($u);
                 }
@@ -3456,10 +3457,10 @@ HTML
               . json_encode($upozorneni, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
               . ", function () { {$otevriTym}; })";
         $popisek    = $prihlasen
-            ? 'Nastavení týmu'
-            : 'Přihlásit tým';
+            ? \t('aktivity.nastaveni_tymu')
+            : \t('aktivity.prihlasit_tym');
 
-        return '<button onclick="' . htmlspecialchars($onclick, ENT_QUOTES) . '">' . $popisek . '</button>';
+        return '<button onclick="' . htmlspecialchars($onclick, ENT_QUOTES) . '">' . htmlspecialchars($popisek) . '</button>';
     }
 
     /**
@@ -3476,13 +3477,13 @@ HTML
             $formular =
                 '<form method="post" style="display:inline">' .
                 '<input type="hidden" name="odhlasSledujiciho" value="' . $this->id() . '">' .
-                '<a href="#" onclick="this.parentNode.submit(); return false">zrušit sledování</a>' .
+                '<a href="#" onclick="this.parentNode.submit(); return false">' . htmlspecialchars(\t('prihlasovatko.zrusit_sledovani')) . '</a>' .
                 '</form>';
         } else {
             $formular =
                 '<form method="post" style="display:inline">' .
                 '<input type="hidden" name="prihlasSledujiciho" value="' . $this->id() . '">' .
-                '<a href="#" onclick="this.parentNode.submit(); return false">sledovat</a>' .
+                '<a href="#" onclick="this.parentNode.submit(); return false">' . htmlspecialchars(\t('prihlasovatko.sledovat')) . '</a>' .
                 '</form>';
         }
 
@@ -3768,6 +3769,9 @@ HTML
     }
 
     /**
+     * České názvy štítků. Jsou to i klíče (editor aktivity, import a export, kopie aktivity),
+     * čtenáři webu patří {@see getNazvyTaguVJazyce()}.
+     *
      * @return string[]
      */
     public function tagy(): array
@@ -3775,6 +3779,18 @@ HTML
         return array_map(static fn(
             Tag $tag,
         ) => $tag->nazev(), $this->getObjektyTagu());
+    }
+
+    /**
+     * Názvy štítků pro čtenáře v jazyce stránky (nebo v předaném), bez anglického názvu české.
+     *
+     * @return string[]
+     */
+    public function getNazvyTaguVJazyce(?Jazyk $jazyk = null): array
+    {
+        return array_map(static fn(
+            Tag $tag,
+        ) => $tag->getNazevVJazyce($jazyk), $this->getObjektyTagu());
     }
 
     /**

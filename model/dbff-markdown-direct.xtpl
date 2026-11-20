@@ -7,6 +7,9 @@
 .dbffMdtext img { max-width: 100%; max-height: 6em; }
 </style>
 
+<!-- begin:popisek -->
+<p class="dbffMdPopisek"><strong>{popisek}</strong></p>
+<!-- end:popisek -->
 <input type="hidden" name="{pnOldId}" value="{oldId}">
 <table style="width:100%" class="editor-textu">
   <tr>

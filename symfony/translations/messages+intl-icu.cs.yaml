@@ -1,5 +1,19 @@
 # Texty veřejného webu, formát zpráv ICU (viz Gamecon\Jazyk\Preklad).
 # Každý klíč musí být i v messages+intl-icu.en.yaml, hlídá to PrekladyKatalogTest.
+# Datum vzorem ICU (`{zacatek, date,d. M.}`) piš bez mezery za druhou čárkou, ICU by ji vypsalo.
+
+aktivity:
+    vypravec: "Vypravěč:"
+    zobrazit_vice: zobrazit více
+    informace: "Informace:"
+    terminy: "Termíny:"
+    neomezene: neomezeně
+    termin: "{zacatek, date,EEEE H}–{konec, time,H}"
+    nastaveni_tymu: Nastavení týmu
+    prihlasit_tym: Přihlásit tým
+    vypraveci: Vypravěči
+    archiv_prednasek: Archiv přednášek
+    vypravec_bez_popisu: popisek od vypravěče nemáme
 
 jazyk:
     prepnout: Přepnout do češtiny
@@ -37,10 +51,78 @@ paticka:
     kontakt: kontakt
     archiv_mdrd: Archiv mDrD
 
+prihlasovatko:
+    prihlasit: přihlásit
+    odhlasit: odhlásit
+    ucast: účast
+    jako_nahradnik: jako náhradník
+    neucast: neúčast
+    pozdni_odhlaseni: pozdní odhlášení
+    hajeni_tymu: "Kapitán týmu má celkem {hodin, plural, one {# hodinu} few {# hodiny} other {# hodin}} na vyplnění svého týmu"
+    jen_zenska_mista: pouze ženská místa
+    jen_muzska_mista: pouze mužská místa
+    sledovat: sledovat
+    zrusit_sledovani: zrušit sledování
+
 program:
     nadpis:
         muj: Můj program
         den: Program {den}
 
+stranka:
+    jen_cesky: Tato stránka je zatím jen česky.
+
+titulka:
+    info:
+        nazev: GameCon – největší festival nepočítačových her
+        popis: GameCon je největší festival nepočítačových her v České republice, který se každoročně koná třetí víkend v červenci. Opět se můžete těšit na desítky RPGček, deskovek, larpů, akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční mistrovství v DrD a v neposlední řadě úžasné lidi a vůbec zážitky, které ve vás přetrvají minimálně do dalšího roku.
+    hlavicka:
+        claim: Největší festival nepočítačových her
+        zacatek: "{zacatek, date,d.}"
+        konec: "{konec, date,d. M.}"
+        prehrat_video: přehrát video
+    karty:
+        pro_vsechny:
+            nadpis: Akce pro všechny
+            text: Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.
+        aktivni_zabava:
+            nadpis: Festival aktivní zábavy
+            text: Na GameConu najdeš všechno od celodenně otevřené deskoherny, přes rolové hry až po koncert.
+        zadne_vstupne:
+            nadpis: Žádné vstupné
+            text: Registrace na GameCon je zdarma. Platíš jen za služby a aktivity, které si sám vybereš a objednáš.
+    popisbox:
+        # odkazy dosadí titulka.php, slovosled je na překladu
+        veta: "{deskove} hry, {rpg} a {larpy}, {akcni_hry}, {wargaming}, {turnaj} v D&D/JaD, pohybové {workshopy}, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon."
+        odkaz:
+            deskove: Deskové
+            rpg: RPG
+            larpy: Larpy
+            akcni_hry: akční hry
+            wargaming: wargaming
+            turnaj: Turnaj
+            workshopy: workshopy
+    cisla:
+        ikona_ucastniku: ikona účastníků
+        ikona_aktivit: ikona aktivit
+        ikona_trvani: ikona trvání
+        ikona_koncertu: ikona koncert
+        spokojenych_ucastniku: spokojených účastníků
+        ruznych_aktivit: různých aktivit
+        dny_zabavy: dny zábavy
+        super_koncert: super koncert
+    fotky:
+        koncert: Koncert
+    linie:
+        nadpis: Co na GameConu zažiješ?
+    odpocet:
+        prihlasovani_zacne: Přihlašování začne {zacatek, date,d. M. y} v {zacatek, time,HH:mm}
+        do_gameconu_zbyva: Do GameConu zbývá
+        prihlasit_se: Přihlásit se
+    sponzori: Děkujeme našim sponzorům a partnerům!
+
 web:
     popis: Největší festival nepočítačových her. Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.
+
+podstranka:
+    zpet: zpět na {linie}

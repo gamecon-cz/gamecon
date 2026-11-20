@@ -30,6 +30,11 @@ class PageSqlStructure
     public const obsah = 'obsah';
 
     /**
+     * @see Page::$obsahEn
+     */
+    public const obsah_en = 'obsah_en';
+
+    /**
      * @see Page::$poradi
      */
     public const poradi = 'poradi';

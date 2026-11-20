@@ -21,6 +21,11 @@ class DbffMarkdownDirect extends DbFormField
     function html()
     {
         $t = new XTemplate(__DIR__ . '/dbff-markdown-direct.xtpl');
+        $popisek = $this->label();
+        if ($popisek !== '') {
+            $t->assign('popisek', htmlspecialchars($popisek));
+            $t->parse('md.popisek');
+        }
         $t->assign([
             //'pnOldId' => $this->postName('oldVal'),
             //'oldId'   => $this->value(),
@@ -59,6 +64,15 @@ class DbffMarkdownDirect extends DbFormField
     protected function isTextOdUzivatele(): bool
     {
         return false;
+    }
+
+    /**
+     * Popisek je text komentáře sloupce za slovem markdown (`markdown, Obsah anglicky (…)`). Sloupec jen s `markdown`
+     * popisek nemá, editor je pak jediný hlavní text formuláře.
+     */
+    public function label(): string
+    {
+        return mb_ucfirst(trim((string) preg_replace('~^markdown\s*(?:,|--)?~u', '', (string) ($this->d['Comment'] ?? ''))));
     }
 
     function loadPost(): void
