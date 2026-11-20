@@ -22,12 +22,14 @@ class AnglickaPrihlaskaNaGcWebTest extends AbstractTestWeb
     private const int ID_NEPRIHLASENEHO = 9863;
     private const int ID_ODESILAJICIHO = 9864;
     private const int ID_ORGANIZATORKY = 9865;
+    private const int ID_NAHRAVAJICIHO_SOUHLAS = 9866;
 
     private const string LOGIN_PRITOMNEHO = 'test-prihlaska-pritomny';
     private const string LOGIN_PRIHLASENEHO_MLADSIHO_15 = 'test-prihlaska-mladsi';
     private const string LOGIN_NEPRIHLASENEHO = 'test-prihlaska-novy';
     private const string LOGIN_ODESILAJICIHO = 'test-prihlaska-odesila';
     private const string LOGIN_ORGANIZATORKY = 'test-prihlaska-organizatorka';
+    private const string LOGIN_NAHRAVAJICIHO_SOUHLAS = 'test-prihlaska-souhlas';
 
     /**
      * @var list<string>
@@ -53,7 +55,8 @@ VALUES
     ($2, $3, 'Test', 'Mladší', 'test-prihlaska-mladsi@example.invalid', 'f', $8),
     ($4, $5, 'Test', 'Nový', 'test-prihlaska-novy@example.invalid', 'f', '1990-01-01'),
     ($6, $7, 'Test', 'Odesílající', 'test-prihlaska-odesila@example.invalid', 'm', '1990-01-01'),
-    ($9, $10, 'Test', 'Organizátorka', 'test-prihlaska-organizatorka@example.invalid', 'f', '1990-01-01')
+    ($9, $10, 'Test', 'Organizátorka', 'test-prihlaska-organizatorka@example.invalid', 'f', '1990-01-01'),
+    ($11, $12, 'Test', 'Souhlas', 'test-prihlaska-souhlas@example.invalid', 'm', $8)
 SQL,
                 [
                     0  => self::ID_PRITOMNEHO,
@@ -67,11 +70,13 @@ SQL,
                     8  => $mladsi15,
                     9  => self::ID_ORGANIZATORKY,
                     10 => self::LOGIN_ORGANIZATORKY,
+                    11 => self::ID_NAHRAVAJICIHO_SOUHLAS,
+                    12 => self::LOGIN_NAHRAVAJICIHO_SOUHLAS,
                 ],
             ],
             [
                 <<<'SQL'
-INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0), ($0, $2, $0), ($3, $1, $3), ($4, 1, $4), ($4, $5, $4)
+INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil) VALUES ($0, $1, $0), ($0, $2, $0), ($3, $1, $3), ($4, 1, $4), ($4, $5, $4), ($6, $1, $6)
 SQL,
                 [
                     0 => self::ID_PRITOMNEHO,
@@ -81,6 +86,7 @@ SQL,
                     // všemocná role (všechna práva, tedy i slevy a ubytování zdarma) z AbstractTestWeb a organizátorka
                     4 => self::ID_ORGANIZATORKY,
                     5 => Role::ORGANIZATOR,
+                    6 => self::ID_NAHRAVAJICIHO_SOUHLAS,
                 ],
             ],
         ];
@@ -228,6 +234,41 @@ SQL,
         self::assertStringContainsString('Tato stránka vyžaduje přihlášení', $this->stahniVerejnou($cesky, $this->cesta('prihlaseni')));
     }
 
+    /**
+     * Mezitím vypršela relace a pak přišel souhlas rodičů z otevřeného formuláře. Stránka na tom dřív spadla
+     * (volala metodu na null), teď ho pošle na přihlášení s hláškou jako každé jiné odeslání bez přihlášení.
+     */
+    public function testSouhlasRodicuOdeslanyPoOdhlaseniPosleNaPrihlaseni(): void
+    {
+        $this->nastavTerminy(gcOdDni: 30, gcDoDni: 33, regOdDni: -10, regDoDni: 33);
+
+        foreach ([
+            'en/prihlaska' => ['en/prihlaseni', 'You were logged out in the meantime, so your registration was not saved. Please log in again and submit it once more.'],
+            'prihlaska'    => ['prihlaseni', 'Mezitím došlo k odhlášení, takže se přihláška neuložila. Přihlas se prosím znovu a odešli ji ještě jednou.'],
+        ] as $prihlaska => [$prihlaseni, $hlaska]) {
+            $relace = $this->getNovaRelace();
+            $odeslani = $this->odesliSouhlasRodicu($relace, $prihlaska);
+            self::assertContains($odeslani['kod'], [302, 303], $odeslani['telo']);
+            self::assertSame(URL_WEBU . '/' . $prihlaseni, $odeslani['kam']);
+            self::assertStringContainsString($hlaska, $this->stahniVerejnou($relace, $this->cesta($prihlaseni)));
+        }
+    }
+
+    public function testPrihlasenyMladsiPatnactiLetNahrajeSouhlasRodicu(): void
+    {
+        $this->nastavTerminy(gcOdDni: 30, gcDoDni: 33, regOdDni: -10, regDoDni: 33);
+        $this->kUklidu[] = (string) \Uzivatel::zIdUrcite(self::ID_NAHRAVAJICIHO_SOUHLAS)->cestaKSouboruSPotvrzenimRodicu('pdf');
+        $session = $this->prihlas(self::LOGIN_NAHRAVAJICIHO_SOUHLAS);
+
+        $odeslani = $this->odesliSouhlasRodicu($session, 'en/prihlaska');
+        self::assertContains($odeslani['kod'], [302, 303], $odeslani['telo']);
+        self::assertSame(URL_WEBU . '/en/prihlaska', $odeslani['kam']);
+
+        $stranka = $this->stahniVerejnou($session, $this->cesta('en/prihlaska'));
+        self::assertStringContainsString('The consent form has been saved.', $stranka);
+        self::assertStringContainsString('The consent form has been uploaded ✅', $stranka);
+    }
+
     public function testFormularMaAnglickyRamecAEshopCesky(): void
     {
         $this->nastavTerminy(gcOdDni: 30, gcDoDni: 33, regOdDni: -10, regDoDni: 33);
@@ -357,6 +398,30 @@ SQL,
         $stranka = $this->stahniVerejnou($session, $this->cesta('en/prihlaska'));
         self::assertStringContainsString('You are registered for GameCon ' . ROCNIK . '.', $stranka);
         self::assertStringContainsString('value="Save changes"', $stranka);
+    }
+
+    /**
+     * Odešle formulář se souhlasem rodičů (PDF) z přihlášky tak, jak ho posílá prohlížeč, přesměrování nenásleduje.
+     *
+     * @return array{kod: int, kam: string, telo: string}
+     */
+    private function odesliSouhlasRodicu(string $relace, string $prihlaska): array
+    {
+        $souhlas = (string) tempnam(sys_get_temp_dir(), 'souhlas');
+        $this->kUklidu[] = $souhlas;
+        file_put_contents($souhlas, "%PDF-1.4\n%%EOF\n");
+
+        $curl = $this->curlNaAdresu($relace, URL_WEBU . '/' . $prihlaska);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, [
+            'potvrzeniRodicu'       => new \CURLFile($souhlas, 'application/pdf', 'souhlas.pdf'),
+            'pridatPotvrzeniRodicu' => '1',
+        ]);
+        // ochrana proti CSRF (omezCsrf()) chce odkazujícího ze stejného webu
+        curl_setopt($curl, CURLOPT_REFERER, URL_WEBU . '/' . $prihlaska);
+        $odeslani = $this->proved($curl);
+        unset($curl); // až teď curl zapíše cookies (s hláškou) do souboru
+
+        return $odeslani;
     }
 
     private function nastavTerminy(int $gcOdDni, int $gcDoDni, int $regOdDni, int $regDoDni): void
