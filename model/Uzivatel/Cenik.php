@@ -3,6 +3,7 @@
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Pravo;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\SqlStruktura\NakupySqlStruktura as NakupySql;
@@ -75,32 +76,34 @@ class Cenik
     ) {
     }
 
-    public function getTextySlev(): array
+    /**
+     * Texty slev k právům (prostý text) v daném jazyce. Výchozí je čeština, a ne jazyk požadavku: přihláška
+     * podle českého textu vyřazuje slevy na jídlo (`web/moduly/prihlaska/prihlaska.php`).
+     *
+     * @return array<int, string|array{0: string, 1: int}> právo => text, nebo [text, právo, které ho přebíjí]
+     */
+    public function getTextySlev(Jazyk $jazyk = Jazyk::CESTINA): array
     {
         /**
          * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
          * ručně. V polích se případně udává, které právo daný index „přebíjí“.
          */
-        $texty                             = [
-            Pravo::KOSTKA_ZDARMA                     => 'kostka zdarma',
-            Pravo::PLACKA_ZDARMA                     => 'placka zdarma',
-            Pravo::UBYTOVANI_ZDARMA                  => 'ubytování zdarma',
-            Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA    => ['ubytování ve středu zdarma', Pravo::UBYTOVANI_ZDARMA],
-            Pravo::JIDLO_ZDARMA                      => 'jídlo zdarma',
-            Pravo::JIDLO_SE_SLEVOU                   => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
-            Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA        => 'dvě jakákoli trička zdarma',
-            Pravo::JAKEKOLIV_TRICKO_ZDARMA           => ['jedno jakékoliv tričko zdarma', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
-            Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA      => 'modré tričko se slevou',
-            Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => 'můžeš si objednat ubytování i pro jedinou noc',
-            Pravo::MODRE_TRICKO_ZDARMA               => 'tričko zdarma za dosažení bonusu %d',
+        return [
+            Pravo::KOSTKA_ZDARMA                     => t('finance.slevy.kostka_zdarma', [], $jazyk),
+            Pravo::PLACKA_ZDARMA                     => t('finance.slevy.placka_zdarma', [], $jazyk),
+            Pravo::UBYTOVANI_ZDARMA                  => t('finance.slevy.ubytovani_zdarma', [], $jazyk),
+            Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA    => [t('finance.slevy.ubytovani_ve_stredu_zdarma', [], $jazyk), Pravo::UBYTOVANI_ZDARMA],
+            Pravo::JIDLO_ZDARMA                      => t('finance.slevy.jidlo_zdarma', [], $jazyk),
+            Pravo::JIDLO_SE_SLEVOU                   => [t('finance.slevy.jidlo_se_slevou', [], $jazyk), Pravo::JIDLO_ZDARMA],
+            Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA        => t('finance.slevy.dve_tricka_zdarma', [], $jazyk),
+            Pravo::JAKEKOLIV_TRICKO_ZDARMA           => [t('finance.slevy.jedno_tricko_zdarma', [], $jazyk), Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA],
+            Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA      => t('finance.slevy.modre_tricko_se_slevou', [], $jazyk),
+            Pravo::UBYTOVANI_MUZE_OBJEDNAT_JEDNU_NOC => t('finance.slevy.ubytovani_na_jednu_noc', [], $jazyk),
+            // jako řetězec, ICU by částku česky zapsalo s mezerou mezi tisíci
+            Pravo::MODRE_TRICKO_ZDARMA               => t('finance.slevy.tricko_za_bonus', [
+                'bonus' => (string) (int) $this->systemoveNastaveni->modreTrickoZdarmaOd(),
+            ], $jazyk),
         ];
-        $bonus                             = $this->systemoveNastaveni->modreTrickoZdarmaOd();
-        $texty[Pravo::MODRE_TRICKO_ZDARMA] = sprintf(
-            $texty[Pravo::MODRE_TRICKO_ZDARMA],
-            $bonus,
-        );
-
-        return $texty;
     }
 
     public function cenaKostky(array $r): int
@@ -201,16 +204,21 @@ class Cenik
      * Vrátí pole s popisy speciálních slev a extra možností uživatele (typicky
      * vypravěčských, věci se slevami nebo zdarma apod.)
      * @todo vypravěčská sleva s číslem apod. (migrovat z financí)
-     * @return array<string>
+     * @param Jazyk $jazyk jazyk textů, výchozí čeština viz {@see getTextySlev()}
+     * @param list<int> $bezPrav práva, jejichž slevu nevypisovat (přihláška vynechá jídlo, cenu po slevě ukáže tabulka)
+     * @return array<string> prostý text
      */
-    public function slevySpecialni(): array
+    public function slevySpecialni(Jazyk $jazyk = Jazyk::CESTINA, array $bezPrav = []): array
     {
         $u     = $this->u;
         $slevy = [];
-        $texty = $this->getTextySlev();
+        $texty = $this->getTextySlev($jazyk);
 
         // standardní slevy vyplývající z práv
         foreach ($texty as $pravo => $text) {
+            if (in_array($pravo, $bezPrav, true)) {
+                continue;
+            }
             // přeskočení práv, která mohou být přebita + normalizace textu
             if (is_array($text)) {
                 $zahrnuteVPravu = $text[1];

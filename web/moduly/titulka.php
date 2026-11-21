@@ -1,9 +1,7 @@
 <?php
 
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Web\Info;
 use Gamecon\Web\ZpracovaneObrazky;
 use Gamecon\Role\Role;
 
@@ -12,11 +10,13 @@ use Gamecon\Role\Role;
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $this->blackarrowStyl(true);
+// texty jsou v katalozích, názvy a popisy linií v jazyce stránky z DB, česká a anglická titulka jsou jazykovými verzemi
+$this->setObsahPrelozeny(true);
 $this->info()
-     ->nazev('GameCon – největší festival nepočítačových her')
-     ->popis('GameCon je největší festival nepočítačových her v České republice, který se každoročně koná třetí víkend v červenci. Opět se můžete těšit na desítky RPGček, deskovek, larpů, akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční mistrovství v DrD a v neposlední řadě úžasné lidi a vůbec zážitky, které ve vás přetrvají minimálně do dalšího roku.')
+     ->nazev(t('titulka.info.nazev'))
+     ->popis(t('titulka.info.popis'))
      // the module also answers on /titulka, the home page stays the one address
-     ->url(Info::getKanonickaUrlZCesty(URL_WEBU, ''));
+     ->setKanonickaCesta('');
 
 // linie
 $offsety = [120, 320, 280];
@@ -25,27 +25,50 @@ $obrazky = ZpracovaneObrazky::linieTitulka()->seznamObrazku();
 foreach ($typy as $i => $typ) {
     $t->assign([
         'cislo'     => sprintf('%02d', $i + 1),
-        'nazev'     => mb_ucfirst($typ->nazev()),
+        // prostý text, do HTML se escapuje
+        'nazev'     => htmlspecialchars(mb_ucfirst($typ->getNazevVJazyce())),
         'url'       => $typ->url(),
         'obrazek'   => $obrazky[$typ->id()]['src'] ?? '', // prevent errors, mainly for local testing
         'ikona'     => cestaObrazkuLinieNaTitulce($typ->id()),
         'aosOffset' => $offsety[$i % 3],
-        'popis'     => $typ->popisKratky(),
+        'popis'     => htmlspecialchars($typ->getPopisKratkyVJazyce()),
     ]);
     $t->parse('titulka.linie');
 }
 
+// výčet toho, co na GameConu je, s odkazy na linie; věta je v katalogu celá, aby slovosled zůstal na překladu
+$odkazyPopisu = [
+    'deskove'   => ['deskoherna', t('titulka.popisbox.odkaz.deskove')],
+    'rpg'       => ['rpg', t('titulka.popisbox.odkaz.rpg')],
+    'larpy'     => ['larpy', t('titulka.popisbox.odkaz.larpy')],
+    'akcni_hry' => ['bonusy', t('titulka.popisbox.odkaz.akcni_hry')],
+    'wargaming' => ['wargaming', t('titulka.popisbox.odkaz.wargaming')],
+    'turnaj'    => ['dnd', t('titulka.popisbox.odkaz.turnaj')],
+    'workshopy' => ['bonusy', t('titulka.popisbox.odkaz.workshopy')],
+];
+// t() vrací prostý text: větu escapovat celou a značky odkazů nahradit až potom
+$znackyOdkazu = [];
+$odkazyPodleZnacky = [];
+foreach ($odkazyPopisu as $nazev => [$cesta, $text]) {
+    $znacka = "\u{E000}{$nazev}\u{E000}"; // znak ze soukromé oblasti Unicode, htmlspecialchars ho nechá a v textu není
+    $znackyOdkazu[$nazev] = $znacka;
+    $odkazyPodleZnacky[$znacka] = '<a href="' . $cesta . '">' . htmlspecialchars($text) . '</a>';
+}
+$t->assign('popisFestivalu', strtr(htmlspecialchars(t('titulka.popisbox.veta', $znackyOdkazu)), $odkazyPodleZnacky));
+
 // odpočet
 if (pred($systemoveNastaveni->prihlasovaniUcastnikuOd())) {
-    $zacatek = $systemoveNastaveni->prihlasovaniUcastnikuOd()->format(DateTimeCz::FORMAT_ZACATEK_UDALOSTI);
     $t->assign([
         'odpocetTimestamp' => $systemoveNastaveni->prihlasovaniUcastnikuOd()->getTimestamp(),
-        'odpocetNadpis'    => "Přihlašování začne $zacatek",
+        'odpocetNadpis'    => htmlspecialchars(t(
+            'titulka.odpocet.prihlasovani_zacne',
+            ['zacatek' => $systemoveNastaveni->prihlasovaniUcastnikuOd()],
+        )),
     ]);
 } else {
     $t->assign([
         'odpocetTimestamp' => $systemoveNastaveni->gcBeziOd()->getTimestamp(),
-        'odpocetNadpis'    => 'Do GameConu zbývá',
+        'odpocetNadpis'    => htmlspecialchars(t('titulka.odpocet.do_gameconu_zbyva')),
     ]);
     $t->parse('titulka.odpocetPrihlasit');
 }
@@ -82,8 +105,9 @@ SQL,
 
 // ostatní
 $t->assign([
-    'gcOd'                       => $zacatekGameconu->format('j.'),
-    'gcDo'                       => $konecGameconu->format('j. n.'),
+    // „16. – 19. 7.“ / „16 – 19 July“, vzor data je v katalogu
+    'gcOd'                       => htmlspecialchars(t('titulka.hlavicka.zacatek', ['zacatek' => $zacatekGameconu])),
+    'gcDo'                       => htmlspecialchars(t('titulka.hlavicka.konec', ['konec' => $konecGameconu])),
     'gcRok'                      => $konecGameconu->format('Y'),
     'stovkySpokojenychUcastniku' => $stovkySpokojenychUcastniku,
     'stovkyAktivit'              => $stovkyAktivit,

@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Accounting;
+use Gamecon\Jazyk\AktualniJazyk;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Stat;
 use Gamecon\Uzivatel\Finance;
@@ -13,32 +14,43 @@ $this->blackarrowStyl(true);
 if (!$u) { //jen přihlášení
     throw new \Neprihlasen();
 }
+// texty jsou v katalogu (finance.*), částky a data v jazyce stránky; názvy aktivit, předmětů a poznámky k platbám jsou data
+$this->setObsahPrelozeny(true);
+
 if (!FINANCE_VIDITELNE) {
-    $urlWebu = URL_WEBU;
+    $urlWebu = urlWebu();
+    $nadpis = htmlspecialchars(t('finance.nadpis'));
+    $popis = htmlspecialchars(t('finance.skryte.popis'));
+    $zpet = htmlSVlozkami(
+        t('finance.skryte.zpet', ['stranka' => znackaVlozky('stranka')]),
+        ['stranka' => '<i>' . htmlspecialchars(t('finance.skryte.uvodni_stranka')) . '</i>'],
+    );
     echo <<<HTML
 <div class="stranka">
-    <h1>Přehled financí</h1>
+    <h1>{$nadpis}</h1>
 
-    <p>Zde by byl seznam všech položek, které sis letos na GameConu objednal(a) a tvůj celkový stav financí.</p>
+    <p>{$popis}</p>
 
-    <p><a href="{$urlWebu}">Zpět na <i>Úvodní stránku</i></a></p>
+    <p><a href="{$urlWebu}">{$zpet}</a></p>
 </div>
 HTML;
 
     return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
 }
 
+$jazyk     = AktualniJazyk::jazyk();
 $veci      = Accounting::getPersonalFinance($u, showDiscounts: true);
-$slevyA    = array_flat('<li>', $u->finance()->slevyNaAktivity(), '</li>');
-$slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
+$slevyA    = array_flat('<li>', array_map('htmlspecialchars', $u->finance()->slevyNaAktivity()), '</li>');
+$slevyV    = array_flat('<li>', array_map('htmlspecialchars', $u->finance()->slevyVse($jazyk)), '</li>');
 $bonusZaVedeniAktivit = Finance::zaokouhli($u->finance()->bonusZaAktivity());
 if ($bonusZaVedeniAktivit > 0.0) {
-    $slevyA .= '<li>bonus za vedení aktivit ' . Finance::formatujCastku($bonusZaVedeniAktivit) . '&thinsp;Kč</li>';
+    $slevyA .= '<li>' . htmlSVlozkami(
+        t('finance.bonus_za_vedeni_aktivit', ['castka' => znackaVlozky('castka')]),
+        ['castka' => Finance::formatujCastkuVKorunachHtml($bonusZaVedeniAktivit)],
+    ) . '</li>';
 }
 $zaplaceno = $u->finance()->stav() >= 0;
-$limit     = false;
 
-$a   = $u->koncovkaDlePohlavi();
 $uid = $u->id();
 $statUzivatele = $u->stat();
 $vychoziTypQrPlatby = match ($statUzivatele) {
@@ -46,26 +58,62 @@ $vychoziTypQrPlatby = match ($statUzivatele) {
     Stat::SK => 'sk',
     default => 'sepa',
 };
+$jeVychoziCz = $vychoziTypQrPlatby === 'cz';
+$jeVychoziSk = $vychoziTypQrPlatby === 'sk';
+$jeVychoziSepa = $vychoziTypQrPlatby === 'sepa';
+
+$uvod = htmlSVlozkami(
+    t('finance.uvod', [
+        'pohlavi'   => $u->pohlavi(),
+        'zaplaceni' => znackaVlozky('zaplaceni'),
+        'odkaz'     => znackaVlozky('odkaz'),
+    ]),
+    [
+        'zaplaceni' => '<b>' . htmlspecialchars(t('finance.uvod_zaplaceni')) . '</b>',
+        'odkaz'     => '<a href="finance#placeni">' . htmlspecialchars(t('finance.uvod_uplne_dole')) . '</a>',
+    ],
+);
+$popisekVyberuQr = htmlspecialchars(t('finance.platba.vyber_qr'));
+$nadpisPlatbyCz = htmlspecialchars(t('finance.platba.nadpis_typu', ['typ' => 'CZ']));
+$nadpisPlatbySk = htmlspecialchars(t('finance.platba.nadpis_typu', ['typ' => 'SK']));
+$nadpisPlatbySepa = htmlspecialchars(t('finance.platba.nadpis_typu', ['typ' => 'SEPA']));
+$popisekCislaUctu = htmlspecialchars(t('finance.platba.cislo_uctu'));
+$popisekVariabilnihoSymbolu = htmlspecialchars(t('finance.platba.variabilni_symbol'));
+$popisekReferencePlatby = htmlspecialchars(t('finance.platba.reference_platby'));
+$popisekCastky = htmlspecialchars(t('finance.platba.castka_k_zaplaceni'));
+$poznamkaKCastceVEurech = htmlspecialchars(t('finance.platba.castka_v_eurech'));
+$preplatek = htmlspecialchars(t('finance.platba.preplatek'));
 
 if (!$zaplaceno) {
     $nejblizsiHromadneOdhlasovaniKdy = $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
     $nejpozdejiZaplatitDo            = $systemoveNastaveni->nejpozdejiZaplatitDo(
         $systemoveNastaveni->ted(),
     );
-    $limit                           = datum4($nejpozdejiZaplatitDo);
-    $castkaCZ = Finance::formatujCastku(-$u->finance()->stav()) . '&thinsp;Kč';
+    $castkaCZ = Finance::formatujCastkuVKorunachHtml(-$u->finance()->stav());
     // Stejná částka (vč. kurzové rezervy), jaká jde do QR kódu, ať se výpis a QR nerozejdou.
-    $castkaEUR = Finance::formatujCastku($u->finance()->dejCastkuProQrPlatbuVEurech()) . '&thinsp;€';
+    $castkaEUR = Finance::formatujCastkuVEurechHtml($u->finance()->dejCastkuProQrPlatbuVEurech());
+    // eurová část se ukáže, až účastník přepne na platbu SK nebo SEPA (soubory/qr-prepinac-plateb.js)
+    $platisCelkem = htmlSVlozkami(
+        t('finance.platba.platis_celkem', ['castka' => znackaVlozky('castka')]),
+        ['castka' => '<strong>' . $castkaCZ . '<span data-qr-eur-text' . ($jeVychoziCz ? ' hidden' : '') . '> / ' . $castkaEUR . '</span></strong>'],
+    );
+    $eurovaCastka = htmlspecialchars(t('finance.platba.eurova_castka'));
+    $zaplatitDo = htmlSVlozkami(
+        t('finance.platba.zaplatit_do', ['do' => znackaVlozky('do')]),
+        ['do' => '<strong>' . htmlspecialchars(t('finance.platba.do_data', ['datum' => $nejpozdejiZaplatitDo])) . '</strong>'],
+    );
+    $odhlaseni = htmlSVlozkami(
+        t('finance.platba.odhlaseni', ['datum' => znackaVlozky('datum')]),
+        ['datum' => '<strong>' . htmlspecialchars(datum3($nejpozdejiZaplatitDo)) . '</strong>'],
+    );
 }
 
 ?>
 
 <div class="stranka">
 
-    <h1>Přehled financí</h1>
-    <p>V následujícím přehledu vidíš seznam všech položek, které sis na GameConu objednal<?= $a ?>, s výslednými cenami
-        po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k <b>zaplacení</b> najdeš <a
-            href="finance#placeni">úplně dole</a>.</p>
+    <h1><?= htmlspecialchars(t('finance.nadpis')) ?></h1>
+    <p><?= $uvod ?></p>
 
 
     <style>
@@ -160,13 +208,13 @@ if (!$zaplaceno) {
         }
     </style>
     <div style="float:left;width:250px;margin-bottom:24px; margin-right: 50px" class="tabVeci">
-        <h2>Objednané věci</h2>
+        <h2><?= htmlspecialchars(t('finance.objednane_veci')) ?></h2>
         <?= $veci->formatForHtml(positivePrices: true) ?>
     </div>
 
     <?php if ($slevyA || $slevyV) { ?>
         <div style="float:left">
-            <h2>Bonusy</h2>
+            <h2><?= htmlspecialchars(t('finance.bonusy')) ?></h2>
             <ul><?= trim($slevyA . $slevyV) ?></ul>
         </div>
     <?php } ?>
@@ -177,15 +225,12 @@ if (!$zaplaceno) {
     $qrKodProCeskouPlatbu = $u->finance()->dejQrKodProCeskouPlatbu();
     $qrKodProSlovenskouPlatbu = $u->finance()->dejQrKodProSlovenskouPlatbu();
     $qrKodProSepaPlatbu = $u->finance()->dejQrKodProSepaPlatbu();
-    $jeVychoziCz = $vychoziTypQrPlatby === 'cz';
-    $jeVychoziSk = $vychoziTypQrPlatby === 'sk';
-    $jeVychoziSepa = $vychoziTypQrPlatby === 'sepa';
     ?>
 
     <?php if (!$zaplaceno): ?>
-        <h2 id="placeni">Platba</h2>
+        <h2 id="placeni"><?= htmlspecialchars(t('finance.platba.nadpis')) ?></h2>
         <div class="payment-methods" data-qr-prepinac-plateb="<?= $vychoziTypQrPlatby ?>">
-            <div class="payment-methods__switch" aria-label="Výběr QR platby">
+            <div class="payment-methods__switch" aria-label="<?= $popisekVyberuQr ?>">
                 <button type="button"
                         class="payment-methods__switch-button<?= $jeVychoziCz ? ' is-aktivni' : '' ?>"
                         data-qr-tlacitko="cz"
@@ -207,12 +252,12 @@ if (!$zaplaceno) {
             </div>
 
             <section class="payment-method" data-qr-karta="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
-                <h3 class="payment-method__title">Platba (CZ)</h3>
+                <h3 class="payment-method__title"><?= $nadpisPlatbyCz ?></h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
-                        <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-                        <strong>Variabilní symbol:</strong> <?= $uid ?><br>
-                        <strong>Částka k zaplacení:</strong> <?= $castkaCZ ?>
+                        <strong><?= $popisekCislaUctu ?></strong> <?= UCET_CZ ?><br>
+                        <strong><?= $popisekVariabilnihoSymbolu ?></strong> <?= $uid ?><br>
+                        <strong><?= $popisekCastky ?></strong> <?= $castkaCZ ?>
                     </div>
                     <?php if ($qrKodProCeskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
@@ -223,14 +268,14 @@ if (!$zaplaceno) {
             </section>
 
             <section class="payment-method" data-qr-karta="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
-                <h3 class="payment-method__title">Platba (SK)</h3>
+                <h3 class="payment-method__title"><?= $nadpisPlatbySk ?></h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
                         <strong>IBAN:</strong> <?= IBAN ?><br>
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                        <strong>Reference platby:</strong> VS:<?= $uid ?><br>
-                        <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
-                        <br><small class="poznamka">Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</small>
+                        <strong><?= $popisekReferencePlatby ?></strong> VS:<?= $uid ?><br>
+                        <strong><?= $popisekCastky ?></strong> <?= $castkaEUR ?>
+                        <br><small class="poznamka"><?= $poznamkaKCastceVEurech ?></small>
                     </div>
                     <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
@@ -241,14 +286,14 @@ if (!$zaplaceno) {
             </section>
 
             <section class="payment-method" data-qr-karta="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
-                <h3 class="payment-method__title">Platba (SEPA)</h3>
+                <h3 class="payment-method__title"><?= $nadpisPlatbySepa ?></h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
                         <strong>IBAN:</strong> <?= IBAN ?><br>
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                        <strong>Reference platby:</strong> VS:<?= $uid ?><br>
-                        <strong>Částka k zaplacení:</strong> <?= $castkaEUR ?>
-                        <br><small class="poznamka">Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</small>
+                        <strong><?= $popisekReferencePlatby ?></strong> VS:<?= $uid ?><br>
+                        <strong><?= $popisekCastky ?></strong> <?= $castkaEUR ?>
+                        <br><small class="poznamka"><?= $poznamkaKCastceVEurech ?></small>
                     </div>
                     <div class="payment-method__qr">
                         <img src="<?= $qrKodProSepaPlatbu->getDataUri() ?>" alt="qrPlatbaSepa">
@@ -259,51 +304,33 @@ if (!$zaplaceno) {
 
         <?php if (pred($nejpozdejiZaplatitDo)): ?>
             <p>
-                GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong> (tento den musejí být peníze na účtu GameConu). Platíš celkem
-                <strong><?= $castkaCZ ?><span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>> / <?= $castkaEUR ?></span></strong>, přesné údaje o platbě nalezneš výše.
-                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>>Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</span>
+                <?= $zaplatitDo ?> <?= $platisCelkem ?>
+                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>><?= $eurovaCastka ?></span>
             </p>
 
-            <?php if (pred($nejpozdejiZaplatitDo) && !$u->maPravoNerusitObjednavky()): ?>
-                <ul class="seznam-bez-okraje">
-                    <li class="poznamka">Při pozdější platbě tě systém dne
-                        <strong><?= datum3($nejpozdejiZaplatitDo) ?></strong> automaticky odhlásí.
-                    </li>
-                    <li class="poznamka">
-                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
-                    </li>
-                </ul>
-            <?php else: ?>
-                <ul class="seznam-bez-okraje">
-                    <li class="poznamka">Při pozdější platbě tě systém dne
-                        <strong><?= datum3($nejpozdejiZaplatitDo) ?></strong> automaticky odhlásí.
-                    </li>
-                    <li class="poznamka">
-                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
-                    </li>
-                </ul>
-            <?php endif; ?>
+            <ul class="seznam-bez-okraje">
+                <li class="poznamka"><?= $odhlaseni ?></li>
+                <li class="poznamka"><?= $preplatek ?></li>
+            </ul>
         <?php else: ?>
             <p>
-                Zaplatit můžeš převodem nebo na místě. Platíš celkem
-                <strong><?= $castkaCZ ?><span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>> / <?= $castkaEUR ?></span></strong>, přesné údaje o platbě nalezneš výše.
-                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>>Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme.</span>
+                <?= htmlspecialchars(t('finance.platba.prevodem_nebo_na_miste')) ?> <?= $platisCelkem ?>
+                <span data-qr-eur-text<?= $jeVychoziCz ? ' hidden' : '' ?>><?= $eurovaCastka ?></span>
             </p>
             <ul class="seznam-bez-okraje">
-                <li class="poznamka">
-                    Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
-                </li>
+                <li class="poznamka"><?= $preplatek ?></li>
             </ul>
         <?php endif; ?>
     <?php else: ?>
-        <h2 id="placeni">Platba</h2>
+        <h2 id="placeni"><?= htmlspecialchars(t('finance.platba.nadpis')) ?></h2>
         <p>
-            Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
-            platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
-            můžeš si samozřejmě kdykoli převést peníze do zásoby:
+            <?= htmlSVlozkami(
+                t('finance.platba.zaplaceno', ['zaplaceny' => znackaVlozky('zaplaceny')]),
+                ['zaplaceny' => '<strong style="color:green">' . htmlspecialchars(t('finance.platba.zaplaceny')) . '</strong>'],
+            ) ?>
         </p>
         <div class="payment-methods" data-qr-prepinac-plateb="<?= $vychoziTypQrPlatby ?>">
-            <div class="payment-methods__switch" aria-label="Výběr QR platby">
+            <div class="payment-methods__switch" aria-label="<?= $popisekVyberuQr ?>">
                 <button type="button"
                         class="payment-methods__switch-button<?= $jeVychoziCz ? ' is-aktivni' : '' ?>"
                         data-qr-tlacitko="cz"
@@ -325,11 +352,11 @@ if (!$zaplaceno) {
             </div>
 
             <section class="payment-method" data-qr-karta="cz"<?= $jeVychoziCz ? '' : ' hidden' ?>>
-                <h3 class="payment-method__title">Platba (CZ)</h3>
+                <h3 class="payment-method__title"><?= $nadpisPlatbyCz ?></h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
-                        <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-                        <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+                        <strong><?= $popisekCislaUctu ?></strong> <?= UCET_CZ ?><br>
+                        <strong><?= $popisekVariabilnihoSymbolu ?></strong> <?= $uid ?><br>
                     </div>
                     <?php if ($qrKodProCeskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
@@ -340,12 +367,12 @@ if (!$zaplaceno) {
             </section>
 
             <section class="payment-method" data-qr-karta="sk"<?= $jeVychoziSk ? '' : ' hidden' ?>>
-                <h3 class="payment-method__title">Platba (SK)</h3>
+                <h3 class="payment-method__title"><?= $nadpisPlatbySk ?></h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
                         <strong>IBAN:</strong> <?= IBAN ?><br>
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                        <strong>Reference platby:</strong> VS:<?= $uid ?><br>
+                        <strong><?= $popisekReferencePlatby ?></strong> VS:<?= $uid ?><br>
                     </div>
                     <?php if ($qrKodProSlovenskouPlatbu !== null): ?>
                         <div class="payment-method__qr">
@@ -356,12 +383,12 @@ if (!$zaplaceno) {
             </section>
 
             <section class="payment-method" data-qr-karta="sepa"<?= $jeVychoziSepa ? '' : ' hidden' ?>>
-                <h3 class="payment-method__title">Platba (SEPA)</h3>
+                <h3 class="payment-method__title"><?= $nadpisPlatbySepa ?></h3>
                 <div class="payment-method__content">
                     <div class="payment-method__details">
                         <strong>IBAN:</strong> <?= IBAN ?><br>
                         <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-                        <strong>Reference platby:</strong> VS:<?= $uid ?><br>
+                        <strong><?= $popisekReferencePlatby ?></strong> VS:<?= $uid ?><br>
                     </div>
                     <div class="payment-method__qr">
                         <img src="<?= $qrKodProSepaPlatbu->getDataUri() ?>" alt="qrPlatbaSepa">

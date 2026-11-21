@@ -25,6 +25,11 @@ class PageEntityStructure
     public const obsah = 'obsah';
 
     /**
+     * @see Page::$obsahEn
+     */
+    public const obsahEn = 'obsahEn';
+
+    /**
      * @see Page::$poradi
      */
     public const poradi = 'poradi';

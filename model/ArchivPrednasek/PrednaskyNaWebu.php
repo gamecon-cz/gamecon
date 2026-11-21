@@ -8,6 +8,8 @@ use Gamecon\Aktivita\RocnikyAktivit;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\ArchivPrednasek\SqlStruktura\PrednaskaSqlStruktura as PrednaskaSql;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 
 /**
  * Lectures of the public archive (/prednasky/archiv): not hidden, from the newest year, by Czech alphabet within a year.
@@ -158,8 +160,8 @@ final class PrednaskyNaWebu
     }
 
     /**
-     * @param list<string>                                  $klicovaSlova
-     * @param list<array{nazev: string, kategorie: string}> $stitkyProgramu
+     * @param list<string>                                                       $klicovaSlova
+     * @param list<array{nazev: string, nazevVJazyce: string, kategorie: string}> $stitkyProgramu
      *
      * @return list<StitekNaWebu>
      */
@@ -169,8 +171,10 @@ final class PrednaskyNaWebu
         foreach ($klicovaSlova as $nazev) {
             $stitky[StitekNaWebu::getKlic($nazev)] ??= new StitekNaWebu(StitekNaWebu::getKlic($nazev), $nazev, StitekNaWebu::SKUPINA_KLICOVA_SLOVA);
         }
-        foreach ($stitkyProgramu as ['nazev' => $nazev, 'kategorie' => $kategorie]) {
-            $stitky[StitekNaWebu::getKlic($nazev)] ??= new StitekNaWebu(StitekNaWebu::getKlic($nazev), $nazev, $kategorie);
+        // the key is from the Czech name (the address of the filter and merging with a keyword), the reader gets the name
+        // in the language of the page
+        foreach ($stitkyProgramu as ['nazev' => $nazev, 'nazevVJazyce' => $nazevVJazyce, 'kategorie' => $kategorie]) {
+            $stitky[StitekNaWebu::getKlic($nazev)] ??= new StitekNaWebu(StitekNaWebu::getKlic($nazev), $nazevVJazyce, $kategorie);
         }
 
         return array_values($stitky);
@@ -241,8 +245,9 @@ final class PrednaskyNaWebu
     /**
      * @param list<int> $idsAkci
      *
-     * @return array<int, list<array{nazev: string, kategorie: string}>> id of the activity => its tags, by the order of
-     *                                                                   the category and by name like on the line page, without restrictions (age, height)
+     * @return array<int, list<array{nazev: string, nazevVJazyce: string, kategorie: string}>> id of the activity => its tags
+     *     by the order of the category and by name like on the line page, without restrictions (age, height); the Czech
+     *     name, the name and the category in the language of the page (Tag::getNazevVJazyce(), without English in Czech)
      */
     private function stitkyProgramuPodleAkci(array $idsAkci): array
     {
@@ -251,7 +256,8 @@ final class PrednaskyNaWebu
         }
         $podleAkci = [];
         foreach (dbFetchAll(<<<'SQL'
-            SELECT akce_sjednocene_tagy.id_akce, sjednocene_tagy.nazev, kategorie_sjednocenych_tagu.nazev AS kategorie
+            SELECT akce_sjednocene_tagy.id_akce, sjednocene_tagy.nazev, sjednocene_tagy.nazev_en,
+                kategorie_sjednocenych_tagu.nazev AS kategorie, kategorie_sjednocenych_tagu.nazev_en AS kategorie_en
             FROM akce_sjednocene_tagy
             JOIN sjednocene_tagy ON sjednocene_tagy.id = akce_sjednocene_tagy.id_tagu
             JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.id = sjednocene_tagy.id_kategorie_tagu
@@ -266,11 +272,24 @@ final class PrednaskyNaWebu
             1 => self::KATEGORIE_OMEZENI,
         ]) as $radek) {
             $podleAkci[(int) $radek['id_akce']][] = [
-                'nazev'     => (string) $radek['nazev'],
-                'kategorie' => (string) $radek['kategorie'],
+                'nazev'        => (string) $radek['nazev'],
+                'nazevVJazyce' => $this->textVJazyce((string) $radek['nazev'], $radek['nazev_en']),
+                'kategorie'    => $this->textVJazyce((string) $radek['kategorie'], $radek['kategorie_en']),
             ];
         }
 
         return $podleAkci;
+    }
+
+    /**
+     * The English text on the English website, the Czech one without it (NULL, empty), like Tag::getNazevVJazyce().
+     */
+    private function textVJazyce(string $cesky, ?string $anglicky): string
+    {
+        $anglicky = trim((string) $anglicky);
+
+        return $anglicky !== '' && AktualniJazyk::jazyk() === Jazyk::ANGLICTINA
+            ? $anglicky
+            : $cesky;
     }
 }

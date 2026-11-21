@@ -1,7 +1,9 @@
 <?php
 
+use Gamecon\Jazyk\Jazyk;
+
 /**
- * SmartyPants-like smart punctation optimized for Czech
+ * SmartyPants-like smart punctation optimized for Czech, with English rules for English texts
  *
  * It takes html string and replaces punctation in non-html tag areas according
  * to $defaultRules (or rules you set). Rules are of two types:
@@ -19,6 +21,8 @@ class Smartyp
         $rules,
         $rulesInternal;
 
+    private array $cleanRules;
+
     private static
         $defaultClean = [
         '@“([^”]+)”@s' => '„$1“',   // replace english quotes by czech
@@ -27,13 +31,32 @@ class Smartyp
         '@ - @'    => ' – ',
         '@\.\.\.@' => '…',
         '@"@'      => ['„', '“'],
+    ],
+        $englishRules = [
+        '@ - @'    => ' – ',
+        '@\.\.\.@' => '…',
+        '@"@'      => ['“', '”'],
     ];
 
-    static function defaultTransform($text)
+    /**
+     * @param Jazyk|null $jazyk language of the text, not of the page (a Czech fallback on an English page stays Czech)
+     */
+    function __construct(?Jazyk $jazyk = null)
     {
-        static $defaultInstance;
-        if (!$defaultInstance) $defaultInstance = new self;
-        return $defaultInstance->transform($text);
+        if (($jazyk ?? Jazyk::vychozi()) === Jazyk::ANGLICTINA) {
+            $this->cleanRules = []; // english quotes are right for english
+            $this->rules      = self::$englishRules;
+        } else {
+            $this->cleanRules = self::$defaultClean;
+        }
+    }
+
+    static function defaultTransform($text, ?Jazyk $jazyk = null)
+    {
+        static $instances = [];
+        $jazyk ??= Jazyk::vychozi();
+        $instances[$jazyk->value] ??= new self($jazyk);
+        return $instances[$jazyk->value]->transform($text);
     }
 
     function setRules($rules)
@@ -64,8 +87,8 @@ class Smartyp
     private function clean($text)
     {
         return preg_replace(
-            array_keys(self::$defaultClean),
-            array_values(self::$defaultClean),
+            array_keys($this->cleanRules),
+            array_values($this->cleanRules),
             $text,
         );
     }

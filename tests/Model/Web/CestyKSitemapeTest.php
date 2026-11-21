@@ -64,6 +64,23 @@ class CestyKSitemapeTest extends AbstractTestDb
     /**
      * @test
      */
+    public function nevypisujeStrankuAnglickeTitulky(): void
+    {
+        dbQuery(
+            <<<'SQL'
+            INSERT IGNORE INTO stranky (url_stranky, obsah, redirect)
+            VALUES ($0, '# Welcome', 0)
+            SQL,
+            [\Stranka::URL_ANGLICKE_TITULKY],
+        );
+
+        // stará anglická titulka, /en/en i /EN přesměrují na /en/, česká sitemapa ji neohlašuje
+        self::assertNotContains(\Stranka::URL_ANGLICKE_TITULKY, (new CestyKSitemape())->getCesty());
+    }
+
+    /**
+     * @test
+     */
     public function nevypisujeStrankyKterymRouterNeodpovi(): void
     {
         dbQuery(

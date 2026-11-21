@@ -151,7 +151,8 @@ final class PrihlaseniQrKodem
      *
      * @param bool $trvale po schválení přihlásit trvale, jako zaškrtnuté „Trvale přihlásit“
      *
-     * @return string|null proč žádost nevznikla, jako hláška pro uživatele; null, když vznikla
+     * @return string|null proč žádost nevznikla, jako hláška pro uživatele (prostý text v jazyce stránky, admin česky);
+     *                     null, když vznikla
      */
     public function zaloz(string $ip, string $userAgent, bool $trvale): ?string
     {
@@ -161,7 +162,7 @@ final class PrihlaseniQrKodem
             static fn (mixed $cas) => is_int($cas) && $cas >= $odKdyPocitat,
         ));
         if (count($zalozeni) >= self::MAX_ZADOSTI_ZE_SESSION) {
-            return 'Vygeneroval jsi teď moc kódů. Zkus to za pár minut, nebo se přihlas heslem.';
+            return \t('prihlaseni.qr.moc_kodu');
         }
         $kod = self::vygenerujKod();
         $cislo = random_int(self::NEJMENSI_CISLO, self::NEJVETSI_CISLO);
@@ -182,7 +183,7 @@ final class PrihlaseniQrKodem
                 DELETE FROM prihlaseni_qr WHERE id = $0
                 SQL, [0 => $id]);
 
-            return 'Z tvé sítě teď přišlo moc žádostí o přihlášení QR kódem. Přihlas se heslem, nebo to zkus za pár minut.';
+            return \t('prihlaseni.qr.moc_zadosti_ze_site');
         }
         dbQuery(<<<'SQL'
             DELETE FROM prihlaseni_qr
@@ -546,7 +547,7 @@ final class PrihlaseniQrKodem
 
         return $popis !== ''
             ? $popis
-            : 'neznámý prohlížeč';
+            : \t('prihlasit_zarizeni.neznamy_prohlizec');
     }
 
     /**

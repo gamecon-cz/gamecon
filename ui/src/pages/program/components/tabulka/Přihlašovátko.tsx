@@ -4,6 +4,7 @@ import { useAktivita, useÚčastník } from "../../../../store/program/selektory
 import { volnoTypZObsazenost } from "../../../../utils";
 import { nastavModalNastaveníTýmu, nastavModalOdhlásit } from "../../../../store/program/slices/všeobecnéSlice";
 import { proveďAkciAktivity, useStavAkce } from "../../../../store/program/slices/programDataSlice";
+import { KlíčPřekladu, t } from "../../../../i18n";
 
 type TPřihlašovátkoProps = {
   akitivitaId: number;
@@ -22,6 +23,15 @@ type FormTlačítkoProps = {
   akitivitaId: number;
   typ: FormTlačítkoTyp;
   tymova?: boolean;
+};
+
+const KLÍČE_TLAČÍTEK: Record<FormTlačítkoTyp, KlíčPřekladu | undefined> = {
+  prihlasit: "prihlasovatko.prihlasit",
+  odhlasit: "prihlasovatko.odhlasit",
+  prihlasSledujiciho: "prihlasovatko.sledovat",
+  odhlasSledujiciho: "prihlasovatko.zrusit_sledovani",
+  tym: "prihlasovatko.tym",
+  zamceno: undefined,
 };
 
 const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
@@ -54,18 +64,8 @@ const FormTlačítko: FunctionComponent<FormTlačítkoProps> = ({
   }, []);
     */
 
-  const text =
-    typ === "prihlasit"
-      ? "přihlásit"
-      : typ === "odhlasit"
-        ? "odhlásit"
-        : typ === "prihlasSledujiciho"
-          ? "sledovat"
-          : typ === "odhlasSledujiciho"
-            ? "zrušit sledování"
-            : typ === "tym"
-              ? "tým"
-              : "";
+  const klíč = KLÍČE_TLAČÍTEK[typ];
+  const text = klíč ? t(klíč) : "";
 
   return (
     <>
@@ -109,7 +109,7 @@ const NačítáníText = () => {
     return () => clearInterval(interval);
   }, [])
 
-  return <em>Načítání {"".padEnd(teček + 1, ".")}</em>;
+  return <em>{t("prihlasovatko.nacitani")} {"".padEnd(teček + 1, ".")}</em>;
 }
 
 // todo(tym): tady překopat podle práv
@@ -146,13 +146,13 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
         tymova={aktivita.tymova}
         />;
     else if (aktivita.stavPrihlaseni === "prihlasenADorazil")
-      return <em>účast</em>;
+      return <em>{t("prihlasovatko.ucast")}</em>;
     else if (aktivita.stavPrihlaseni === "dorazilJakoNahradnik")
-      return <em>jako náhradník</em>;
+      return <em>{t("prihlasovatko.jako_nahradnik")}</em>;
     else if (aktivita.stavPrihlaseni === "prihlasenAleNedorazil")
-      return <em>neúčast</em>;
+      return <em>{t("prihlasovatko.neucast")}</em>;
     else if (aktivita.stavPrihlaseni === "pozdeZrusil")
-      return <em>pozdní odhlášení</em>;
+      return <em>{t("prihlasovatko.pozdni_odhlaseni")}</em>;
   }
 
   if (aktivita.vedu) return <></>;
@@ -166,9 +166,9 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
     // volno už je jen pro opačné pohlaví → pro tohoto účastníka je plno, smí proto sledovat
     // (oddělovač od textu „pouze … místa" zajišťuje border-left na .program ... form > a v CSS)
     if (volnoTyp === "f")
-      return <>pouze ženská místa{sledováníTlačítko()}</>;
+      return <>{t("prihlasovatko.jen_zenska_mista")}{sledováníTlačítko()}</>;
     if (volnoTyp === "m")
-      return <>pouze mužská místa{sledováníTlačítko()}</>;
+      return <>{t("prihlasovatko.jen_muzska_mista")}{sledováníTlačítko()}</>;
 
     return <>{sledováníTlačítko()}</>;
   }

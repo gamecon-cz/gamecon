@@ -1,0 +1,6 @@
+# Fixture for tests of Gamecon\Jazyk\Preklad, see Preklad::setAdresarKatalogu().
+
+test:
+    pozdrav: Hello
+    uvozovky: 'He said "hi" & left'
+    parametr: 'Welcome, {jmeno}'

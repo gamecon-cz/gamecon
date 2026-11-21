@@ -5,6 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
@@ -147,6 +148,14 @@ class ImportValuesSanitizer
         $tagIds         = $tagIdsResult->getSuccess();
         $stepsResults[] = $tagIdsResult;
         unset($tagIdsResult);
+
+        $languageResult = $this->getValidatedLanguage($inputValues, $originalActivity, $parentActivity);
+        if ($languageResult->isError()) {
+            return ImportStepResult::error($languageResult->getError());
+        }
+        $sanitizedValues[ActivitiesImportSqlColumn::JAZYK] = $languageResult->getSuccess();
+        $stepsResults[]                                    = $languageResult;
+        unset($languageResult);
 
         $longAnnotationResult = $this->getValidatedLongAnnotation($inputValues, $originalActivity, $parentActivity);
         if ($longAnnotationResult->isError()) {
@@ -422,6 +431,29 @@ class ImportValuesSanitizer
         }
 
         return ImportStepResult::success($equipmentValue);
+    }
+
+    private function getValidatedLanguage(
+        array     $activityValues,
+        ?Aktivita $originalActivity,
+        ?Aktivita $parentActivity,
+    ): ImportStepResult {
+        $languageValue = trim((string)($activityValues[ExportAktivitSloupce::JAZYK] ?? ''));
+        if ($languageValue === '') {
+            $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
+
+            return ImportStepResult::success(($sourceActivity?->jazyk() ?? JazykAktivity::vychozi())->value);
+        }
+        $language = JazykAktivity::zTextu($languageValue);
+        if ($language !== null) {
+            return ImportStepResult::success($language->value);
+        }
+
+        return ImportStepResult::error(sprintf(
+            "Neznámý jazyk aktivity '%s'. Očekáváme jeden z %s.",
+            $languageValue,
+            JazykAktivity::vsechnyNazvy(),
+        ));
     }
 
     private function getValidatedMinimalTeamCapacity(

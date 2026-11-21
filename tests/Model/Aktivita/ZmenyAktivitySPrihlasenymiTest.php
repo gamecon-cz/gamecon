@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Aktivita;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
 use Gamecon\Aktivita\ZmenyAktivitySPrihlasenymi;
 use Gamecon\Cas\DateTimeCz;
@@ -42,6 +43,9 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
         $konecDateTime = $konec ? new DateTimeCz($konec) : null;
         $aktivitaMock->method('konec')
             ->willReturn($konecDateTime);
+
+        $aktivitaMock->method('jazyk')
+            ->willReturn(JazykAktivity::CESKY);
 
         $aktivitaMock->method('rawDb')
             ->willReturn(array_merge([
@@ -299,5 +303,82 @@ class ZmenyAktivitySPrihlasenymiTest extends TestCase
 
         $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
         self::assertFalse($zmeny->maZmenySPrihlasenymi());
+    }
+
+    public function testSPrihlasenymiZmenenJazyk(): void
+    {
+        $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
+
+        $dataZFormulare = [
+            'den'        => '2026-07-16',
+            Sql::ZACATEK => '10',
+            Sql::KONEC   => '12',
+            Sql::CENA    => 100,
+            Sql::JAZYK   => JazykAktivity::ANGLICKY->value, // změna z češtiny
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertTrue($zmeny->maZmenySPrihlasenymi());
+        self::assertStringContainsString('jazyk', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
+    }
+
+    public function testSPrihlasenymiStejnyJazykNevaruje(): void
+    {
+        $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
+
+        $dataZFormulare = [
+            'den'        => '2026-07-16',
+            Sql::ZACATEK => '10',
+            Sql::KONEC   => '12',
+            Sql::CENA    => 100,
+            Sql::JAZYK   => JazykAktivity::CESKY->value,
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertFalse($zmeny->maZmenySPrihlasenymi());
+    }
+
+    public function testSPrihlasenymiNeznamyJazykNevarujeKdyzSeUloziStejny(): void
+    {
+        $aktivita = $this->vytvorAktivituSMocky(2, '2026-07-16', '2026-07-16 10:00:00', '2026-07-16 12:00:00', 100);
+
+        foreach (['', 'klingonsky'] as $jazyk) {
+            $dataZFormulare = [
+                'den'        => '2026-07-16',
+                Sql::ZACATEK => '10',
+                Sql::KONEC   => '12',
+                Sql::CENA    => 100,
+                Sql::JAZYK   => $jazyk, // uloží se jako výchozí čeština, tedy beze změny
+            ];
+
+            $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+            self::assertFalse($zmeny->maZmenySPrihlasenymi(), "Jazyk '{$jazyk}'");
+        }
+    }
+
+    public function testPrazdnaInstanceVarujeProZmenuJazykaKvuliPrihlasenymVRodine(): void
+    {
+        // Jazyk se jako cena propaguje na celou rodinu instancí, takže se dotkne i hráčů na sourozeneckých instancích.
+        $aktivita = $this->vytvorAktivituSMocky(
+            0,
+            '2026-07-16',
+            '2026-07-16 10:00:00',
+            '2026-07-16 12:00:00',
+            100,
+            [],
+            3,
+        );
+
+        $dataZFormulare = [
+            'den'        => '2026-07-16',
+            Sql::ZACATEK => '10',
+            Sql::KONEC   => '12',
+            Sql::CENA    => 100,
+            Sql::JAZYK   => JazykAktivity::NEZAVISLA->value,
+        ];
+
+        $zmeny = new ZmenyAktivitySPrihlasenymi($aktivita, $dataZFormulare);
+        self::assertTrue($zmeny->maZmenySPrihlasenymi());
+        self::assertStringContainsString('(3)', $zmeny->dejTextPotvrzeniZmenyUdajuSPrihlasenymi());
     }
 }

@@ -1,0 +1,8 @@
+# Fixture pro testy Gamecon\Jazyk\Preklad, viz Preklad::setAdresarKatalogu().
+
+test:
+    pozdrav: Ahoj
+    # v angličtině chybí: spadne na češtinu, i s českým množným číslem
+    jen_cesky: '{pocet, plural, one {# místo} few {# místa} other {# míst}}'
+    uvozovky: 'Řekl "ahoj" & odešel'
+    parametr: 'Vítej, {jmeno}'

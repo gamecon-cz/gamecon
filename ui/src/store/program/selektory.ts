@@ -2,7 +2,8 @@ import { useProgramStore } from ".";
 import { Pohlavi, ApiUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLStav } from "./logic/url";
 import { FiltrAktivit, filtrujAktivity, MapováníTagů, vytvořMapováníTagů } from "./logic/aktivity";
-import { PRÁZDNÉ_POLE, distinct } from "../../utils";
+import { PRÁZDNÉ_POLE } from "../../utils";
+import { názvyLinií, štítkyPodleKategorie } from "../../i18n/nazvy";
 import { useMemo } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../env";
 import { Aktivita } from "./slices/programDataSlice";
@@ -89,19 +90,23 @@ export const useAktivitaNáhled = (): Aktivita | undefined =>
   // , shallow
   );
 
+/** Štítky po kategoriích, `kategorie` je český klíč, `názevKategorie` k zobrazení */
 export const useTagyPodleKategorie = () => {
   const tagy = useTagy();
 
-  const tagyPodleKategorie = useMemo(() => {
-    const všechnyKategorie = distinct(tagy.map(x => x.nazevKategorie));
-
-    return všechnyKategorie.map(kategorie => ({
-      kategorie: kategorie,
-      tagy: tagy.filter(tag => tag.nazevKategorie === kategorie)
-    }));
-  }, [tagy]);
+  const tagyPodleKategorie = useMemo(() => štítkyPodleKategorie(tagy), [tagy]);
 
   return tagyPodleKategorie;
+};
+
+/** Český název linie (klíč) → název pro čtenáře v jazyce stránky, ze všech načtených ročníků */
+export const useNázvyLinií = (): Record<string, string> => {
+  const podleRočníku = useProgramStore((s) => s.data.podleRočníku);
+
+  return useMemo(
+    () => názvyLinií(Object.values(podleRočníku).flatMap((ročník) => Object.values(ročník.aktivityPodleId))),
+    [podleRočníku],
+  );
 };
 
 export const useTagyVybranéPodleKategorie = () => {
@@ -111,9 +116,9 @@ export const useTagyVybranéPodleKategorie = () => {
   const vybranéTagyPodleKategorie = useMemo(
     () =>
       tagyPodleKategorie
-        .map(({ kategorie, tagy }) => ({
-          kategorie,
-          tagy: tagy.filter(tag => vybranéTagyId.some(x => x === tag.id))
+        .map((skupina) => ({
+          ...skupina,
+          tagy: skupina.tagy.filter(tag => vybranéTagyId.some(x => x === tag.id))
         }))
         .filter(x => x.tagy.length)
     ,

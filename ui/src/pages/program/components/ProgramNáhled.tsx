@@ -5,7 +5,8 @@ import {
 } from "../../../store/program/selektory";
 import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
 import { Obsazenost } from "./tabulka/Obsazenost";
-import { tagyZId } from "../../../utils";
+import { jazykAktivity, názevJazykaAktivity, tagyZId } from "../../../utils";
+import { cenyNáhledu } from "../../../i18n/program";
 
 type ProgramNáhledProps = {};
 
@@ -16,6 +17,9 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
   const tagy = useTagy();
 
   const programNáhledTextRef = useRef<HTMLDivElement>(null);
+
+  const jazyk = aktivita ? jazykAktivity(aktivita) : undefined;
+  const ceny = aktivita ? cenyNáhledu(aktivita) : undefined;
 
   const obalClass =
     "programNahled_obalNahledu" +
@@ -47,6 +51,11 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               {aktivita?.vypraveci?.join?.(", ") ?? ""}
             </div>
             <div class="programNahled_stitky">
+              {jazyk && jazyk !== "cs" && (
+                <div class="programNahled_stitek programNahled_stitek-jazyk">
+                  {názevJazykaAktivity(jazyk)}
+                </div>
+              )}
               {tagyZId(aktivita?.stitkyId, tagy).map((x) => (
                 <div class="programNahled_stitek">{x}</div>
               ))}
@@ -77,15 +86,9 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               dangerouslySetInnerHTML={{ __html: aktivita?.casText ?? "" }}
             ></div>
             <div class="programNahled_cena">
-              {aktivita === undefined
-                ? " - "
-                : aktivita.slevaNasobic === 0 || aktivita.cenaZaklad === 0
-                  ? "zdarma"
-                  : aktivita.cenaZaklad * (aktivita.slevaNasobic ?? 1)}
+              {ceny === undefined ? " - " : ceny.cena}
               <p style={{ opacity: 0.3 }}>
-                {aktivita !== undefined && aktivita.slevaNasobic !== 1
-                  ? `*${aktivita.cenaZaklad === 0 ? "zdarma" : aktivita.cenaZaklad}`
-                  : undefined}
+                {ceny?.základní}
               </p>
             </div>
           </div>

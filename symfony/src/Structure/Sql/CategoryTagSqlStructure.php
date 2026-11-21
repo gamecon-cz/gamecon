@@ -25,6 +25,11 @@ class CategoryTagSqlStructure
     public const nazev = 'nazev';
 
     /**
+     * @see CategoryTag::$nazevEn
+     */
+    public const nazev_en = 'nazev_en';
+
+    /**
      * @see CategoryTag::$poradi
      */
     public const poradi = 'poradi';

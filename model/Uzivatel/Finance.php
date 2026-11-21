@@ -7,9 +7,12 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DatumVJazyce;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\QrPlatba;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\Pravo;
 use Gamecon\Shop\NazevPredmetuProBfgr;
@@ -165,11 +168,14 @@ SQL,
 
     /**
      * Celé koruny bez desetin, jinak se dvěma desetinnými místy (250 nebo 250,60). Čárku a pevnou mezeru mezi
-     * tisíci dodá ICU podle cs_CZ.
+     * tisíci dodá ICU podle cs_CZ, anglicky (`$jazyk`) tečku a čárku mezi tisíci (1,234.50).
+     *
+     * Bez `$jazyk` je zápis český v každém požadavku: částka jde i do e-mailů a adminu, které jsou česky
+     * i tehdy, když je spustí návštěvník anglického webu.
      *
      * @see admin/files/formatuj-castku-1.0.js
      */
-    public static function formatujCastku(float $castka): string
+    public static function formatujCastku(float $castka, ?Jazyk $jazyk = null): string
     {
         static $formattery = [];
 
@@ -178,13 +184,15 @@ SQL,
             $castka = 0.0; // z -0.0 by ICU udělalo „-0“
         }
         $jeCele = floor($castka) === $castka;
+        $locale = ($jazyk ?? Jazyk::CESTINA)->locale();
 
-        $formatter = $formattery[(int) $jeCele] ?? null;
+        $klic = $locale . '|' . (int) $jeCele;
+        $formatter = $formattery[$klic] ?? null;
         if ($formatter === null) {
-            $formatter = new NumberFormatter('cs_CZ', NumberFormatter::DECIMAL);
+            $formatter = new NumberFormatter($locale, NumberFormatter::DECIMAL);
             $formatter->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, $jeCele ? 0 : 2);
             $formatter->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, 2);
-            $formattery[(int) $jeCele] = $formatter;
+            $formattery[$klic] = $formatter;
         }
 
         $zapsanaCastka = $formatter->format($castka);
@@ -193,6 +201,35 @@ SQL,
         }
 
         return $zapsanaCastka;
+    }
+
+    /**
+     * Částka v korunách s měnou do HTML stránky v jejím jazyce: „1 234,50&thinsp;Kč“, anglicky „CZK&nbsp;1,234.50“
+     * (kód měny před částkou, jak ho používají anglické texty webu).
+     */
+    public static function formatujCastkuVKorunachHtml(float $castka, ?Jazyk $jazyk = null): string
+    {
+        $jazyk ??= AktualniJazyk::jazyk();
+        $zapsanaCastka = self::formatujCastku($castka, $jazyk);
+
+        return match ($jazyk) {
+            Jazyk::CESTINA    => $zapsanaCastka . '&thinsp;Kč',
+            Jazyk::ANGLICTINA => 'CZK&nbsp;' . $zapsanaCastka,
+        };
+    }
+
+    /**
+     * Částka v eurech s měnou do HTML stránky v jejím jazyce: „41,32&thinsp;€“, anglicky „€41.32“.
+     */
+    public static function formatujCastkuVEurechHtml(float $castka, ?Jazyk $jazyk = null): string
+    {
+        $jazyk ??= AktualniJazyk::jazyk();
+        $zapsanaCastka = self::formatujCastku($castka, $jazyk);
+
+        return match ($jazyk) {
+            Jazyk::CESTINA    => $zapsanaCastka . '&thinsp;€',
+            Jazyk::ANGLICTINA => '€' . $zapsanaCastka,
+        };
     }
 
     /**
@@ -475,6 +512,8 @@ SQL,
     }
 
     /**
+     * Popisy slev na aktivity v jazyce požadavku (prostý text), v adminu a reportech česky.
+     *
      * @return array<string>
      */
     public function slevyNaAktivity(): array
@@ -482,9 +521,9 @@ SQL,
         if ($this->slevyNaAktivity === null) {
             $this->slevyNaAktivity = [];
             if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA)) {
-                $this->slevyNaAktivity[] = 'sleva ' . self::PLNA_SLEVA_PROCENT . '%';
+                $this->slevyNaAktivity[] = t('finance.slevy.sleva_procent', ['procent' => (string) self::PLNA_SLEVA_PROCENT]);
             } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY)) {
-                $this->slevyNaAktivity[] = 'sleva ' . self::CASTECNA_SLEVA_PROCENT . '%';
+                $this->slevyNaAktivity[] = t('finance.slevy.sleva_procent', ['procent' => (string) self::CASTECNA_SLEVA_PROCENT]);
             }
         }
 
@@ -519,11 +558,13 @@ SQL,
 
     /**
      * Viz ceník
-     * @return array<string>
+     * @param Jazyk $jazyk jazyk textů, výchozí čeština viz {@see Cenik::getTextySlev()}
+     * @param list<int> $bezPrav práva, jejichž slevu nevypisovat, viz {@see Cenik::slevySpecialni()}
+     * @return array<string> prostý text
      */
-    public function slevyVse(): array
+    public function slevyVse(Jazyk $jazyk = Jazyk::CESTINA, array $bezPrav = []): array
     {
-        return $this->cenik()->slevySpecialni();
+        return $this->cenik()->slevySpecialni($jazyk, $bezPrav);
     }
 
     /**
@@ -538,10 +579,10 @@ SQL,
             // výpočet pravidel
             if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA)) {
                 $sleva                   += self::PLNA_SLEVA_PROCENT;
-                $this->slevyNaAktivity[] = 'aktivity zdarma';
+                $this->slevyNaAktivity[] = t('finance.slevy.aktivity_zdarma');
             } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY)) {
                 $sleva                   += self::CASTECNA_SLEVA_PROCENT;
-                $this->slevyNaAktivity[] = 'aktivity se slevou ' . $sleva . ' %';
+                $this->slevyNaAktivity[] = t('finance.slevy.aktivity_se_slevou', ['procent' => (string) $sleva]);
             }
             if ($sleva > self::MAX_SLEVA_AKTIVIT_PROCENT) {
                 // omezení výše slevy na maximální hodnotu
@@ -660,7 +701,6 @@ SQL;
 
         $result = dbFetchAll($sql);
 
-        $a = $this->u->koncovkaDlePohlavi();
         foreach ($result as $r) {
             if ($r['typ'] == TypAktivity::TECHNICKA) {
                 if ($this->u->maPravoNaBonusZaVedeniAktivitNeboUcastNaTechnicke()) {
@@ -682,12 +722,13 @@ SQL;
                 }
             }
 
+            // název položky je HTML (přehled financí ho vypisuje, jak je), poznámka z t() je prostý text
             $poznamka = '';
             if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL) {
-                $poznamka = " <i>(nedorazil$a)</i>";
+                $poznamka = ' <i>' . htmlspecialchars(t('finance.polozka.nedorazil', ['pohlavi' => $this->u->pohlavi()])) . '</i>';
             }
             if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::POZDE_ZRUSIL) {
-                $poznamka = " <i>(odhlášen$a pozdě)</i>";
+                $poznamka = ' <i>' . htmlspecialchars(t('finance.polozka.odhlasen_pozde', ['pohlavi' => $this->u->pohlavi()])) . '</i>';
             }
             if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::SLEDUJICI) {
                 continue;
@@ -724,26 +765,33 @@ SQL;
         $rocnik ??= $this->systemoveNastaveni->rocnik();
         if (!isset($this->sumyPlatebVRocich[$rocnik]) || $prepocti) {
             $uzivatelSystemId = \Uzivatel::SYSTEM;
+            // popis platby přijde z t() (v jazyce požadavku, v adminu česky), poznámka k platbě je data
             $result           = dbQuery(<<<SQL
                 SELECT
                     NULLIF(COALESCE(pripsano_na_ucet_banky, provedeno), '0000-00-00 00:00:00') as datum,
                     IF(provedl=$uzivatelSystemId,
-                      'Platba na účet',
-                      IFNULL(poznamka,'(bez poznámky)')
+                      $0,
+                      IFNULL(poznamka, $1)
                       ) as popis,
                     castka as cena
                 FROM platby
                 WHERE id_uzivatele = {$this->u->id()} AND rok = $rocnik
                 SQL,
+                [0 => t('finance.polozka.platba_na_ucet'), 1 => t('finance.polozka.bez_poznamky')],
             );
             $sumaPlateb       = 0.0;
+            $jazyk            = AktualniJazyk::jazyk();
             while ($row = mysqli_fetch_assoc($result)) {
                 $sumaPlateb += (float)$row['cena'];
                 // Nulové datum ('0000-00-00') je v DB možné (sql_mode nemá NO_ZERO_DATE) a PHP
                 // by ho přeložilo na uvěřitelné „30. 11.“ místo aby bylo vidět, že datum chybí.
-                $datum = $row['datum'] !== null
-                    ? DateTimeCz::createFromMysql($row['datum'])->formatDatumLetos() . ' '
-                    : '';
+                $datum = '';
+                if ($row['datum'] !== null) {
+                    $datumPlatby = DateTimeCz::createFromMysql($row['datum']);
+                    // česky „23. 7.“, anglicky „23 July“
+                    $datum = (DatumVJazyce::podleFormatuZeSablony($datumPlatby, 'FORMAT_DATUM_LETOS', $jazyk)
+                              ?? $datumPlatby->formatDatumLetos()) . ' ';
+                }
                 $nazev = $datum . $row['popis'];
                 $this->log(
                     nazev: $nazev,
@@ -998,7 +1046,7 @@ SQL;
         );
         if ($zustatek != 0.0) {
             $this->logPolozkaProBfgr(
-                nazev: 'Zůstatek z minulých let',
+                nazev: t('finance.prehled.zustatek_z_minulych_let'),
                 pocet: 1,
                 priceAfterDiscountDto: new PriceAfterDiscountDto(
                     finalPrice: -$zustatek,
@@ -1033,7 +1081,7 @@ SQL;
                 self::ORGSLEVA,
             );
             $this->logPolozkaProBfgr(
-                nazev: 'Bonus za aktivity',
+                nazev: t('finance.polozka.bonus_za_aktivity'),
                 pocet: 1,
                 priceAfterDiscountDto: new PriceAfterDiscountDto(
                     finalPrice: -$puvodniBonusZaVedeniAktivit,
@@ -1061,7 +1109,7 @@ SQL;
             // admin i webový přehled financí a zůstatek – jinak v něm chybí
             // řádek i vliv na zůstatek.
             $this->logPolozkaProBfgr(
-                nazev: 'Brigádnická odměna',
+                nazev: t('finance.polozka.brigadnicka_odmena'),
                 pocet: 1,
                 priceAfterDiscountDto: new PriceAfterDiscountDto(
                     finalPrice: -$this->brigadnickaOdmena(),
@@ -1107,7 +1155,7 @@ SQL;
         $aplikovanaSleva = $puvodniObecnaSleva - $nevyuzitaObecnaSleva;
         if ($aplikovanaSleva > 0) {
             $this->logPolozkaProBfgr(
-                nazev: 'Sleva',
+                nazev: t('finance.polozka.sleva'),
                 pocet: 1,
                 priceAfterDiscountDto: new PriceAfterDiscountDto(
                     finalPrice: -$aplikovanaSleva,

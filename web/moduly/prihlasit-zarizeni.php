@@ -20,14 +20,14 @@ header("Content-Security-Policy: frame-ancestors 'none'");
 
 $this->blackarrowStyl(true);
 $this->bezPaticky(true);
-$this->info()->nazev('Přihlásit zařízení');
+$this->info()->nazev(t('prihlasit_zarizeni.nazev'));
+$this->setObsahPrelozeny(true);
 
 $kod = (string) get(PrihlaseniQrKodem::PARAMETR_KODU);
 // Po „Přihlásit se jako“ by schválení přihlásilo účet někoho jiného.
 $prepnuto = PrepnutiNaUzivatele::zSession()->isPrepnuto();
 
 if ($u !== null && ! $prepnuto) {
-    $a = $u->koncovkaDlePohlavi();
     if (post('schvalit')) {
         $vysledek = PrihlaseniQrKodem::schval(
             $kod,
@@ -36,20 +36,17 @@ if ($u !== null && ! $prepnuto) {
             (int) post('cislo'),
         );
         match ($vysledek) {
-            PrihlaseniQrKodem::SCHVALENO    => oznameni('Hotovo, zařízení se teď přihlásí.'),
-            PrihlaseniQrKodem::SPATNE_CISLO => chyba(
-                "Vybral{$a} jsi jiné číslo, než ukazuje zařízení, a tak jsme přihlášení zamítli. Jestli kód nebyl"
-                . ' z tvé obrazovky, chtěl se k tvému účtu přihlásit někdo jiný.',
-            ),
-            default => chyba('Kód mezitím vypršel nebo už je vyřízený. Na zařízení vygeneruj nový.'),
+            PrihlaseniQrKodem::SCHVALENO    => oznameni(htmlspecialchars(t('prihlasit_zarizeni.schvaleno'))),
+            PrihlaseniQrKodem::SPATNE_CISLO => chyba(htmlspecialchars(t('prihlasit_zarizeni.spatne_cislo', ['pohlavi' => $u->pohlavi()]))),
+            default                         => chyba(htmlspecialchars(t('prihlasit_zarizeni.vyrizeno'))),
         };
     }
     if (post('zamitnout')) {
         if (PrihlaseniQrKodem::zamitni($kod, $u->id())) {
-            oznameni('Přihlášení jsi zamítl' . $a . '.');
+            oznameni(htmlspecialchars(t('prihlasit_zarizeni.zamitnuto', ['pohlavi' => $u->pohlavi()])));
         }
         // co se s kódem mezitím stalo (schválení, vypršení), ukáže stránka
-        chyba('Zamítnout už nešlo, kód mezitím vypršel nebo ho někdo vyřídil.');
+        chyba(htmlspecialchars(t('prihlasit_zarizeni.nelze_zamitnout')));
     }
 }
 
@@ -58,66 +55,69 @@ if ($u !== null && ! $prepnuto) {
 <div class="formular formular_stranka formular_stranka-login prihlaseniQr">
   <div class="bg"></div>
 
-  <div class="formular_strankaNadpis">Přihlásit zařízení</div>
+  <div class="formular_strankaNadpis"><?php echo htmlspecialchars(t('prihlasit_zarizeni.nazev')); ?></div>
 
-  <h1 class="prihlaseniQr_nadpis">Přihlásit jiné zařízení</h1>
+  <h1 class="prihlaseniQr_nadpis"><?php echo htmlspecialchars(t('prihlasit_zarizeni.nadpis')); ?></h1>
 
     <?php
     if ($u === null) { ?>
-      <p>Ke schválení musíš být na tomhle telefonu přihlášený na webu GameConu. Po přihlášení tě vrátíme sem.</p>
+      <p><?php echo htmlspecialchars(t('prihlasit_zarizeni.prihlas_se')); ?></p>
       <p>
         <a class="formular_primarni" href="<?php echo htmlspecialchars(PrihlaseniQrKodem::getUrlPrihlaseniPredSchvalenim($kod)); ?>">
-          Přihlásit se
+          <?php echo htmlspecialchars(t('prihlaseni.prihlasit_se')); ?>
         </a>
       </p>
-      <p>Kód platí jen <?php echo intdiv(PrihlaseniQrKodem::PLATNOST_SEKUND, 60); ?> minuty. Když mezitím vyprší,
-        vygeneruj na zařízení nový a naskenuj ho znovu.</p>
+      <p><?php echo htmlspecialchars(t('prihlasit_zarizeni.platnost', ['minut' => intdiv(PrihlaseniQrKodem::PLATNOST_SEKUND, 60)])); ?></p>
         <?php
     } elseif ($prepnuto) { ?>
-      <p>Jsi přepnutý na jiného uživatele. Přihlášení zařízení schval ze svého účtu.</p>
+      <p><?php echo htmlspecialchars(t('prihlasit_zarizeni.prepnuto')); ?></p>
         <?php
     } else {
         $zadost = PrihlaseniQrKodem::najdiProSchvaleni($kod);
         if ($zadost === null) { ?>
-          <p>Tenhle kód neznáme. Naskenuj ho prosím znovu.</p>
+          <p><?php echo htmlspecialchars(t('prihlasit_zarizeni.neznamy_kod')); ?></p>
             <?php
         } elseif ($zadost['stav'] === PrihlaseniQrKodem::STAV_SCHVALENO) { ?>
-          <p>Přihlášení je schválené, zařízení se během chvilky přihlásí.</p>
+          <p><?php echo htmlspecialchars(t('prihlasit_zarizeni.stav_schvaleno')); ?></p>
             <?php
         } elseif ($zadost['stav'] === PrihlaseniQrKodem::STAV_ZAMITNUTO) { ?>
-          <p>Přihlášení je zamítnuté. Kdo se chce přihlásit, musí vygenerovat nový kód.</p>
+          <p><?php echo htmlspecialchars(t('prihlasit_zarizeni.stav_zamitnuto')); ?></p>
             <?php
         } elseif ($zadost['stav'] === PrihlaseniQrKodem::STAV_VYPRSELO) { ?>
-          <p>Kód vypršel. Na zařízení vygeneruj nový a naskenuj ho znovu.</p>
+          <p><?php echo htmlspecialchars(t('prihlasit_zarizeni.stav_vyprselo')); ?></p>
             <?php
         } else {
             $predSekundami = $zadost['pred_sekundami'];
             ?>
           <p>
-            Přihlásíš <?php echo $zadost['do_adminu']
-                  ? 'do administrace GameConu'
-                  : 'na web GameConu'; ?> zařízení, které kód ukazuje, a to jako
-            <b><?php echo htmlspecialchars((string) $u->jmenoNick()); ?></b>.
+            <?php echo htmlSVlozkami(
+                t('prihlasit_zarizeni.prihlasis', [
+                    'kam'   => $zadost['do_adminu']
+                        ? 'admin'
+                        : 'web',
+                    'jmeno' => znackaVlozky('jmeno'),
+                ]),
+                ['jmeno' => '<b>' . htmlspecialchars((string) $u->jmenoNick()) . '</b>'],
+            ); ?>
           </p>
 
           <dl class="prihlaseniQr_zarizeni">
-            <dt>Prohlížeč</dt>
+            <dt><?php echo htmlspecialchars(t('prihlasit_zarizeni.prohlizec')); ?></dt>
             <dd><?php echo htmlspecialchars($zadost['prohlizec']); ?></dd>
-            <dt>IP adresa</dt>
+            <dt><?php echo htmlspecialchars(t('prihlasit_zarizeni.ip_adresa')); ?></dt>
             <dd><?php echo htmlspecialchars($zadost['ip']); ?></dd>
-            <dt>Kód vznikl</dt>
-            <dd><?php echo $predSekundami < 60
-                    ? "před {$predSekundami} s"
-                    : 'před ' . intdiv($predSekundami, 60) . ' min'; ?></dd>
+            <dt><?php echo htmlspecialchars(t('prihlasit_zarizeni.kod_vznikl')); ?></dt>
+            <dd><?php echo htmlspecialchars($predSekundami < 60
+                    ? t('prihlasit_zarizeni.pred_sekundami', ['sekund' => $predSekundami])
+                    : t('prihlasit_zarizeni.pred_minutami', ['minut' => intdiv($predSekundami, 60)])); ?></dd>
           </dl>
 
           <p class="prihlaseniQr_varovani">
-            Číslo vyber jen podle obrazovky zařízení, které máš před sebou. Když ti kód nebo číslo někdo poslal
-            nebo ti říká, které vybrat, chce se dostat k tvému účtu: přihlášení zamítni.
+            <?php echo htmlspecialchars(t('prihlasit_zarizeni.varovani')); ?>
           </p>
 
           <form method="post">
-            <p><b>Vyber číslo, které ukazuje zařízení:</b></p>
+            <p><b><?php echo htmlspecialchars(t('prihlasit_zarizeni.vyber_cislo')); ?></b></p>
             <div class="prihlaseniQr_cisla">
                 <?php
                 foreach ($zadost['cisla'] as $cislo) { ?>
@@ -129,9 +129,9 @@ if ($u !== null && ! $prepnuto) {
             <input type="hidden" name="schvalit" value="1">
           </form>
 
-          <p>Nemáš to zařízení před sebou, nebo ti kód či číslo někdo poslal? Přihlášení zamítni.</p>
+          <p><?php echo htmlspecialchars(t('prihlasit_zarizeni.nemas_zarizeni')); ?></p>
           <form method="post">
-            <button type="submit" name="zamitnout" value="1" class="formular_negativni">Zamítnout</button>
+            <button type="submit" name="zamitnout" value="1" class="formular_negativni"><?php echo htmlspecialchars(t('prihlasit_zarizeni.zamitnout')); ?></button>
           </form>
             <?php
         }

@@ -441,6 +441,41 @@
   overflow: hidden;
 }
 
+.program .program_jazyk {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 4px;
+  /* jako místnost (.program_lokace) */
+  font-size: smaller;
+  font-weight: bold;
+  line-height: 1.3;
+  vertical-align: middle;
+  background-color: #2C2C2C;
+  color: #FFFFFF;
+}
+
+/* česká aktivita na anglické stránce: je to skoro celý program, štítek ji jen tiše označí, nekřičí jako EN */
+.program .program_jazyk.program_jazyk-cesky {
+  padding: 0;
+  font-weight: normal;
+  background-color: transparent;
+  color: inherit;
+  opacity: 0.6;
+}
+
+/* plný název jazyka jen pro čtečky, vidět je zkratka */
+.program .program_jazyk_nazev {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .program .programNahled_odkaz~form~b {
   padding-left: 8px;
 }

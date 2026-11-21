@@ -71,7 +71,7 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
 
         dbQuery("INSERT INTO medailonky SET id_uzivatele = 100, o_sobe = 'Osobní info', drd = 'DRD info'");
 
-        dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', poradi = 1");
+        dbQuery("INSERT INTO stranky SET url_stranky = 'test', obsah = 'Kontakt: jan.novak@example.com', obsah_en = 'Contact: jan.novak@example.com', poradi = 1");
 
         // a speaker of the lecture archive under the civil name of user 100, and a group without a user
         dbQuery(<<<'SQL'
@@ -266,13 +266,14 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
 
         // emails in stranky should be anonymized
         $strankyResult = mysqli_query($connection, sprintf(
-            "SELECT obsah FROM `%s`.stranky WHERE url_stranky = 'test'",
+            "SELECT obsah, obsah_en FROM `%s`.stranky WHERE url_stranky = 'test'",
             self::$anonymniDatabaze,
         ));
         $stranka = mysqli_fetch_assoc($strankyResult);
         self::assertNotNull($stranka, 'Stránka by měla existovat');
         self::assertStringNotContainsString('jan.novak@example.com', $stranka['obsah'], 'Email by měl být anonymizován');
         self::assertStringContainsString('foo@example.com', $stranka['obsah'], 'Email by měl být nahrazen za foo@example.com');
+        self::assertSame('Contact: foo@example.com', $stranka['obsah_en'], 'Email v anglickém obsahu by měl být anonymizován taky');
 
         // medailonky should be anonymized
         $medailonkyResult = mysqli_query($connection, sprintf(

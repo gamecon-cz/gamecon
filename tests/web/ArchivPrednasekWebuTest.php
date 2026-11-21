@@ -77,6 +77,40 @@ SQL,
     /**
      * @test
      *
+     * The interface of the archive is in the language of the page, the lectures stay as they were written.
+     */
+    public function podAnglictinouMaArchivAnglickeRozhrani(): void
+    {
+        $odpoved = $this->stahniVerejnouStranku('web/en/prednasky/archiv');
+
+        self::assertSame(200, $odpoved['status']);
+        foreach ([
+            '<h1>Talks archive</h1>',
+            'Talks from past years of GameCon, some of them with a recording.',
+            '>This year’s talks</a>',
+            'Talks in the archive: 2',
+            '>Given by:</span>',
+            'title="Talks given by Lektor &lt;b&gt;webu&lt;/b&gt;"',
+            'aria-label="Play recording: Viditelná přednáška v archivu"',
+            '>Watch on YouTube</a>',
+            '>no recording</span>',
+            '>Viditelná přednáška v archivu</h3>',
+            // the filter (Preact) takes the language of the page from here
+            'window.GAMECON_KONSTANTY = {"JAZYK":"en"};',
+        ] as $text) {
+            self::assertStringContainsString($text, $odpoved['telo']);
+        }
+        foreach (['Archiv přednášek', 'Přednášek v archivu', 'Přednáší:', 'Přehrát', 'bez záznamu'] as $cesky) {
+            self::assertStringNotContainsString($cesky, $odpoved['telo']);
+        }
+
+        $filtr = $this->stahniVerejnouStranku('web/en/prednasky/archiv?prednasejici=990501');
+        self::assertStringContainsString('Talks given by Lektor &lt;b&gt;webu&lt;/b&gt;: 1. <a href="prednasky/archiv">All talks</a>', $filtr['telo']);
+    }
+
+    /**
+     * @test
+     *
      * @dataProvider provideAdresyMimoArchiv
      */
     public function jindeArchivNeni(string $cesta): void

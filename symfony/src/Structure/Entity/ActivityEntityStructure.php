@@ -105,6 +105,11 @@ class ActivityEntityStructure
     public const shortDescription = 'shortDescription';
 
     /**
+     * @see Activity::$jazyk
+     */
+    public const jazyk = 'jazyk';
+
+    /**
      * @see Activity::$vybaveni
      */
     public const vybaveni = 'vybaveni';

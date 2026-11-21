@@ -5,10 +5,11 @@ import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
 import { useAktivita, useUrlStav, useÚčastníkPohlaví } from "../../../../store/program/selektory";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
-import { volnoTypZObsazenost } from "../../../../utils";
+import { jazykAktivity, krátkýŠtítekJazyka, názevJazykaAktivity, volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
+import { názevLinie } from "../../../../i18n/nazvy";
 
 export const tabulkaBuňkaAktivitaTřídy = (
   aktivita: Aktivita,
@@ -84,6 +85,9 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   // jinak (linie/den) padneme zpět na hlavní lokaci aktivity.
   const zobrazenáLokace = lokaceNazev ?? aktivita.mistnosti?.[0]?.nazev;
 
+  const jazyk = jazykAktivity(aktivita);
+  const štítekJazyka = krátkýŠtítekJazyka(jazyk);
+
   const hodinOd = new Date(aktivita.cas.od).getHours();
   const hodinDo = new Date(aktivita.cas.do).getHours();
   const rozsah = (hodinDo - hodinOd + 24) % 24;
@@ -103,6 +107,13 @@ export const ProgramTabulkaBuňka: FunctionComponent<
           >
             {aktivita.nazev}
           </a>
+          {štítekJazyka && (
+            // title čtečka u obyčejného spanu nepřečte, proto plný název ve skrytém textu
+            <span class={"program_jazyk" + (jazyk === "cs" ? " program_jazyk-cesky" : "")} title={názevJazykaAktivity(jazyk)}>
+              <span aria-hidden="true">{štítekJazyka}</span>
+              <span class="program_jazyk_nazev">{názevJazykaAktivity(jazyk)}</span>
+            </span>
+          )}
           <Obsazenost
             obsazenost={aktivita.obsazenost}
             prihlasovatelna={aktivita.prihlasovatelna ?? false}
@@ -113,7 +124,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             <div class="program_lokace">{zobrazenáLokace}</div>
           )}
           {zobrazLinii ? (
-            <span class="program_osobniTyp">{aktivita.linie}</span>
+            <span class="program_osobniTyp">{názevLinie(aktivita)}</span>
           ) : undefined}
         </div>
       </td>

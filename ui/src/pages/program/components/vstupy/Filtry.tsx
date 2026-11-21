@@ -3,10 +3,12 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import Select from "react-select";
 import { GAMECON_KONSTANTY, ROKY } from "../../../../env";
 import {
+  useNázvyLinií,
   useUrlStav,
   useUrlStavMožnosti,
 } from "../../../../store/program/selektory";
 import {
+  nastavFiltrJazyků,
   nastavFiltrLinií,
   nastavFiltrPřihlašovatelné,
   nastavFiltrRočník,
@@ -21,7 +23,8 @@ import {
 import "./ReactSelect.less";
 import "./Filtry.less";
 import { FiltrTagů } from "./FiltrŠtítků";
-import { asValueLabel } from "../../../../utils";
+import { asValueLabel, JAZYKY_FILTRU, JazykFiltru, názevJazykaFiltru } from "../../../../utils";
+import { t } from "../../../../i18n";
 import { useProgramStore } from "../../../../store/program";
 import { přepniKompaktní, přepniZvětšeno } from "../../../../store/program/slices/všeobecnéSlice";
 
@@ -33,13 +36,20 @@ const ROKY_OPTIONS = ROKY.concat(GAMECON_KONSTANTY.ROCNIK)
   .map((x) => ({ value: x, label: x }))
   .reverse();
 
+const jazykOption = (jazyk: JazykFiltru) => ({ value: jazyk, label: názevJazykaFiltru(jazyk) });
+
+const JAZYKY_OPTIONS = JAZYKY_FILTRU.map(jazykOption);
+
 
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, zobrazPrázdné, autoRefresh } = useUrlStav();
+  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrJazyk, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, zobrazPrázdné, autoRefresh } = useUrlStav();
 
   const urlStavMožnosti = useUrlStavMožnosti();
+  const názvyLinií = useNázvyLinií();
+  // hodnota (i v URL) je český název linie, popisek v jazyce stránky
+  const linieOption = (linie: string) => ({ value: linie, label: názvyLinií[linie] ?? linie });
 
   const { zvětšeno, kompaktní } = useProgramStore(s => s.všeobecné);
   const [odkazZkopírován, setOdkazZkopírován] = useState(0);
@@ -77,13 +87,25 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
           </div>
           <div style={{ flex: "1", maxWidth: "400px" }}>
             <Select
-              placeholder="Linie"
-              options={urlStavMožnosti.linie.map(asValueLabel)}
+              placeholder={t("program.filtr.linie")}
+              options={urlStavMožnosti.linie.map(linieOption)}
               closeMenuOnSelect={false}
               isMulti
-              value={filtrLinie?.map(asValueLabel) ?? []}
+              value={filtrLinie?.map(linieOption) ?? []}
               onChange={(e) => {
                 nastavFiltrLinií(e.map((x) => x.value));
+              }}
+            />
+          </div>
+          <div style={{ flex: "1", maxWidth: "260px" }}>
+            <Select
+              placeholder={t("program.filtr.jazyk")}
+              options={JAZYKY_OPTIONS}
+              closeMenuOnSelect={false}
+              isMulti
+              value={filtrJazyk?.map(jazykOption) ?? []}
+              onChange={(e) => {
+                nastavFiltrJazyků(e.map((x) => x.value));
               }}
             />
           </div>
@@ -91,7 +113,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             <FiltrTagů />
           </div>
           <div style={{ minWidth: "300px" }} class="formular_polozka">
-            <input style={{ marginTop: 0, height: "38px" }} placeholder="Hledej v textu"
+            <input style={{ marginTop: 0, height: "38px" }} placeholder={t("program.filtr.hledat")}
               value={filtrText}
               onChange={(e)=>{
                 nastavFiltrTextu(e.currentTarget.value);
@@ -114,12 +136,12 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
             <button class={
               "program_filtry_tlacitko program_filtry_tlacitko_zvetsit" +
               (zvětšeno ? " aktivni" : "")
-            } onClick={přepniZvětšeno}>zvětšit</button>
+            } onClick={přepniZvětšeno}>{t("program.tlacitko.zvetsit")}</button>
             <button class={
               "program_filtry_tlacitko"
               + (odkazZkopírován ? " aktivni" : "")
             } onClick={sdílejKlik}
-            >{odkazZkopírován ? "zkopírováno" : "sdílej"}</button>
+            >{t(odkazZkopírován ? "program.tlacitko.zkopirovano" : "program.tlacitko.sdilej")}</button>
             <button
               class={
                 "program_filtry_tlacitko" +
@@ -129,12 +151,12 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
                 nastavFiltrPřihlašovatelné(!filtrPřihlašovatelné);
               }}
             >
-              Přihlašovatelné
+              {t("program.tlacitko.prihlasovatelne")}
             </button>
             <button class={
               "program_filtry_tlacitko"
               + (kompaktní ? " aktivni" : "")
-            } onClick={přepniKompaktní}>Kompaktní</button>
+            } onClick={přepniKompaktní}>{t("program.tlacitko.kompaktni")}</button>
           </div>
         </div>
       </div>

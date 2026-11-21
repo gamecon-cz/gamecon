@@ -1,21 +1,67 @@
 <?php
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 
 /**
+ * Stránka z CMS. Obsah je česky (`obsah`) a volitelně anglicky (`obsah_en`): anglický web ukáže anglický, když ho stránka
+ * má, jinak český (@see getJazykObsahu()).
+ *
  * For Doctrine entity equivalent @see \App\Entity\Page
  */
 class Stranka extends DbObject
 {
+    /**
+     * Stará ručně psaná anglická úvodní stránka z doby, kdy titulka nebyla přeložená. Její adresa přesměruje na /en/
+     * (web/index.php) a do sitemapy nepatří.
+     */
+    public const URL_ANGLICKE_TITULKY = 'en';
 
     protected static $tabulka = 'stranky';
     protected static $pk      = 'id_stranky';
-    private ?string  $html;
+    /** @var array<string, string|null> HTML podle jazyka obsahu */
+    private array $html = [];
 
-    public function html()
+    /**
+     * Stránka má anglický obsah. Prázdný (NULL i jen mezery, což ukládá formulář adminu) znamená, že je jen česky.
+     */
+    public function isPrelozena(): bool
     {
-        if (!isset($this->html)) {
-            $html       = markdown($this->r['obsah']);
+        return trim((string) ($this->r['obsah_en'] ?? '')) !== '';
+    }
+
+    /**
+     * Jazyk, ve kterém se obsah ukáže na stránce webu v jazyce $jazykStranky (výchozí je jazyk požadavku):
+     * ten jazyk, když v něm stránka obsah má, jinak čeština.
+     */
+    public function getJazykObsahu(?Jazyk $jazykStranky = null): Jazyk
+    {
+        return ($jazykStranky ?? AktualniJazyk::jazyk()) === Jazyk::ANGLICTINA && $this->isPrelozena()
+            ? Jazyk::ANGLICTINA
+            : Jazyk::vychozi();
+    }
+
+    /**
+     * Markdown obsahu v jazyce stránky webu, bez překladu český. @see getJazykObsahu()
+     */
+    public function getObsah(?Jazyk $jazykStranky = null): string
+    {
+        return match ($this->getJazykObsahu($jazykStranky)) {
+            Jazyk::CESTINA    => (string) $this->r['obsah'],
+            Jazyk::ANGLICTINA => (string) $this->r['obsah_en'],
+        };
+    }
+
+    /**
+     * HTML obsahu v jazyce stránky webu (výchozí je jazyk požadavku), bez překladu české. Typografie a data
+     * v zástupných značkách (`%KLIC|datum:FORMAT_…%`) jsou podle jazyka obsahu, ne stránky.
+     */
+    public function html(?Jazyk $jazykStranky = null): ?string
+    {
+        $jazykObsahu = $this->getJazykObsahu($jazykStranky);
+        if (!array_key_exists($jazykObsahu->value, $this->html)) {
+            $html       = markdown($this->getObsah($jazykObsahu), $jazykObsahu);
             $html       = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
                 $w = Widget::zNazvu($m[2]);
                 if ($w) {
@@ -24,27 +70,33 @@ class Stranka extends DbObject
                 return 'widget neexistuje';
             }, $html);
             // naříklad %PRVNI_VLNA_KDY|datum:FORMAT_ZACATEK_UDALOSTI%
-            $html       = nahradPlaceholderyZaNastaveni($html);
-            $this->html = $html;
+            $html       = nahradPlaceholderyZaNastaveni($html, $jazykObsahu);
+            $this->html[$jazykObsahu->value] = $html;
         }
-        return $this->html;
+        return $this->html[$jazykObsahu->value];
     }
 
-    public function nadpis(): string
+    /**
+     * Nadpis z obsahu v jazyce stránky webu (výchozí je jazyk požadavku), bez překladu z českého.
+     */
+    public function nadpis(?Jazyk $jazykStranky = null): string
     {
         $html = preg_quote_wildcard('<h1>~</h1>');
         $md   = '^#\s*([^#].+)$';
-        if (!preg_match("@$html|$md@m", $this->r['obsah'], $matches)) {
+        if (!preg_match("@$html|$md@m", $this->getObsah($jazykStranky), $matches)) {
             return '';
         }
         return $matches[1] ?: $matches[2];
     }
 
-    public function obrazek(): string
+    /**
+     * První obrázek z obsahu v jazyce stránky webu (výchozí je jazyk požadavku), bez překladu z českého.
+     */
+    public function obrazek(?Jazyk $jazykStranky = null): string
     {
         $html = preg_quote_wildcard('<img src="~"~>');
         $md   = preg_quote_wildcard('![~](~)');
-        if (!preg_match("@$html|$md@", $this->r['obsah'], $m)) {
+        if (!preg_match("@$html|$md@", $this->getObsah($jazykStranky), $m)) {
             return '';
         }
         return $m[1] ?: $m[4];

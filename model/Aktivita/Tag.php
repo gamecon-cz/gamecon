@@ -3,6 +3,9 @@
 namespace Gamecon\Aktivita;
 
 use DbObject;
+use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\KategorieTagu;
 
 /**
@@ -44,6 +47,22 @@ class Tag extends DbObject
     public function nazev(): string
     {
         return $this->r['nazev'];
+    }
+
+    /**
+     * Název pro čtenáře v jazyce stránky (nebo v předaném), bez anglického názvu český.
+     * {@see nazev()} zůstává český, je to klíč (import a export aktivit páruje štítky podle něj).
+     */
+    public function getNazevVJazyce(?Jazyk $jazyk = null): string
+    {
+        if (($jazyk ?? AktualniJazyk::jazyk()) === Jazyk::ANGLICTINA) {
+            $anglicky = trim((string) ($this->r[SjednoceneTagySqlStruktura::NAZEV_EN] ?? ''));
+            if ($anglicky !== '') {
+                return $anglicky;
+            }
+        }
+
+        return $this->nazev();
     }
 
     public function poznamka(): string

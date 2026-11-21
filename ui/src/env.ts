@@ -7,6 +7,7 @@ import { ApiLokace, ProgramManifest } from "./api/program";
 import { ApiFiltrAktivit, ApiRocnikyAktivit } from "./api/filtrAktivit";
 import { ApiArchivPrednasek } from "./api/archivPrednasek";
 import { range } from "./utils";
+import type { Jazyk } from "./i18n/jazyk";
 
 
 type GameconKonstanty = {
@@ -27,6 +28,8 @@ define('FORCE_REDUX_DEVTOOLS', true);
    * například /web/api/
    */
   BASE_PATH_API: string,
+  /** Jazyk stránky (Gamecon\Jazyk\Jazyk), podle něj vybírá texty t() z i18n */
+  JAZYK: Jazyk,
   ROCNIK: number,
   PROGRAM_OD: number,
   PROGRAM_DO: number,
@@ -110,6 +113,7 @@ const GAMECON_KONSTANTY_DEFAULT: GameconKonstanty = {
   FORCE_REDUX_DEVTOOLS: false,
   BASE_PATH_PAGE: "http://localhost:3000/",
   BASE_PATH_API: "/api/",
+  JAZYK: "cs",
   ROCNIK: 2022,
   PROGRAM_OD: 1658268000000,
   PROGRAM_DO: 1658689200000,

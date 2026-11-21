@@ -6,6 +6,7 @@ use Gamecon\ArchivPrednasek\PrednaskaNaWebu;
 use Gamecon\ArchivPrednasek\PrednaskyNaWebu;
 use Gamecon\ArchivPrednasek\StitekNaWebu;
 use Gamecon\ArchivPrednasek\YoutubeOdkaz;
+use Gamecon\Jazyk\AktualniJazyk;
 
 /**
  * Archive of lectures of past years (/prednasky/archiv), docs/generated/archiv-prednasek.md.
@@ -24,8 +25,8 @@ if (! $liniePrednasek instanceof TypAktivity) {
 
 $this->blackarrowStyl(true);
 $this->info()
-    ->nazev('Archiv přednášek')
-    ->popis('Přednášky z minulých ročníků GameConu, u některých i se záznamem.');
+    ->nazev(t('aktivity.archiv_prednasek'))
+    ->popis(t('linie.archiv_prednasek.popis'));
 
 $prednasky = (new PrednaskyNaWebu($systemoveNastaveni->rocnik(), $liniePrednasek))->getPrednasky();
 $e = static fn (string $text): string => htmlspecialchars($text, ENT_QUOTES);
@@ -47,18 +48,19 @@ $vybraniPrednasejici = array_values(array_intersect(
 $jeVybrana = static fn (PrednaskaNaWebu $prednaska): bool => $vybraniPrednasejici === []
     || array_intersect(array_map(static fn ($prednasejici) => $prednasejici->id, $prednaska->prednasejici), $vybraniPrednasejici) !== [];
 
+// texts of the interface are plain text from t(), escaped into HTML; numbers go in as strings, ICU would group digits
 $t->assign([
     'urlLinie'     => $liniePrednasek->url(),
-    'pocet'        => count($prednasky),
     'cestaArchivu' => $e($cestaArchivu),
 ]);
 if ($vybraniPrednasejici !== []) {
-    $t->assign([
-        'vybraniPrednasejici' => $e(implode(', ', array_map(static fn (int $id) => $jmenaPrednasejicich[$id], $vybraniPrednasejici))),
-        'pocetVybranych'      => count(array_filter($prednasky, $jeVybrana)),
-    ]);
+    $t->assign('vybraniPrednasejici', $e(t('linie.archiv_prednasek.vybrani', [
+        'prednasejici' => implode(', ', array_map(static fn (int $id) => $jmenaPrednasejicich[$id], $vybraniPrednasejici)),
+        'pocet'        => (string) count(array_filter($prednasky, $jeVybrana)),
+    ])));
     $t->parse('archivprednasek.vybraniPrednasejici');
 } else {
+    $t->assign('pocet', $e(t('linie.archiv_prednasek.pocet', ['pocet' => (string) count($prednasky)])));
     $t->parse('archivprednasek.pocet');
 }
 
@@ -86,7 +88,10 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
         ]);
 
         if ($prednaska->urlRoku !== null) {
-            $t->assign('urlRoku', $e($prednaska->urlRoku));
+            $t->assign([
+                'urlRoku'     => $e($prednaska->urlRoku),
+                'titulekRoku' => $e(t('linie.archiv_prednasek.prednasky_rocniku', ['rok' => (string) $prednaska->rok])),
+            ]);
             $t->parse('archivprednasek.rok.prednaska.rokOdkaz');
         } else {
             $t->parse('archivprednasek.rok.prednaska.rokText');
@@ -100,6 +105,8 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
             $t->assign([
                 'idPrednasejiciho'    => $prednasejici->id,
                 'jmenoPrednasejiciho' => $e($prednasejici->jmeno),
+                'titulekPrednasejiciho' => $e(t('linie.archiv_prednasek.prednasky_prednasejiciho', ['jmeno' => $prednasejici->jmeno])),
+                'titulekMedailonku'     => $e(t('linie.archiv_prednasek.medailonek', ['jmeno' => $prednasejici->jmeno])),
                 // without JavaScript the name is a link to the archive filtered here, with it a click adds him to the filter
                 'urlFiltruPrednasejiciho' => $e($cestaArchivu . '?prednasejici=' . $prednasejici->id),
             ]);
@@ -130,9 +137,9 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
         if ($prednaska->dlouhaAnotace !== null) {
             $t->assign([
                 'dlouhaAnotace'       => $prednaska->dlouhaAnotace,
-                'popisekDlouheAnotace' => $prednaska->kratkaAnotace !== null
-                    ? 'Celá anotace'
-                    : 'Anotace',
+                'popisekDlouheAnotace' => $e($prednaska->kratkaAnotace !== null
+                    ? t('linie.archiv_prednasek.cela_anotace')
+                    : t('linie.archiv_prednasek.anotace')),
             ]);
             $t->parse('archivprednasek.rok.prednaska.dlouhaAnotace');
         }
@@ -142,6 +149,7 @@ foreach ($podleRoku as $rok => $prednaskyRoku) {
                 'urlVidea'      => $e(YoutubeOdkaz::getUrlVidea($prednaska->youtubeId)),
                 'urlNahledu'    => $e(YoutubeOdkaz::getUrlNahledu($prednaska->youtubeId)),
                 'urlPrehravace' => $e(YoutubeOdkaz::getUrlPrehravace($prednaska->youtubeId)),
+                'prehratZaznam' => $e(t('linie.archiv_prednasek.prehrat_zaznam', ['nazev' => $prednaska->nazev])),
             ]);
             $t->parse('archivprednasek.rok.prednaska.video');
         }
@@ -184,7 +192,14 @@ $filtrArchivu = [
         $prednasejiciProFiltr,
     ),
     'stitky'       => array_map(
-        static fn (StitekNaWebu $stitek) => ['klic' => $stitek->klic, 'nazev' => $stitek->nazev, 'skupina' => $stitek->skupina],
+        static fn (StitekNaWebu $stitek) => [
+            'klic'    => $stitek->klic,
+            'nazev'   => $stitek->nazev,
+            // the filter shows the group as a heading; a category of the program is already in the language of the page
+            'skupina' => $stitek->skupina === StitekNaWebu::SKUPINA_KLICOVA_SLOVA
+                ? t('linie.archiv_prednasek.klicova_slova')
+                : $stitek->skupina,
+        ],
         array_values([...$klicovaSlova, ...$stitkyProgramu]),
     ),
 ];
@@ -193,6 +208,8 @@ $filtrArchivu = [
 ?>
 <link rel="stylesheet" href="<?= zabalWebSoubor('soubory/ui/style.css') ?>">
 <script>
+    // the language of the page for the texts of the filter (ui/src/i18n), the other constants keep their defaults
+    window.GAMECON_KONSTANTY = <?= json_encode(['JAZYK' => AktualniJazyk::jazyk()->value]) ?>;
     window.gameconPřednačtení = <?= json_encode(
         ['archivPrednasek' => $filtrArchivu],
         // HEX_TAG, ať názvy nemůžou ukončit <script>

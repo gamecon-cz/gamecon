@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Gamecon\Web;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Pravo;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Gamecon\XTemplate\XTemplate;
@@ -23,8 +26,16 @@ class MenuWebu
     {
         $sablona = new XTemplate(WWW . '/sablony/blackarrow/menu.xtpl');
 
-        $typy = \serazenePodle(TypAktivity::zViditelnych(), 'poradi');
-        $sablona->parseEach($typy, 'typ', 'menu.typAktivit');
+        foreach (\serazenePodle(TypAktivity::zViditelnych(), 'poradi') as $typ) {
+            $sablona->assign([
+                'urlTypu'   => $typ->url(),
+                // prostý text v jazyce stránky, do HTML se escapuje
+                'nazevTypu' => htmlspecialchars($typ->getNazevVJazyce()),
+            ]);
+            $sablona->parse('menu.typAktivit');
+        }
+
+        self::parsePrepinacJazyka($sablona);
 
         if ($uzivatel) {
             $jmenoDoMenu = match ($uzivatel->zpusobZobrazeniNaWebu()) {
@@ -43,7 +54,12 @@ class MenuWebu
                 'uJmenoMenu' => $jmenoDoMenu,
             ]);
             $sablona->assign([
-                'gcPrihlaska' => $uzivatel->gcPrihlasen() ? 'Upravit přihlášku' : 'Přihláška na GC',
+                // t() vrací prostý text, do HTML se escapuje
+                'gcPrihlaska' => htmlspecialchars(
+                    $uzivatel->gcPrihlasen()
+                        ? \t('menu.upravit_prihlasku')
+                        : \t('menu.prihlaska_na_gc'),
+                ),
             ]);
             if ($uzivatel->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
                 $sablona->assign([
@@ -61,12 +77,37 @@ class MenuWebu
         } else {
             $sablona->parse('menu.neprihlasen');
             $sablona->assign([
-                'gcPrihlaska' => 'Přihláška na GC',
+                'gcPrihlaska' => htmlspecialchars(\t('menu.prihlaska_na_gc')),
             ]);
         }
 
         $sablona->parse('menu');
 
         return $sablona->text('menu');
+    }
+
+    /**
+     * Odkaz na tutéž stránku v ostatních jazycích. Popisek je v cílovém jazyce,
+     * aby ho našel i ten, kdo jazyk aktuální stránky neumí.
+     */
+    private static function parsePrepinacJazyka(XTemplate $sablona): void
+    {
+        $jazykPozadavku = JazykPozadavku::aktualni();
+        $aktualniJazyk = AktualniJazyk::jazyk();
+        foreach (Jazyk::cases() as $jazyk) {
+            if ($jazyk === $aktualniJazyk) {
+                continue;
+            }
+            $sablona->assign([
+                'jazykUrl'     => htmlspecialchars(
+                    $jazykPozadavku?->urlPrepnuti($jazyk)
+                    ?? \urlWebu('', $jazyk),
+                ),
+                'jazykTitulek' => htmlspecialchars(\t('jazyk.prepnout', [], $jazyk)),
+                'jazykKod'     => $jazyk->value,
+                'jazykNazev'   => $jazyk->vlastniNazev(),
+            ]);
+            $sablona->parse('menu.jazyk');
+        }
     }
 }

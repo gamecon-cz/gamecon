@@ -30,19 +30,19 @@ class Registrace
                 return;
             }
             if (! \Gamecon\Antibot\Altcha::zGlobals()->overReseni((string) post('altcha'))) {
-                throw Chyby::jedna('Ověř prosím, že nejsi robot.');
+                throw Chyby::jedna(htmlspecialchars(\t('ucet.nejsi_robot')));
             }
             if ($this->u) {
-                throw Chyby::jedna('Jiný uživatel v tomto prohlížeči už je přihlášený.');
+                throw Chyby::jedna(htmlspecialchars(\t('registrace.chyba.jiny_uzivatel_prihlasen')));
             }
 
             $id = Uzivatel::registruj((array) post(self::FORM_DATA_KEY));
             $this->u = Uzivatel::prihlasId($id);
 
             if (post('aPrihlasit')) {
-                oznameniPresmeruj(hlaska('regOkNyniPrihlaska'), 'prihlaska');
+                oznameniPresmeruj(htmlspecialchars(\t('registrace.ok_a_prihlaska')), 'prihlaska');
             } else {
-                oznameni(hlaska('regOk'));
+                oznameni(htmlspecialchars(\t('registrace.ok')));
             }
         } catch (Chyby $chyby) {
             $this->zpracujChyby($chyby);
@@ -65,7 +65,7 @@ class Registrace
             return;
         }
         if ($this->ulozZmeny()) {
-            oznameni(hlaska('upravaUzivatele'));
+            oznameni(htmlspecialchars(\t('registrace.uprava_ok')));
         }
     }
 
@@ -75,15 +75,14 @@ class Registrace
             return;
         }
         $this->u->odhlasNaOstatnichZarizenich();
-        $a = $this->u->koncovkaDlePohlavi();
-        oznameni("Na ostatních zařízeních jsi odhlášen{$a}.");
+        oznameni(htmlspecialchars(\t('registrace.zarizeni.odhlaseno', ['pohlavi' => $this->u->pohlavi()])));
     }
 
     public function ulozZmeny(): bool
     {
         try {
             if (! $this->u) {
-                throw Chyby::jedna('Došlo k odhlášení, přihlaš se prosím znovu.');
+                throw Chyby::jedna(htmlspecialchars(\t('registrace.chyba.odhlaseno')));
             }
 
             $formData = post(self::FORM_DATA_KEY);
@@ -108,6 +107,9 @@ class Registrace
 
     /**
      * Pomocná funkce pro inputy
+     *
+     * @param string $nazev prostý text
+     * @param string $placeholder prostý text
      */
     private function input(
         string $nazev,
@@ -118,7 +120,8 @@ class Registrace
         string $predrazeneHtml = '',
         string $placeholder = ' ', // schválně mezera
     ): string {
-        $predvyplneno = $this->formData()[$klic] ?? '';
+        // údaje z DB i z odeslaného formuláře, přezdívka s uvozovkou nesmí ukončit atribut
+        $predvyplneno = htmlspecialchars((string) ($this->formData()[$klic] ?? ''));
 
         $required ??= array_key_exists($klic, Uzivatel::povinneUdajeProRegistraci());
         $requiredHtml = $required || $typ === 'date'
@@ -140,6 +143,7 @@ class Registrace
         }
 
         $labelRequired = $this->labelRequired($requiredHtml);
+        $placeholderHtml = htmlspecialchars($placeholder);
 
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
@@ -151,7 +155,7 @@ class Registrace
                     type="{$typ}"
                     name="{$this->inputName()}[{$klic}]"
                     value="{$predvyplneno}"
-                    placeholder="{$placeholder}"
+                    placeholder="{$placeholderHtml}"
                     {$requiredHtml}
                     {$disabledHtml}
                     {$additionalHtml}
@@ -169,13 +173,15 @@ class Registrace
     }
 
     /**
+     * @param string $nazev prostý text
      * @param string $idPole s ním je titulek <label for>, pro položku, kterou celou neobaluje <label>
      */
     private function hlavickaPolozky(string $nazev, string $labelRequired, string $tooltip = '', string $idPole = ''): string
     {
+        $nazevHtml = htmlspecialchars($nazev);
         $titulek = $idPole !== ''
-            ? "<label class=\"formular_polozkaTitulek\" for=\"{$idPole}\">{$nazev}{$labelRequired}</label>"
-            : "<span class=\"formular_polozkaTitulek\">{$nazev}{$labelRequired}</span>";
+            ? "<label class=\"formular_polozkaTitulek\" for=\"{$idPole}\">{$nazevHtml}{$labelRequired}</label>"
+            : "<span class=\"formular_polozkaTitulek\">{$nazevHtml}{$labelRequired}</span>";
 
         return <<<HTML
 <div class="formular_polozkaNadpis">
@@ -219,25 +225,25 @@ HTML;
 
           <?php
           if ($this->u) { ?>
-            <div class="formular_strankaNadpis">Nastavení</div>
+            <div class="formular_strankaNadpis"><?php echo htmlspecialchars(\t('registrace.nastaveni')); ?></div>
               <?php
           } else { ?>
-            <div class="formular_strankaNadpis">Registrace</div>
+            <div class="formular_strankaNadpis"><?php echo htmlspecialchars(\t('registrace.nazev')); ?></div>
             <div class="formular_strankaPodtitul">
               <div style="max-width: 250px">
-                Jsi jenom krok od toho stát se součástí naprosto boží akce!
+                <?php echo htmlspecialchars(\t('registrace.podtitul')); ?>
               </div>
             </div>
 
             <div class="formular_prihlasit formular_duleziteInfo">
-              Již mám účet <a href="prihlaseni">přihlásit se</a>
+              <?php echo htmlspecialchars(\t('registrace.mam_ucet')); ?> <a href="prihlaseni"><?php echo htmlspecialchars(\t('registrace.prihlasit_se')); ?></a>
             </div>
 
               <?php
               if (pred($this->systemoveNastaveni->prihlasovaniUcastnikuOd())) { ?>
                 <div class="formular_infobox">
-                  <b>Přihlašování na GameCon se spustí <?php echo $this->zacatekPrihlasovani(); ?></b>
-                  Můžeš si předem vytvořit účet a přihlašování ti připomeneme e-mailem.
+                  <b><?php echo $this->zacatekPrihlasovaniHtml(); ?></b>
+                  <?php echo htmlspecialchars(\t('registrace.ucet_predem')); ?>
                 </div>
                   <?php
               } ?>
@@ -245,78 +251,65 @@ HTML;
           } ?>
 
         <div>
-          <h2 class="formular_sekceNadpis" style="float: left">Osobní</h2>
+          <h2 class="formular_sekceNadpis" style="float: left"><?php echo htmlspecialchars(\t('registrace.osobni.nadpis')); ?></h2>
 
           <div class="formular_tooltip">
             <div class="gc_tooltip" tabindex="0">
-              Proč potřebujeme osobní údaje?
+              <?php echo htmlspecialchars(\t('registrace.osobni.proc')); ?>
               <div class="tooltip_obsah">
-                Potřebujeme je, abychom:<br>
+                <?php echo htmlspecialchars(\t('registrace.osobni.potrebujeme_je')); ?><br>
                 <ul>
-                  <li>tě identifikovali při registraci na místě</li>
-                  <li>urychlili Tvé odbavení</li>
-                  <li>tě mohli ubytovat a splnit související zákonné povinnosti</li>
+                  <li><?php echo htmlspecialchars(\t('registrace.osobni.identifikace')); ?></li>
+                  <li><?php echo htmlspecialchars(\t('registrace.osobni.odbaveni')); ?></li>
+                  <li><?php echo htmlspecialchars(\t('registrace.osobni.ubytovani')); ?></li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
-          <?php echo $this->input('E-mailová adresa', 'email', Sql::EMAIL1_UZIVATELE); ?>
+          <?php echo $this->input(\t('registrace.email'), 'email', Sql::EMAIL1_UZIVATELE); ?>
 
-          <?php echo $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, true, '', '', 'např. +420 789 123 456'); ?>
+          <?php echo $this->input(\t('registrace.telefon'), 'text', Sql::TELEFON_UZIVATELE, true, '', '', \t('registrace.telefon_priklad')); ?>
 
           <?php echo $this->povinneUdajeProUbytovaniHtml(vyzadovatAdresuADoklad: false); ?>
 
-        <h2 class="formular_sekceNadpis">Ostatní</h2>
+        <h2 class="formular_sekceNadpis"><?php echo htmlspecialchars(\t('registrace.ostatni')); ?></h2>
 
         <div class="formular_sloupce">
-            <?php echo $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE); ?>
+            <?php echo $this->input(\t('registrace.prezdivka'), 'text', Sql::LOGIN_UZIVATELE); ?>
             <?php echo $this->select(
-                nazev: 'Zobrazení na webu',
+                nazev: \t('registrace.zobrazeni_na_webu.nazev'),
                 klic: Sql::ZPUSOB_ZOBRAZENI_NA_WEBU,
                 moznosti: ZpusobZobrazeniNaWebu::proSelect(),
-                tooltip: <<<HTML
-<div class="formular_tooltip">
-  <div class="gc_tooltip" tabindex="0">
-    Kde se použije?
-    <div class="tooltip_obsah">
-      Tohle nastavení ovlivní jen veřejný web, například detail aktivity, medailonky vypravěčů a veřejné seznamy.
-      V administraci a interních seznamech se zobrazení jména nemění.
-    </div>
-  </div>
-</div>
-HTML
+                tooltip: $this->tooltipHtml(
+                    \t('registrace.zobrazeni_na_webu.kde'),
+                    htmlspecialchars(\t('registrace.zobrazeni_na_webu.jen_verejny_web'))
+                    . "\n      " . htmlspecialchars(\t('registrace.zobrazeni_na_webu.administrace')),
+                ),
             ); ?>
           <div style="float:left">
               <?php echo $this->select(
-                  nazev: 'Pohlaví',
+                  nazev: \t('registrace.pohlavi.nazev'),
                   klic: Sql::POHLAVI,
                   moznosti: Pohlavi::seznamProSelect(),
-                  tooltip: <<<HTML
-<div class="formular_tooltip">
-  <div class="gc_tooltip" tabindex="0">
-    Proč potřebujeme znát pohlaví?
-    <div class="tooltip_obsah">
-      Informace slouží pouze interně pro<br>
+                  tooltip: $this->tooltipHtml(
+                      \t('registrace.pohlavi.proc'),
+                      htmlspecialchars(\t('registrace.pohlavi.jen_interne')) . '<br>
       <ul>
-        <li>přidělování ubytování bez preference spolubydlících,</li>
-        <li>zpřístupnění genderově omezených míst pro aktivity.</li>
+        <li>' . htmlspecialchars(\t('registrace.pohlavi.ubytovani')) . '</li>
+        <li>' . htmlspecialchars(\t('registrace.pohlavi.mista')) . '</li>
       </ul>
       <div>
-        Informaci vyplň co nejvíce autentickým/komfortním způsobem nejen pro sebe, ale také pro případné
-        spolubydlící a spoluhráče.
-      </div>
-    </div>
-  </div>
-</div>
-HTML
+        ' . htmlspecialchars(\t('registrace.pohlavi.vyplneni')) . '
+      </div>',
+                  ),
               ); ?>
           </div>
         </div>
 
         <div class="formular_sloupce">
-            <?php echo $this->input('Heslo', 'password', 'heslo', $this->u === null); ?>
-            <?php echo $this->input('Heslo pro kontrolu', 'password', 'heslo_kontrola', $this->u === null); ?>
+            <?php echo $this->input(\t('registrace.heslo'), 'password', 'heslo', $this->u === null); ?>
+            <?php echo $this->input(\t('registrace.heslo_kontrola'), 'password', 'heslo_kontrola', $this->u === null); ?>
         </div>
 
         <div style="margin: 30px 0 40px" class="formular_polozka-checkbox">
@@ -325,16 +318,22 @@ HTML
                 ? 'checked'
                 : ''; ?>>
             <span class="formular_duleziteInfo">
-                  Souhlasím se <a href="legal" target="_blank">zpracováním osobních údajů</a>
+                  <?php echo htmlSVlozkami(
+                      \t('registrace.souhlas.veta', ['odkaz' => znackaVlozky('odkaz')]),
+                      ['odkaz' => '<a href="legal" target="_blank">' . htmlspecialchars(\t('registrace.souhlas.odkaz')) . '</a>'],
+                  ); ?>
             </span>
           </label>
           <div class="formular_tooltip">
             <div class="gc_tooltip" tabindex="0">
-              Shrnutí souhlasu
+              <?php echo htmlspecialchars(\t('registrace.souhlas.shrnuti')); ?>
               <div class="tooltip_obsah">
-                Tvé údaje předáme jen těm, komu to ze zákona či z provozní potřeby musíme doložit (např. poskytovateli ubytování či vypravěčům).<br><br>
-                Kontaktovat Tě budeme pouze v rozumné míře a v souvislosti s GameConem.<br><br>
-                Plné právní znění najdeš <a href="legal" target="_blank">zde</a>.
+                <?php echo htmlspecialchars(\t('registrace.souhlas.komu_predame')); ?><br><br>
+                <?php echo htmlspecialchars(\t('registrace.souhlas.kontakt')); ?><br><br>
+                <?php echo htmlSVlozkami(
+                    \t('registrace.souhlas.plne_zneni', ['odkaz' => znackaVlozky('odkaz')]),
+                    ['odkaz' => '<a href="legal" target="_blank">' . htmlspecialchars(\t('registrace.souhlas.plne_zneni_odkaz')) . '</a>'],
+                ); ?>
               </div>
             </div>
           </div>
@@ -345,27 +344,25 @@ HTML
           <?php
           if ($this->u) { ?>
             <input type="hidden" name="upravit" value="true">
-            <input type="submit" value="Uložit" class="formular_primarni">
+            <input type="submit" value="<?php echo htmlspecialchars(\t('registrace.ulozit')); ?>" class="formular_primarni">
               <?php
           } else { ?>
             <input type="hidden" name="registrovat" value="true">
             <?php echo altchaWidget(); ?>
               <?php
               if ($this->systemoveNastaveni->prihlasovaniUcastnikuSpusteno()) { ?>
-                <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni">
-                <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
+                <input type="submit" name="aPrihlasit" value="<?php echo htmlspecialchars(\t('registrace.prihlasit_na_gc')); ?>" class="formular_primarni">
+                <input type="submit" value="<?php echo htmlspecialchars(\t('registrace.jen_vytvorit_ucet')); ?>" class="formular_sekundarni">
                   <?php
               } else { ?>
                 <div class="gc_tooltip" tabindex="0">
-                  <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni"
+                  <input type="submit" name="aPrihlasit" value="<?php echo htmlspecialchars(\t('registrace.prihlasit_na_gc')); ?>" class="formular_primarni"
                          disabled>
                   <div class="tooltip_obsah">
-                    Přihlašování na GameCon se spustí <?php echo $this->zacatekPrihlasovani(); ?>. Můžeš si předem
-                    vytvořit
-                    účet a přihlašování ti připomeneme e-mailem.
+                    <?php echo $this->zacatekPrihlasovaniHtml(); ?>. <?php echo htmlspecialchars(\t('registrace.ucet_predem')); ?>
                   </div>
                 </div>
-                <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
+                <input type="submit" value="<?php echo htmlspecialchars(\t('registrace.jen_vytvorit_ucet')); ?>" class="formular_sekundarni">
                   <?php
               } ?>
               <?php
@@ -379,34 +376,46 @@ HTML
         if ($this->u) { ?>
           <!-- vlastní formulář pod tlačítkem Uložit, aby se nastavení neukládalo ani nekontrolovalo -->
           <form method="post">
-            <h2 class="formular_sekceNadpis">Přihlášená zařízení</h2>
+            <h2 class="formular_sekceNadpis"><?php echo htmlspecialchars(\t('registrace.zarizeni.nadpis')); ?></h2>
             <p>
-              Odhlásí tě na všech ostatních zařízeních a prohlížečích, tady zůstaneš
-              přihlášen<?php echo $this->u->koncovkaDlePohlavi(); ?>. Totéž udělá změna hesla.
-              Neuložené změny nastavení výš se zahodí.
+              <?php echo htmlspecialchars(\t('registrace.zarizeni.popis', ['pohlavi' => $this->u->pohlavi()])); ?>
             </p>
             <input type="hidden" name="odhlasitOstatniZarizeni" value="true">
             <button type="submit" class="formular_sekundarni" style="margin-left: 0">
-              Odhlásit ostatní zařízení
+              <?php echo htmlspecialchars(\t('registrace.zarizeni.odhlasit_ostatni')); ?>
             </button>
           </form>
 
-          <h2 class="formular_sekceNadpis">Přihlásit jiné zařízení</h2>
+          <h2 class="formular_sekceNadpis"><?php echo htmlspecialchars(\t('registrace.jine_zarizeni.nadpis')); ?></h2>
           <p>
-            Na přihlašovací stránce jiného zařízení, na webu i v administraci, zvol <b>Přihlásit QR kódem</b>
-            a kód naskenuj fotoaparátem telefonu, nebo tady.
+            <?php echo htmlSVlozkami(
+                \t('registrace.jine_zarizeni.popis', ['tlacitko' => znackaVlozky('tlacitko')]),
+                ['tlacitko' => '<b>' . htmlspecialchars(\t('prihlaseni.qr_kodem')) . '</b>'],
+            ); ?>
           </p>
+          <?php
+          // texty čtečky (soubory/ctecka-qr.js) v jazyce stránky
+          $zpravyCtecky = [
+              'nacteno'           => \t('registrace.jine_zarizeni.nacteno'),
+              'ciziKod'           => \t('registrace.jine_zarizeni.cizi_kod'),
+              'bezFotoaparatu'    => \t('registrace.jine_zarizeni.bez_fotoaparatu'),
+              'namir'             => \t('registrace.jine_zarizeni.namir'),
+              'fotoaparatZakazan' => \t('registrace.jine_zarizeni.fotoaparat_zakazan'),
+              'fotoaparatSelhal'  => \t('registrace.jine_zarizeni.fotoaparat_selhal'),
+          ];
+          ?>
           <button type="button" class="formular_sekundarni" style="margin-left: 0"
                   data-ctecka-qr
                   data-adresa-schvaleni="<?php echo htmlspecialchars(URL_WEBU . '/' . PrihlaseniQrKodem::STRANKA_SCHVALENI); ?>"
-                  data-jsqr="<?php echo htmlspecialchars(URL_WEBU . '/soubory/jsqr/jsQR.js?version=' . md5_file(WWW . '/soubory/jsqr/jsQR.js')); ?>">
-            Načíst QR kód
+                  data-jsqr="<?php echo htmlspecialchars(URL_WEBU . '/soubory/jsqr/jsQR.js?version=' . md5_file(WWW . '/soubory/jsqr/jsQR.js')); ?>"
+                  data-zpravy="<?php echo htmlspecialchars(json_encode($zpravyCtecky, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)); ?>">
+            <?php echo htmlspecialchars(\t('registrace.jine_zarizeni.nacist_qr')); ?>
           </button>
           <div class="cteckaQr" data-ctecka-qr-okno hidden>
             <video class="cteckaQr_video" playsinline muted></video>
             <p class="cteckaQr_zprava" data-ctecka-qr-zprava aria-live="polite"></p>
             <button type="button" class="formular_sekundarni" style="margin-left: 0" data-ctecka-qr-zavrit>
-              Zavřít
+              <?php echo htmlspecialchars(\t('registrace.jine_zarizeni.zavrit')); ?>
             </button>
           </div>
             <?php
@@ -415,9 +424,37 @@ HTML
         <?php
     }
 
-    private function zacatekPrihlasovani(): string
+    /**
+     * Ikonka s otazkou a vysvětlením v hlavičce položky.
+     *
+     * @param string $otazka prostý text
+     * @param string $obsahHtml HTML
+     */
+    private function tooltipHtml(string $otazka, string $obsahHtml): string
     {
-        return $this->systemoveNastaveni->prihlasovaniUcastnikuOd()->format('j.&#160;n. Y \v\e H:i');
+        $otazkaHtml = htmlspecialchars($otazka);
+
+        return <<<HTML
+<div class="formular_tooltip">
+  <div class="gc_tooltip" tabindex="0">
+    {$otazkaHtml}
+    <div class="tooltip_obsah">
+      {$obsahHtml}
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    /**
+     * „Přihlašování na GameCon se spustí 15. 5. 2026 ve 20:00“, mezi číslem dne a měsíce nezlomitelná mezera.
+     */
+    private function zacatekPrihlasovaniHtml(): string
+    {
+        return htmlspecialchars(\t(
+            'registrace.prihlasovani_se_spusti',
+            ['zacatek' => $this->systemoveNastaveni->prihlasovaniUcastnikuOd()],
+        ));
     }
 
     private function souhlasilSeZpracovanimOsobnichUdaju(): bool
@@ -425,6 +462,10 @@ HTML
         return $this->u || post('registrovat');
     }
 
+    /**
+     * @param string $nazev prostý text
+     * @param array<int|string, string> $moznosti hodnota => popis (prostý text)
+     */
     private function select(
         string $nazev,
         string $klic,
@@ -443,7 +484,7 @@ HTML
             $selectedHtml = $selected
                 ? 'selected'
                 : '';
-            $moznostiHtml .= '<option value="' . $hodnota . '" ' . $selectedHtml . '>' . $popis . '</option>';
+            $moznostiHtml .= '<option value="' . $hodnota . '" ' . $selectedHtml . '>' . htmlspecialchars($popis) . '</option>';
         }
 
         $chybaHtml = '';
@@ -489,6 +530,10 @@ HTML
         return in_array($klic, Uzivatel::zamceneUdajePoKontroleNaInfopultu(), true);
     }
 
+    /**
+     * @param string $nadpis prostý text
+     * @param string $tooltip HTML
+     */
     public function povinneUdajeProUbytovaniHtml(
         string $nadpis = '',
         string $tooltip = '',
@@ -496,7 +541,7 @@ HTML
     ): string {
         $nadpisHtml = '';
         if ($nadpis !== '') {
-            $nadpisHtml = "<h2 class='formular_sekceNadpis'>{$nadpis}</h2>";
+            $nadpisHtml = "<h2 class='formular_sekceNadpis'>" . htmlspecialchars($nadpis) . '</h2>';
         }
         $tooltipHtml = '';
         if ($tooltip !== '') {
@@ -512,34 +557,34 @@ HTML
 HTML;
         }
 
+        $h = htmlspecialchars(...);
+
         return <<<HTML
 {$nadpisHtml}
 
 {$tooltipHtml}
 
 <div class="formular_sloupce">
-    {$this->input('Jméno', 'text', Sql::JMENO_UZIVATELE)}
-    {$this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE)}
-    {$this->input('Datum narození', 'date', Sql::DATUM_NAROZENI)}
+    {$this->input(\t('registrace.povinne_udaje.jmeno'), 'text', Sql::JMENO_UZIVATELE)}
+    {$this->input(\t('registrace.povinne_udaje.prijmeni'), 'text', Sql::PRIJMENI_UZIVATELE)}
+    {$this->input(\t('registrace.povinne_udaje.datum_narozeni'), 'date', Sql::DATUM_NAROZENI)}
     {$this->input(
-            nazev: 'Státní občanství',
+            nazev: \t('registrace.povinne_udaje.statni_obcanstvi'),
             typ: 'text',
             klic: Sql::STATNI_OBCANSTVI,
             required: true,
-            placeholder: 'například ČR',
+            placeholder: \t('registrace.povinne_udaje.statni_obcanstvi_priklad'),
         )}
 </div>
 
 <div>
-    <h2 class="formular_sekceNadpis" style="float: left">Adresa trvalého pobytu</h2>
+    <h2 class="formular_sekceNadpis" style="float: left">{$h(\t('registrace.povinne_udaje.adresa.nadpis'))}</h2>
 
     <div class="formular_tooltip">
         <div class="gc_tooltip" tabindex="0">
-            Proč potřebujeme adresu?
+            {$h(\t('registrace.povinne_udaje.adresa.proc'))}
             <div class="tooltip_obsah">
-                Informaci o trvalém bydlišti jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.<br><br>
-                Tím je <b>Vysoká škola báňská - Technická univerzita Ostrava, Koleje Poruba Studentská 1770/1 708 00 Ostrava-Poruba</b>.<br><br>
-                Chybné vyplnění polí může vést u infopultu k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních.
+                {$this->proUbytovateleHtml(\t('registrace.povinne_udaje.adresa.ze_zakona'))}
             </div>
         </div>
     </div>
@@ -547,31 +592,29 @@ HTML;
 <div class="clearfix"></div>
 
 <div class="formular_sloupce">
-    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE, $vyzadovatAdresuADoklad)}
-    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE, $vyzadovatAdresuADoklad)}
-    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE, $vyzadovatAdresuADoklad)}
+    {$this->input(\t('registrace.povinne_udaje.adresa.ulice'), 'text', Sql::ULICE_A_CP_UZIVATELE, $vyzadovatAdresuADoklad)}
+    {$this->input(\t('registrace.povinne_udaje.adresa.mesto'), 'text', Sql::MESTO_UZIVATELE, $vyzadovatAdresuADoklad)}
+    {$this->input(\t('registrace.povinne_udaje.adresa.psc'), 'text', Sql::PSC_UZIVATELE, $vyzadovatAdresuADoklad)}
     {$this->select(
-            'Země',
+            \t('registrace.povinne_udaje.adresa.zeme'),
             Sql::STAT_UZIVATELE,
             [
-                Stat::CZ_ID   => 'Česká republika',
-                Stat::SK_ID   => 'Slovenská republika',
-                Stat::JINY_ID => '(jiný stát)',
+                Stat::CZ_ID   => \t('registrace.povinne_udaje.adresa.cesko'),
+                Stat::SK_ID   => \t('registrace.povinne_udaje.adresa.slovensko'),
+                Stat::JINY_ID => \t('registrace.povinne_udaje.adresa.jiny_stat'),
             ],
             required: $vyzadovatAdresuADoklad,
         )}
 </div>
 
 <div>
-    <h2 class="formular_sekceNadpis" style="float: left">Platný doklad totožnosti</h2>
+    <h2 class="formular_sekceNadpis" style="float: left">{$h(\t('registrace.povinne_udaje.doklad.nadpis'))}</h2>
 
     <div class="formular_tooltip">
         <div class="gc_tooltip" tabindex="0">
-            Proč potřebujeme doklad?
+            {$h(\t('registrace.povinne_udaje.doklad.proc'))}
             <div class="tooltip_obsah">
-                Číslo identifikačního dokladu jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.<br><br>
-                Tím je <b>Vysoká škola báňská - Technická univerzita Ostrava, Koleje Poruba Studentská 1770/1 708 00 Ostrava-Poruba</b>.<br><br>
-                Chybné vyplnění polí může vést u infopultu k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních.
+                {$this->proUbytovateleHtml(\t('registrace.povinne_udaje.doklad.ze_zakona'))}
             </div>
         </div>
     </div>
@@ -580,18 +623,34 @@ HTML;
 
 <div class="formular_sloupce">
     {$this->select(
-            'Typ dokladu',
+            \t('registrace.povinne_udaje.doklad.typ'),
             Sql::TYP_DOKLADU_TOTOZNOSTI,
             [
-                Uzivatel::TYP_DOKLADU_OP   => 'Občanský průkaz',
-                Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
-                Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
+                Uzivatel::TYP_DOKLADU_OP   => \t('registrace.povinne_udaje.doklad.op'),
+                Uzivatel::TYP_DOKLADU_PAS  => \t('registrace.povinne_udaje.doklad.pas'),
+                Uzivatel::TYP_DOKLADU_JINY => \t('registrace.povinne_udaje.doklad.jiny'),
             ],
             required: $vyzadovatAdresuADoklad,
         )}
-    {$this->input('Číslo dokladu', 'text', Sql::OP, $vyzadovatAdresuADoklad)}
+    {$this->input(\t('registrace.povinne_udaje.doklad.cislo'), 'text', Sql::OP, $vyzadovatAdresuADoklad)}
 </div>
 HTML;
+    }
+
+    /**
+     * Proč údaj potřebuje ubytovatel, komu ho předáme a co se stane, když je chybně.
+     *
+     * @param string $zeZakona prostý text
+     */
+    private function proUbytovateleHtml(string $zeZakona): string
+    {
+        $ubytovatel = htmlSVlozkami(
+            \t('registrace.povinne_udaje.ubytovatel_veta', ['ubytovatel' => znackaVlozky('ubytovatel')]),
+            ['ubytovatel' => '<b>' . htmlspecialchars(\t('registrace.povinne_udaje.ubytovatel')) . '</b>'],
+        );
+        $chybneVyplneni = htmlspecialchars(\t('registrace.povinne_udaje.chybne_vyplneni'));
+
+        return htmlspecialchars($zeZakona) . "<br><br>\n                {$ubytovatel}<br><br>\n                {$chybneVyplneni}";
     }
 
     private function chyby(): Chyby

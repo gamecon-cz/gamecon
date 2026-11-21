@@ -25,6 +25,10 @@ class RobotsTxtTest extends TestCase
         self::assertStringContainsString("Disallow: /api/\n", $obsah);
         self::assertStringContainsString("Disallow: /admin$\n", $obsah);
         self::assertStringContainsString("Disallow: /admin/\n", $obsah);
+        // anglické zrcadlo webu (/en/…) má tytéž stránky pro přihlášené i API
+        self::assertStringContainsString("Disallow: /en/finance$\n", $obsah);
+        self::assertStringContainsString("Disallow: /en/qrka/\n", $obsah);
+        self::assertStringContainsString("Disallow: /en/api/\n", $obsah);
         self::assertStringEndsWith("Sitemap: https://gamecon.cz/sitemap.xml\n", $obsah);
         self::assertDoesNotMatchRegularExpression('~^Disallow: /$~m', $obsah);
     }

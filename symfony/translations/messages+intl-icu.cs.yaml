@@ -1,0 +1,538 @@
+# Texty veřejného webu, formát zpráv ICU (viz Gamecon\Jazyk\Preklad).
+# Každý klíč musí být i v messages+intl-icu.en.yaml, hlídá to PrekladyKatalogTest.
+# Datum vzorem ICU (`{zacatek, date,d. M.}`) piš bez mezery za druhou čárkou, ICU by ji vypsalo.
+
+aktivity:
+    vypravec: "Vypravěč:"
+    zobrazit_vice: zobrazit více
+    informace: "Informace:"
+    terminy: "Termíny:"
+    neomezene: neomezeně
+    termin: "{zacatek, date,EEEE H}–{konec, time,H}"
+    nastaveni_tymu: Nastavení týmu
+    prihlasit_tym: Přihlásit tým
+    vypraveci: Vypravěči
+    archiv_prednasek: Archiv přednášek
+    vypravec_bez_popisu: popisek od vypravěče nemáme
+
+jazyk:
+    prepnout: Přepnout do češtiny
+
+jazyk_aktivity:
+    cesky: česky
+    anglicky: anglicky
+    cesky_i_anglicky: česky i anglicky
+    nezavisla: jazykově nezávislá
+
+# stránka linie (web/moduly/aktivity.php) a archiv přednášek pod linií přednášek (web/moduly/archivprednasek.php)
+linie:
+    # zástupné texty hlavičky linie, která v adminu (Web → Hlavičky linií) nemá vyplněno, kdo linii vede
+    hlavicka:
+        sekce: Sekce
+        jmeno: 'Jmeno "Prezdivka" Prijmeni'
+    archiv_prednasek:
+        popis: Přednášky z minulých ročníků GameConu, u některých i se záznamem.
+        letosni: Letošní přednášky
+        pocet: "Přednášek v archivu: {pocet}"
+        vybrani: "Přednášky, kde přednáší {prednasejici}: {pocet}."
+        vsechny: Všechny přednášky
+        prednasky_rocniku: Přednášky ročníku {rok}
+        karta_v_programu: Karta v programu
+        prednasi: "Přednáší:"
+        prednasky_prednasejiciho: Přednášky, kde přednáší {jmeno}
+        medailonek: "Medailonek: {jmeno}"
+        bez_zaznamu: bez záznamu
+        cela_anotace: Celá anotace
+        anotace: Anotace
+        prehrat_zaznam: "Přehrát záznam: {nazev}"
+        prehrat_na_youtube: Přehrát na YouTube
+        prazdny: Archiv je zatím prázdný.
+        klicova_slova: Klíčová slova
+
+menu:
+    prihlasit: přihlásit
+    finance: Finance
+    nastaveni: Nastavení
+    admin: Admin
+    hry_ktere_vedu: Hry, které vedu
+    upravit_prihlasku: Upravit přihlášku
+    prihlaska_na_gc: Přihláška na GC
+    odhlasit: Odhlásit
+    program: program
+    aktivity: aktivity
+    informace: informace
+    prakticke_informace: Praktické informace
+    jidelnicek: Jídelníček
+    chci_organizovat: Chci organizovat GameCon
+    blog: Blog
+    pro_sponzory_a_media: Pro sponzory a média
+    kontakty: Kontakty
+
+paticka:
+    qr_k_sockam: QR k sockám
+    sponzori: sponzoři
+    kontakt: kontakt
+    archiv_mdrd: Archiv mDrD
+
+prihlasovatko:
+    prihlasit: přihlásit
+    odhlasit: odhlásit
+    ucast: účast
+    jako_nahradnik: jako náhradník
+    neucast: neúčast
+    pozdni_odhlaseni: pozdní odhlášení
+    hajeni_tymu: "Kapitán týmu má celkem {hodin, plural, one {# hodinu} few {# hodiny} other {# hodin}} na vyplnění svého týmu"
+    jen_zenska_mista: pouze ženská místa
+    jen_muzska_mista: pouze mužská místa
+    sledovat: sledovat
+    zrusit_sledovani: zrušit sledování
+
+program:
+    nadpis:
+        muj: Můj program
+        den: Program {den}
+
+stranka:
+    jen_cesky: Tato stránka je zatím jen česky.
+
+titulka:
+    info:
+        nazev: GameCon – největší festival nepočítačových her
+        popis: GameCon je největší festival nepočítačových her v České republice, který se každoročně koná třetí víkend v červenci. Opět se můžete těšit na desítky RPGček, deskovek, larpů, akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční mistrovství v DrD a v neposlední řadě úžasné lidi a vůbec zážitky, které ve vás přetrvají minimálně do dalšího roku.
+    hlavicka:
+        claim: Největší festival nepočítačových her
+        zacatek: "{zacatek, date,d.}"
+        konec: "{konec, date,d. M.}"
+        prehrat_video: přehrát video
+    karty:
+        pro_vsechny:
+            nadpis: Akce pro všechny
+            text: Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.
+        aktivni_zabava:
+            nadpis: Festival aktivní zábavy
+            text: Na GameConu najdeš všechno od celodenně otevřené deskoherny, přes rolové hry až po koncert.
+        zadne_vstupne:
+            nadpis: Žádné vstupné
+            text: Registrace na GameCon je zdarma. Platíš jen za služby a aktivity, které si sám vybereš a objednáš.
+    popisbox:
+        # odkazy dosadí titulka.php, slovosled je na překladu
+        veta: "{deskove} hry, {rpg} a {larpy}, {akcni_hry}, {wargaming}, {turnaj} v D&D/JaD, pohybové {workshopy}, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon."
+        odkaz:
+            deskove: Deskové
+            rpg: RPG
+            larpy: Larpy
+            akcni_hry: akční hry
+            wargaming: wargaming
+            turnaj: Turnaj
+            workshopy: workshopy
+    cisla:
+        ikona_ucastniku: ikona účastníků
+        ikona_aktivit: ikona aktivit
+        ikona_trvani: ikona trvání
+        ikona_koncertu: ikona koncert
+        spokojenych_ucastniku: spokojených účastníků
+        ruznych_aktivit: různých aktivit
+        dny_zabavy: dny zábavy
+        super_koncert: super koncert
+    fotky:
+        koncert: Koncert
+    linie:
+        nadpis: Co na GameConu zažiješ?
+    odpocet:
+        prihlasovani_zacne: Přihlašování začne {zacatek, date,d. M. y} v {zacatek, time,HH:mm}
+        do_gameconu_zbyva: Do GameConu zbývá
+        prihlasit_se: Přihlásit se
+    sponzori: Děkujeme našim sponzorům a partnerům!
+
+web:
+    popis: Největší festival nepočítačových her. Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.
+
+podstranka:
+    zpet: zpět na {linie}
+
+ucet:
+    nejsi_robot: Ověř prosím, že nejsi robot.
+    pohlavi:
+        zena: žena
+        muz: muž
+    zobrazeni_na_webu:
+        pouze_prezdivka: Pouze přezdívka
+        jmeno_a_prijmeni: Jméno + příjmení
+        jmeno_s_prezdivkou_a_prijmenim: Jméno + přezdívka + příjmení
+
+registrace:
+    nazev: Registrace
+    nastaveni: Nastavení
+    podtitul: Jsi jenom krok od toho stát se součástí naprosto boží akce!
+    mam_ucet: Již mám účet
+    prihlasit_se: přihlásit se
+    prihlasovani_se_spusti: "Přihlašování na GameCon se spustí {zacatek, date,d. M. y} ve {zacatek, time,HH:mm}"
+    ucet_predem: Můžeš si předem vytvořit účet a přihlašování ti připomeneme e-mailem.
+    osobni:
+        nadpis: Osobní
+        proc: Proč potřebujeme osobní údaje?
+        potrebujeme_je: "Potřebujeme je, abychom:"
+        identifikace: tě identifikovali při registraci na místě
+        odbaveni: urychlili Tvé odbavení
+        ubytovani: tě mohli ubytovat a splnit související zákonné povinnosti
+    email: E-mailová adresa
+    telefon: Telefonní číslo
+    telefon_priklad: např. +420 789 123 456
+    ostatni: Ostatní
+    prezdivka: Přezdívka
+    zobrazeni_na_webu:
+        nazev: Zobrazení na webu
+        kde: Kde se použije?
+        jen_verejny_web: Tohle nastavení ovlivní jen veřejný web, například detail aktivity, medailonky vypravěčů a veřejné seznamy.
+        administrace: V administraci a interních seznamech se zobrazení jména nemění.
+    pohlavi:
+        nazev: Pohlaví
+        proc: Proč potřebujeme znát pohlaví?
+        jen_interne: Informace slouží pouze interně pro
+        ubytovani: přidělování ubytování bez preference spolubydlících,
+        mista: zpřístupnění genderově omezených míst pro aktivity.
+        vyplneni: Informaci vyplň co nejvíce autentickým/komfortním způsobem nejen pro sebe, ale také pro případné spolubydlící a spoluhráče.
+    heslo: Heslo
+    heslo_kontrola: Heslo pro kontrolu
+    souhlas:
+        veta: Souhlasím se {odkaz}
+        odkaz: zpracováním osobních údajů
+        shrnuti: Shrnutí souhlasu
+        komu_predame: Tvé údaje předáme jen těm, komu to ze zákona či z provozní potřeby musíme doložit (např. poskytovateli ubytování či vypravěčům).
+        kontakt: Kontaktovat Tě budeme pouze v rozumné míře a v souvislosti s GameConem.
+        plne_zneni: Plné právní znění najdeš {odkaz}.
+        plne_zneni_odkaz: zde
+    ulozit: Uložit
+    prihlasit_na_gc: Přihlásit na GameCon
+    jen_vytvorit_ucet: Jen vytvořit účet
+    ok: Účet vytvořen. Informaci o spuštění přihlašování ti včas pošleme e-mailem.
+    ok_a_prihlaska: Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.
+    uprava_ok: Změny registračních údajů uloženy.
+    zarizeni:
+        nadpis: Přihlášená zařízení
+        popis: Odhlásí tě na všech ostatních zařízeních a prohlížečích, tady zůstaneš {pohlavi, select, f {přihlášena} other {přihlášen}}. Totéž udělá změna hesla. Neuložené změny nastavení výš se zahodí.
+        odhlasit_ostatni: Odhlásit ostatní zařízení
+        odhlaseno: Na ostatních zařízeních jsi {pohlavi, select, f {odhlášena} other {odhlášen}}.
+    jine_zarizeni:
+        nadpis: Přihlásit jiné zařízení
+        popis: Na přihlašovací stránce jiného zařízení, na webu i v administraci, zvol {tlacitko} a kód naskenuj fotoaparátem telefonu, nebo tady.
+        nacist_qr: Načíst QR kód
+        zavrit: Zavřít
+        nacteno: Kód načten, otevírám schválení…
+        cizi_kod: Tohle není QR kód pro přihlášení do GameConu. Namiř na kód na přihlašovací stránce.
+        bez_fotoaparatu: Tenhle prohlížeč fotoaparát nepoužije. Naskenuj kód aplikací Fotoaparát.
+        namir: Namiř fotoaparát na QR kód na přihlašovací stránce.
+        fotoaparat_zakazan: Bez přístupu k fotoaparátu to nepůjde. Povol ho v nastavení prohlížeče, nebo naskenuj kód aplikací Fotoaparát.
+        fotoaparat_selhal: Fotoaparát se nepodařilo spustit. Naskenuj kód aplikací Fotoaparát.
+    povinne_udaje:
+        jmeno: Jméno
+        prijmeni: Příjmení
+        datum_narozeni: Datum narození
+        statni_obcanstvi: Státní občanství
+        statni_obcanstvi_priklad: například ČR
+        ubytovatel_veta: Tím je {ubytovatel}.
+        ubytovatel: Vysoká škola báňská - Technická univerzita Ostrava, Koleje Poruba Studentská 1770/1 708 00 Ostrava-Poruba
+        chybne_vyplneni: Chybné vyplnění polí může vést u infopultu k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních.
+        adresa:
+            nadpis: Adresa trvalého pobytu
+            proc: Proč potřebujeme adresu?
+            ze_zakona: Informaci o trvalém bydlišti jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.
+            ulice: Ulice a číslo popisné
+            mesto: Město
+            psc: PSČ
+            zeme: Země
+            cesko: Česká republika
+            slovensko: Slovenská republika
+            jiny_stat: (jiný stát)
+        doklad:
+            nadpis: Platný doklad totožnosti
+            proc: Proč potřebujeme doklad?
+            ze_zakona: Číslo identifikačního dokladu jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.
+            typ: Typ dokladu
+            op: Občanský průkaz
+            pas: Cestovní pas
+            jiny: Jiný
+            cislo: Číslo dokladu
+    chyba:
+        jiny_uzivatel_prihlasen: Jiný uživatel v tomto prohlížeči už je přihlášený.
+        odhlaseno: Došlo k odhlášení, přihlaš se prosím znovu.
+        registrace: Registrace se nepodařila. Oprav prosím zvýrazněné položky.
+        uprava: Úprava se nepodařila, oprav prosím zvýrazněné položky.
+        prezdivka: vyber si prosím přezdívku
+        prezdivka_zabrana_prihlas_se: přezdívka už je zabraná; pokud je tvoje, přihlaš se nebo si resetuj heslo
+        prezdivka_zabrana: přezdívka už je zabraná, vyber si prosím jinou
+        email: zadej prosím platný e-mail
+        email_zaregistrovany: e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo
+        email_zabrany: e-mail už je zabraný. Pokud je tvůj, resetuj si heslo
+        datum_narozeni: vyplň prosím platné datum narození
+        heslo: vyplň prosím heslo
+        hesla_se_neshoduji: hesla se neshodují
+        telefon: vyplň prosím telefon, např. +420 789 123 456
+        jmeno: jméno nesmí být prázdné
+        prijmeni: příjmení nesmí být prázdné
+        statni_obcanstvi: vyplň prosím státní občanství
+        ulice: vyplň prosím ulici, např. Česká 27
+        ulice_v_cizine: vyplň prosím ulici a číslo domu
+        mesto: vyplň prosím město
+        psc: vyplň prosím PSČ, např. 602 00
+        psc_v_cizine: vyplň prosím PSČ, jen písmena, číslice, mezery a pomlčky
+        stat: vyber prosím stát
+        typ_dokladu: vyber prosím typ dokladu totožnosti
+        cislo_dokladu: vyplň prosím celé číslo dokladu
+        zobrazeni_na_webu: vyber prosím způsob zobrazení na webu
+        pohlavi: vyber prosím pohlaví
+
+prihlaseni:
+    nazev: Přihlášení
+    email: E-mailová adresa
+    zapomenute_heslo: zapomenuté heslo
+    heslo: Heslo
+    trvale: Trvale přihlásit
+    prihlasit_se: Přihlásit se
+    qr_kodem: Přihlásit QR kódem
+    nemam_ucet: Nemám účet
+    registrovat: registrovat
+    chyba: Špatné uživatelské jméno nebo heslo.
+    qr:
+        nadpis: Přihlášení QR kódem
+        alt: QR kód pro přihlášení
+        naskenuj: Na telefonu, kde máš přihlášený účet na webu GameConu, naskenuj kód fotoaparátem, nebo na webu v Nastavení tlačítkem {tlacitko}.
+        vyber_cislo: "Na telefonu vyber tohle číslo:"
+        platnost: Kód platí {minut, plural, one {# minutu} few {# minuty} other {# minut}}.
+        novy_kod: Nový kód
+        heslem: Přihlásit heslem
+        zamitnuto: Přihlášení na telefonu někdo zamítl, nebo vybral jiné číslo. Vygeneruj nový kód.
+        vyprselo: Kód vypršel, vygeneruj nový.
+        neplatny: Kód už neplatí, vygeneruj nový.
+        moc_kodu: Vygeneroval jsi teď moc kódů. Zkus to za pár minut, nebo se přihlas heslem.
+        moc_zadosti_ze_site: Z tvé sítě teď přišlo moc žádostí o přihlášení QR kódem. Přihlas se heslem, nebo to zkus za pár minut.
+
+obnova_hesla:
+    zapomenute_heslo: Zapomenuté heslo
+    zkontroluj_email: Zkontroluj e-mail
+    odkaz_poslan: "Pokud k zadané e-mailové adrese existuje účet, poslali jsme na něj odkaz pro nastavení nového hesla. Odkaz platí 1 hodinu."
+    zpet_na_prihlaseni: Zpět na přihlášení
+    zadej_email: Zadej svůj e-mail. Pošleme ti odkaz, na kterém si nastavíš nové heslo.
+    muj_email: Můj e-mail
+    odeslat_odkaz: Odeslat odkaz
+    moc_zadosti: Z tvé sítě přišlo za poslední hodinu moc žádostí o obnovu hesla. Zkus to prosím později.
+    neplatny_odkaz: Neplatný odkaz
+    neplatny_odkaz_popis: Odkaz pro obnovu hesla platí jen omezenou dobu a po nastavení hesla přestane fungovat. Nech si prosím poslat nový.
+    poslat_novy_odkaz: Poslat nový odkaz
+    zadej_nove_heslo: Zadej nové heslo
+    nove_heslo: Nové heslo
+    nastavit_nove_heslo: Nastavit nové heslo
+    heslo_zmeneno: Heslo bylo změněno. Můžeš se přihlásit.
+    heslo_kratke: Heslo musí mít aspoň {pocet, plural, one {# znak} few {# znaky} other {# znaků}}.
+    heslo_dlouhe: Heslo může mít nejvýše {pocet, plural, one {# znak} few {# znaky} other {# znaků}}.
+
+prihlasit_zarizeni:
+    nazev: Přihlásit zařízení
+    nadpis: Přihlásit jiné zařízení
+    schvaleno: Hotovo, zařízení se teď přihlásí.
+    spatne_cislo: "{pohlavi, select, f {Vybrala} other {Vybral}} jsi jiné číslo, než ukazuje zařízení, a tak jsme přihlášení zamítli. Jestli kód nebyl z tvé obrazovky, chtěl se k tvému účtu přihlásit někdo jiný."
+    vyrizeno: Kód mezitím vypršel nebo už je vyřízený. Na zařízení vygeneruj nový.
+    zamitnuto: Přihlášení jsi {pohlavi, select, f {zamítla} other {zamítl}}.
+    nelze_zamitnout: Zamítnout už nešlo, kód mezitím vypršel nebo ho někdo vyřídil.
+    prihlas_se: Ke schválení musíš být na tomhle telefonu přihlášený na webu GameConu. Po přihlášení tě vrátíme sem.
+    platnost: Kód platí jen {minut, plural, one {# minutu} few {# minuty} other {# minut}}. Když mezitím vyprší, vygeneruj na zařízení nový a naskenuj ho znovu.
+    prepnuto: Jsi přepnutý na jiného uživatele. Přihlášení zařízení schval ze svého účtu.
+    neznamy_kod: Tenhle kód neznáme. Naskenuj ho prosím znovu.
+    stav_schvaleno: Přihlášení je schválené, zařízení se během chvilky přihlásí.
+    stav_zamitnuto: Přihlášení je zamítnuté. Kdo se chce přihlásit, musí vygenerovat nový kód.
+    stav_vyprselo: Kód vypršel. Na zařízení vygeneruj nový a naskenuj ho znovu.
+    prihlasis: Přihlásíš {kam, select, admin {do administrace GameConu} other {na web GameConu}} zařízení, které kód ukazuje, a to jako {jmeno}.
+    prohlizec: Prohlížeč
+    neznamy_prohlizec: neznámý prohlížeč
+    ip_adresa: IP adresa
+    kod_vznikl: Kód vznikl
+    pred_sekundami: před {sekund} s
+    pred_minutami: před {minut} min
+    varovani: "Číslo vyber jen podle obrazovky zařízení, které máš před sebou. Když ti kód nebo číslo někdo poslal nebo ti říká, které vybrat, chce se dostat k tvému účtu: přihlášení zamítni."
+    vyber_cislo: "Vyber číslo, které ukazuje zařízení:"
+    nemas_zarizeni: Nemáš to zařízení před sebou, nebo ti kód či číslo někdo poslal? Přihlášení zamítni.
+    zamitnout: Zamítnout
+
+# GameCon registration (web/moduly/prihlaska/prihlaska.php, web/sablony/blackarrow/prihlaska.xtpl, model/pomoc.php).
+# The e-shop blocks (merchandise, accommodation, food, voluntary admission) stay Czech for now.
+# `d.\u00A0M.`: a no-break space, as the e-shop has always written these dates.
+prihlaska:
+    nazev: Přihláška
+    nadpis: Přihláška na GameCon
+    vyzaduje_prihlaseni: Tato stránka vyžaduje přihlášení
+    relace_vyprsela: Mezitím došlo k odhlášení, takže se přihláška neuložila. Přihlas se prosím znovu a odešli ji ještě jednou.
+    pred:
+        zacatek: "Přihlašování na GameCon bude spuštěno {zacatek, date,d. M. y} v {zacatek, time,HH:mm}."
+        upresnime: Přihlašování na GameCon bude spuštěno (upřesníme).
+    uzavreno: "Přihlašování na GameCon je uzavřeno od {konec, date,d. M. y} {konec, time,HH:mm:ss}."
+    po_gc:
+        dekujeme: Děkujeme za tvou účast na GameConu! Budeme moc rádi za jakoukoliv {zpetna_vazba}, abychom věděli, co zlepšit, případně co určitě nevynechat ani v příštích letech.
+        zpetna_vazba: zpětnou vazbu
+        zpetna_vazba_titulek: Zpětná vazba
+        sledujte_nas: Budeme se těšit zase za rok, do té doby nás můžeš sledovat na {facebook}, {instagram} nebo na {discord}.
+        neucastnil_se: GameCon už proběhl, těšíme se na viděnou v roce {rok}.
+        fotky: Fotky z předešlých ročníků najdeš na našem {facebook} nebo {instagram}. Přidej se k nám na {discord}, aby ti neutekly žádné novinky.
+        # „na Facebooku“, „na Discordu“ / „na Discord“ (kam)
+        facebook: Facebooku
+        instagram: Instagramu
+        discord_kde: Discordu
+        discord_kam: Discord
+        facebook_titulek: Facebook GameConu
+        instagram_titulek: Instagram GameConu
+        discord_titulek: Discord GameConu
+    behem_gc:
+        na_infopultu: Přihlášku již nelze upravovat online, případné změny je {jen_na_miste}.
+        jen_na_miste: momentálně možné provádět pouze na místě u Infopultu
+        prehled_objednavek: Přehled svých objednávek a plateb najdeš v záložce {finance} na svém profilu.
+        vitame: Vítáme tě na GameConu! Přihlášku již nelze upravovat online, veškeré případné změny v přihlášce proto řeš na Infopultu, přehled plateb najdeš v záložce {finance} na svém profilu.
+        finance: finance
+    prihlasen:
+        aktivni: Tvá přihláška na GameCon {rok} je aktivní! Nyní můžeš upravovat objednané ubytování i předměty až téměř do začátku GameConu.
+        uhradit_do: "Objednávku je potřeba uhradit do {do, date,d. M.} včetně."
+        prehled_financi: Svůj přehled financí a údaje k platbě najdeš v {odkaz}.
+        prehled_financi_odkaz: Přehledu financí
+    neprihlasen: Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty s GameCon tématikou a ubytování, které budeš chtít. Výběr jde i později změnit.
+    souhlas_rodicu:
+        text: Jakožto mladší 15ti let budeš potřebovat dodat potvrzení o souhlasu tvého zákonného zástupce s účastí na GameConu. Formulář ke stažení můžeš najít na {odkaz} a vyplněný nám jej můžeš kdykoliv před příjezdem na GameCon nahrát pomocí tohoto formuláře, nebo donést fyzicky při příjezdu na GameCon k Infopultu. Připravené formuláře k vyplnění budeme mít i na Infopultu.
+        odkaz: tomto odkazu
+        odeslat: Odeslat
+        nahrano: Potvrzení je úspěšně nahrané ✅
+        zobrazit: (zobrazit)
+        chybi: Nejdříve vlož potvrzení.
+        ulozeno: Potvrzení bylo uloženo.
+        nelze_otevrit: Soubor ''{soubor}'' se nepodařilo načíst
+        nelze_ulozit: Soubor ''{soubor}'' se nepodařilo uložit
+        neni_obrazek: Soubor ''{soubor}'' se nepodařilo přečíst. Je to obrázek nebo PDF?
+    predmety:
+        nadpis: Předměty
+        info: Placky, kostky, mikiny i trička s logem GameConu si můžeš objednat ve více kusech. Stačí kliknout na tlačítko ➕. U triček a mikin se po vyplnění jednoho automaticky zobrazí možnost přidat další.
+        velikosti_mikin: Velikosti mikin najdeš {odkaz}.
+        velikosti_mikin_odkaz: zde
+        zmeny_do: "Výběr mikin můžeš upravovat do {mikiny, date,d.\u00A0M.}, ostatní merch do {ostatni, date,d.\u00A0M.}"
+        slevy: "Jako {titul} máš nárok na následující bonusy (pokud si je objednáš): {slevy}."
+    ubytovani:
+        nadpis: Ubytování
+        ikona: Ikona s mapou
+        info: Informace k ubytování
+        zmeny_do: "Objednat nebo změnit ubytování můžeš do {do, date,d.\u00A0M.}."
+        kapacita: Čísla ukazují počet obsazených míst / celkovou kapacitu.
+        od_stredy: Ubytování je k dispozici od středy, program začíná ve {ctvrtek} v poledne.
+        ctvrtek: čtvrtek
+        min_dve_noci: Ubytování je možné objednat minimálně na 2 navazující noci.
+        nedele: "Varianta „Ne–Po“ znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00."
+        snidane: Hotelové pokoje mají v ceně zahrnutou snídani.
+        podrobnosti: Podrobnější informace o ubytování a typech pokojů najdeš na stránce {odkaz}.
+        prakticke_informace: Praktické informace
+        bonus_vypravece: Každý vypravěč má nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit na ubytování, jídlo a aktivity. Přesnou výšku svého bonusu najdeš po dokončení registrace ve svém {odkaz}.
+        bonus_vypravece_odkaz: finančním přehledu
+        zdarma_organizatorovi: Jako {pohlavi, select, f {organizátorka} other {organizátor}} máš veškeré ubytování zdarma.
+    jidlo:
+        nadpis: Jídlo
+        info: Informace ke stravování
+        zmeny_do: "Jídlo je možné objednat nebo zrušit do {do, date,d.\u00A0M.}"
+        vyber: Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.
+        jidelnicek: Jídelníček je k dispozici {odkaz}.
+        jidelnicek_odkaz: zde
+    vstupne:
+        dekujeme: Děkujeme!
+        prispevky: Příspěvků formou dobrovolného vstupného si moc vážíme a děkujeme za ně. I díky nim dokážeme GameCon každý rok dělat o něco lepší!
+        nadpis: Dobrovolné vstupné
+    pomoc:
+        nadpis: Chceš se zapojit do organizace?
+        dobrovolnik: Pokud chceš jako dobrovolník pomoct s přípravou na místě, přihlaš se v {odkaz} na některou z dobrovolnických aktivit (Příprava, Úklid).
+        dobrovolnik_odkaz: programu
+        vypravec: Jestli tě láká vedení nějaké aktivity, kontaktuj vedoucího dané programové sekce. Kontakt na něj najdeš na příslušné podstránce Aktivit.
+        sponzoring: V případě, že bys chtěl/a GameCon podpořit sponzoringem, vše potřebné najdeš {odkaz}.
+        sponzoring_odkaz: zde
+        organizace: A jestliže chceš přiložit ruku k dílu a zapojit se do celoroční organizace, bližší informace najdeš {odkaz}.
+        organizace_odkaz: tady
+        vice: "Zde můžeš napsat více o tom, jak se chceš zapojit. Hlas se prosím o výpomoc jen u věcí, které zatím nemáš s nikým domluvené:"
+        typ:
+            dobrovolnik: Dobrovolníci
+            dobrovolnik_popis: Za to, že je GameCon takový jaký je, vděčíme nejen vypravěčům a organizátorům, ale i dobrovolníkům, kteří pomáhají vybudovat jeho zázemí. Pomoc potřebujeme především s přípravou prostor (nošení stolů, lepení plakátů apod), Infopultem a hermanováním v deskoherně.
+            vypravec: Vypravěči
+            vypravec_popis: Vypravěč je jednotný pojem, který GameCon používá pro všechny, kteří vedou některou z aktivit – ať už se jedná o deskovku, RPG, larp či jinou hru. Napadá tě nějaká aktivita, kterou chceš uvést?
+            organizator: Organizatoři
+            organizator_popis: Máš organizační talent, nebo tě napadá konkrétní věc, se kterou nám můžeš pomoct? Spíš než profesionály hledáme samostatné aktivní jedince, kteří se budou rádi podílet na chodu středně velké organizace.
+            partner: Partner GameConu
+            partner_popis: Chceš propagovat svou značku na festivalu pro více než 800 lidí? Podpořit GameCon (nejen) finančně, či mít přímo na festivalu stánek?
+    ulozit_zmeny: Uložit změny
+    prihlasit: Přihlásit na GameCon
+    odhlasit: Odhlásit se z GameConu
+    odhlasit_potvrzeni: Odhlášení z GameConu zruší všechny tvé registrace na aktivity a nákupy předmětů. Kliknutím na OK se odhlásíš.
+    odhlaseni_behem_gc: Během Gameconu se nemůžeš {pohlavi, select, f {sama} other {sám}} odhlást. Stav se na infopultu.
+    odhlaseno: Odhlášení z GameConu {rok} proběhlo úspěšně
+    prihlaseno: Přihlášení na GameCon {rok} proběhlo úspěšně
+    aktualizovano: Přihláška aktualizována.
+
+# přehled financí účastníka (web/moduly/finance.php) a texty financí, které na něm jsou (Finance, Cenik, Accounting,
+# PersonalAccount); admin a reporty jazyk nenastavují, mají je tedy česky
+finance:
+    nadpis: Přehled financí
+    uvod: "V následujícím přehledu vidíš seznam všech položek, které sis na GameConu {pohlavi, select, f {objednala} other {objednal}}, s výslednými cenami po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k {zaplaceni} najdeš {odkaz}."
+    uvod_zaplaceni: zaplacení
+    uvod_uplne_dole: úplně dole
+    objednane_veci: Objednané věci
+    bonusy: Bonusy
+    bonus_za_vedeni_aktivit: "bonus za vedení aktivit {castka}"
+    # přehled financí je vypnutý (FINANCE_VIDITELNE)
+    skryte:
+        popis: "Zde by byl seznam všech položek, které sis letos na GameConu objednal(a) a tvůj celkový stav financí."
+        zpet: "Zpět na {stranka}"
+        uvodni_stranka: Úvodní stránku
+    # skupiny tabulky přehledu (PersonalAccount::formatForHtml())
+    prehled:
+        aktivity: Aktivity
+        strava: Strava
+        predmety: Předměty
+        ubytovani: Ubytování
+        dobrovolne_vstupne: Dobrovolné vstupné
+        celkova_cena: Celková cena
+        # i název položky zůstatku (Finance), stejný text skupina pod sebou znovu nevypíše
+        zustatek_z_minulych_let: Zůstatek z minulých let
+        pripsane_platby: Připsané platby
+        stav_financi: Stav financí
+    # položky přehledu, které nejsou z dat (Finance::dejPolozkyProBfgr(), Accounting)
+    polozka:
+        nedorazil: "{pohlavi, select, f {(nedorazila)} other {(nedorazil)}}"
+        odhlasen_pozde: "{pohlavi, select, f {(odhlášena pozdě)} other {(odhlášen pozdě)}}"
+        platba_na_ucet: Platba na účet
+        bez_poznamky: "(bez poznámky)"
+        bonus_za_aktivity: Bonus za aktivity
+        brigadnicka_odmena: Brigádnická odměna
+        sleva: Sleva
+        sleva_z: "Sleva z {polozka}"
+    # slevy a výhody (Finance::slevyNaAktivity(), Cenik::getTextySlev())
+    slevy:
+        sleva_procent: "sleva {procent}%"
+        aktivity_zdarma: aktivity zdarma
+        aktivity_se_slevou: "aktivity se slevou {procent} %"
+        kostka_zdarma: kostka zdarma
+        placka_zdarma: placka zdarma
+        ubytovani_zdarma: ubytování zdarma
+        ubytovani_ve_stredu_zdarma: ubytování ve středu zdarma
+        jidlo_zdarma: jídlo zdarma
+        jidlo_se_slevou: jídlo se slevou
+        dve_tricka_zdarma: dvě jakákoli trička zdarma
+        jedno_tricko_zdarma: jedno jakékoliv tričko zdarma
+        modre_tricko_se_slevou: modré tričko se slevou
+        ubytovani_na_jednu_noc: můžeš si objednat ubytování i pro jedinou noc
+        tricko_za_bonus: "tričko zdarma za dosažení bonusu {bonus}"
+    platba:
+        nadpis: Platba
+        vyber_qr: Výběr QR platby
+        nadpis_typu: "Platba ({typ})"
+        cislo_uctu: "Číslo účtu:"
+        variabilni_symbol: "Variabilní symbol:"
+        reference_platby: "Reference platby:"
+        castka_k_zaplaceni: "Částka k zaplacení:"
+        castka_v_eurech: "Částka v eurech zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu. Případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme."
+        zaplatit_do: "GameCon je nutné zaplatit převodem {do} (tento den musejí být peníze na účtu GameConu)."
+        do_data: "do {datum, date,d. MMMM HH:mm}"
+        platis_celkem: "Platíš celkem {castka}, přesné údaje o platbě nalezneš výše."
+        eurova_castka: "Eurová částka zahrnuje kurzovou rezervu, nemusí proto přesně odpovídat aktuálnímu kurzu; případný přeplatek ti zůstane na GC účtu nebo ti ho rádi vrátíme."
+        odhlaseni: "Při pozdější platbě tě systém dne {datum} automaticky odhlásí."
+        preplatek: "Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme."
+        prevodem_nebo_na_miste: "Zaplatit můžeš převodem nebo na místě."
+        zaplaceno: "Všechny tvoje pohledávky jsou {zaplaceny}, není potřeba nic platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost, můžeš si samozřejmě kdykoli převést peníze do zásoby:"
+        zaplaceny: v pořádku zaplaceny

@@ -8,6 +8,7 @@ use App\Entity\Enum\GenderEnum;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 
 /**
@@ -130,6 +131,15 @@ class User
         'default' => ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value,
     ])]
     private int $zpusobZobrazeniNaWebu = ZpusobZobrazeniNaWebu::POUZE_PREZDIVKA->value;
+
+    /**
+     * @see Jazyk
+     */
+    #[ORM\Column(name: 'jazyk', type: Types::STRING, length: 5, nullable: false, options: [
+        'default' => 'cs',
+        'comment' => 'jazyk veřejného webu a e-mailů: cs, en',
+    ])]
+    private string $jazyk = 'cs';
 
     #[ORM\Column(name: 'z_rychloregistrace', type: Types::BOOLEAN, nullable: true, options: [
         'default' => 0,
@@ -517,6 +527,25 @@ class User
     public function setZpusobZobrazeniNaWebu(int $zpusobZobrazeniNaWebu): static
     {
         $this->zpusobZobrazeniNaWebu = $zpusobZobrazeniNaWebu;
+
+        return $this;
+    }
+
+    public function getJazyk(): string
+    {
+        return $this->jazyk;
+    }
+
+    /**
+     * @param string $jazyk hodnota {@see Jazyk}, jinou nepustí ani CHECK v databázi
+     */
+    public function setJazyk(string $jazyk): static
+    {
+        if (Jazyk::tryFrom($jazyk) === null) {
+            $povolene = implode(', ', array_column(Jazyk::cases(), 'value'));
+            throw new \InvalidArgumentException("Neznámý jazyk uživatele '{$jazyk}', povolené jsou: {$povolene}");
+        }
+        $this->jazyk = $jazyk;
 
         return $this;
     }

@@ -1,9 +1,12 @@
 import { ApiAktivitaNepřihlášen, ApiTag, ApiObsazenost, OdDo } from "../api/program";
+import { názevŠtítku } from "../i18n/nazvy";
 
-export const tagyZId = (tagyId: number[] | undefined, tagy: ApiTag[]) => {
+/** Názvy štítků aktivity pro čtenáře v jazyce stránky */
+export const tagyZId = (tagyId: number[] | undefined, tagy: ApiTag[]): string[] => {
   return tagyId
-    ?.map(id => tagy.find(tag => tag.id === id)?.nazev)
-    ?.filter(název=> název)
+    ?.map(id => tagy.find(tag => tag.id === id))
+    ?.filter((tag): tag is ApiTag => !!tag)
+    ?.map(tag => názevŠtítku(tag))
     ?? [];
 };
 

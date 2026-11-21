@@ -30,6 +30,11 @@ class Tag
     #[ORM\Column(name: 'nazev', length: 128, nullable: false)]
     private string $nazev;
 
+    #[ORM\Column(name: 'nazev_en', length: 255, nullable: true, options: [
+        'comment' => 'anglický název, NULL = jen česky',
+    ])]
+    private ?string $nazevEn = null;
+
     #[ORM\Column(name: 'poznamka', type: Types::TEXT, nullable: false)]
     private string $poznamka = '';
 
@@ -50,6 +55,18 @@ class Tag
     public function setNazev(string $nazev): static
     {
         $this->nazev = $nazev;
+
+        return $this;
+    }
+
+    public function getNazevEn(): ?string
+    {
+        return $this->nazevEn;
+    }
+
+    public function setNazevEn(?string $nazevEn): static
+    {
+        $this->nazevEn = $nazevEn;
 
         return $this;
     }

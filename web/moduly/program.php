@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Program;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Cas\DatumVJazyce;
 use Gamecon\Web\Info;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
@@ -22,18 +23,19 @@ function nazevStranky(?string $slug): string {
     global $systemoveNastaveni;
     $dny = [];
     foreach (DateTimeGamecon::dnyProgramu($systemoveNastaveni) as $den) {
+        // slug je klíč v URL, zůstává česky i v angličtině (format() vrací dny česky)
         $dny[slugify($den->format('l'))] = $den;
     }
 
     if (!$slug) {
-        return 'Program ' . reset($dny)->format('l');
+        return t('program.nadpis.den', ['den' => DatumVJazyce::denVTydnu(reset($dny))]);
     }
 
     if ($slug === 'muj') {
-        return 'Můj program';
+        return t('program.nadpis.muj');
     }
     if (isset($dny[$slug])) {
-        return 'Program ' . $dny[$slug]->format('l');
+        return t('program.nadpis.den', ['den' => DatumVJazyce::denVTydnu($dny[$slug])]);
     }
 
     throw new \Nenalezeno();

@@ -2,11 +2,16 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\FiltrAktivity;
+use Gamecon\Aktivita\HlavickaLinie;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\Program;
 use Gamecon\Aktivita\RocnikyAktivit;
 use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
+use Gamecon\Cas\DatumVJazyce;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\KategorieTagu;
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Medailonek;
@@ -23,6 +28,11 @@ $this->blackarrowStyl(true);
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 $typ = $this->param('typ');
+// Stránka linie je přeložená, když má anglický úvod (stránka z CMS). Rozhraní výpisu je přeložené vždy a názvy
+// a popisy aktivit mají vlastní `lang` podle jazyka aktivity. Medailonek vypravěče (/<id>) přeložený není.
+if ($typ) {
+    $this->setObsahPrelozeny($typ->getStrankaO()?->isPrelozena() ?? false);
+}
 
 // zpracování POST požadavků
 
@@ -140,7 +150,8 @@ foreach ($skupiny as $skupina) {
             // transliterace je drahá a dnů je pár
             $klicDne                = $klicePodleNazvuDne[$nazevDne] ??= odstranDiakritiku($nazevDne);
             $dnyKarty[$klicDne]     = true;
-            $dnyProFiltr[$klicDne] ??= ['datum' => $den->format('Y-m-d'), 'nazev' => $nazevDne];
+            // klíč zůstává český (filtr v URL), název je pro čtenáře
+            $dnyProFiltr[$klicDne] ??= ['datum' => $den->format('Y-m-d'), 'nazev' => DatumVJazyce::denVTydnu($den)];
         }
         // na minulý ročník se nepřihlašuje, i když v něm aktivita zůstala aktivovaná (prihlasovatelna() rok nehlídá)
         if (!$minulyRocnik) {
@@ -163,7 +174,7 @@ foreach ($skupiny as $skupina) {
         } elseif ($aktivita->tymova() && $u && $u->gcPrihlasen() && $aktivita->prihlasovatelna()) {
             $aktivitaId    = (int)$aktivita->id();
             $aktivitaNazev = addslashes($aktivita->nazev());
-            $label         = $aktivita->prihlasen($u) ? 'Nastavení týmu' : 'Přihlásit tým';
+            $label         = htmlspecialchars($aktivita->prihlasen($u) ? t('aktivity.nastaveni_tymu') : t('aktivity.prihlasit_tym'));
             $prihlasit     = "<button onclick=\"window.preactMost.prihlaseniTymu.otevri({$aktivitaId}, '{$aktivitaNazev}')\">{$label}</button>";
         } else {
             $prihlasit = $aktivita->prihlasovatko($u);
@@ -171,6 +182,10 @@ foreach ($skupiny as $skupina) {
 
         $t->assign([
             'aktivita'   => $aktivita,
+            // „pátek 19–23“ jako Aktivita::denCasSkutecny(), ten je ale česky vždy (e-mail sledujícím)
+            'denCas'     => $aktivita->zacatek() && $aktivita->konec()
+                ? htmlspecialchars(t('aktivity.termin', ['zacatek' => $aktivita->zacatek(), 'konec' => $aktivita->konec()]))
+                : '',
             'obsazenost' => $aktivita->obsazenost() ?: '',
             'prihlasit'  => $prihlasit,
         ]);
@@ -185,7 +200,7 @@ foreach ($skupiny as $skupina) {
         'aktivita'           => $aktivita,
         'htmlId'             => $aktivita->urlId(),
         // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
-        'kotva'              => URL_WEBU . '/' . $url->cela()
+        'kotva'              => urlWebu($url->cela())
             . ($minulyRocnik
                 ? '?rocnik=' . $rocnik
                 : '')
@@ -198,15 +213,27 @@ foreach ($skupiny as $skupina) {
         // čárka v názvu skupiny („Albi, s.r.o.“) by se při nahrazení čárek rozdělila na dva řádky
         'organizatoriNahled' => implode('<br>', $vypraveciKarty),
         'kapacita'           => $aktivita->kapacita()
-            ?: 'neomezeně',
+            ?: htmlspecialchars(t('aktivity.neomezene')),
+        // název a popisy píše vypravěč v jazyce aktivity, rozhraní kolem nich je v jazyce stránky
+        'jazykTextu'         => match ($aktivita->jazyk()) {
+            JazykAktivity::CESKY    => ' lang="' . Jazyk::CESTINA->value . '"',
+            JazykAktivity::ANGLICKY => ' lang="' . Jazyk::ANGLICTINA->value . '"',
+            default                 => '',
+        },
     ]);
     if ($vypraveciKarty && $vypraveciVsechTerminuStejni) {
         $t->parse('aktivity.aktivita.vypraveci');
         $t->parse('aktivity.nahled.vypraveci');
     }
 
-    $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.aktivita.stitek');
-    $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
+    if ($aktivita->jazyk() !== JazykAktivity::CESKY) {
+        // popisek() je prostý text z t(), do HTML se escapuje
+        $t->assign('jazyk', htmlspecialchars($aktivita->jazyk()->popisek()));
+        $t->parse('aktivity.aktivita.jazyk');
+        $t->parse('aktivity.nahled.jazyk');
+    }
+    $t->parseEach($aktivita->getNazvyTaguVJazyce(), 'stitek', 'aktivity.aktivita.stitek');
+    $t->parseEach($aktivita->getNazvyTaguVJazyce(), 'stitek', 'aktivity.nahled.stitek');
     $t->parse('aktivity.aktivita');
     $t->parse('aktivity.nahled');
 
@@ -225,7 +252,8 @@ $filtrAktivit = null;
 if (count($kartyProFiltr) >= 2) {
     $nazvyKategoriiTagu = [];
     foreach (KategorieTagu::zVsech() as $kategorieTagu) {
-        $nazvyKategoriiTagu[$kategorieTagu->id()] = $kategorieTagu->nazev();
+        // v jazyce stránky, Preact podle textu kategorie seskupuje
+        $nazvyKategoriiTagu[$kategorieTagu->id()] = $kategorieTagu->getNazevVJazyce();
     }
     uasort($dnyProFiltr, static fn(
         array $den,
@@ -240,7 +268,7 @@ if (count($kartyProFiltr) >= 2) {
             Tag $tag,
         ) => [
             'id'        => $tag->id(),
-            'nazev'     => $tag->nazev(),
+            'nazev'     => $tag->getNazevVJazyce(),
             'kategorie' => $nazvyKategoriiTagu[$tag->idKategorieTagu()] ?? '',
         ], Tag::zIds(array_values(array_unique(array_merge(...array_column($kartyProFiltr, 'tagy')))))),
         'dny'            => array_map(static fn(
@@ -274,17 +302,22 @@ if (!empty($org)) {
     $t->assign([
         'jmeno' => htmlspecialchars($org->jmenoNaWebu()),
         'popis' => $org->oSobe()
-            ?: '<p><em>popisek od vypravěče nemáme</em></p>',
+            ?: '<p><em>' . htmlspecialchars(t('aktivity.vypravec_bez_popisu')) . '</em></p>',
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
     ]);
     $t->parse('aktivity.hlavickaVypravec');
 } elseif ($typ) {
-    $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()) . $pripojkaRocniku);
+    // dlouhý název je z nadpisu české úvodní stránky linie, jinde název linie v jazyce stránky
+    $nazevLinie = AktualniJazyk::jazyk()->jeVychozi()
+        ? $typ->nazevDlouhy()
+        : $typ->getNazevVJazyce();
+    $this->info()->nazev(mb_ucfirst($nazevLinie) . $pripojkaRocniku);
 
-    $hlavickaLinie = dbOneLine(
-        'SELECT sekce, jmeno, email FROM akce_typy_hlavicky WHERE id_typu = $1',
-        [$typ->id()],
-    );
+    // kdo linii vede (z adminu, Web → Hlavičky linií), bez hlavičky zástupné texty
+    $hlavickaLinie = HlavickaLinie::zTypu((int)$typ->id());
+    $sekceLinie    = $hlavickaLinie?->getSekceVJazyce() ?? '';
+    $jmenoLinie    = $hlavickaLinie?->getJmeno() ?? '';
+    $emailLinie    = $hlavickaLinie?->getEmail() ?? '';
 
     $picture_path = URL_WEBU . '/' . cestaObrazkuLinie($typ->id());
 
@@ -292,9 +325,10 @@ if (!empty($org)) {
     $t->assign([
         'popisLinie'      => $typ->oTypu(),
         'ikonaLinie'      => $picture_path,
-        'ikonaLinieSekce' => !empty($hlavickaLinie['sekce']) ? $hlavickaLinie['sekce'] : 'Sekce',
-        'ikonaLinieJmeno' => !empty($hlavickaLinie['jmeno']) ? $hlavickaLinie['jmeno'] : 'Jmeno "Prezdivka" Prijmeni',
-        'ikonaLinieEmail' => !empty($hlavickaLinie['email']) ? $hlavickaLinie['email'] : 'info@gamecon.cz',
+        // texty z adminu jsou prostý text jako t(), do HTML se escapují
+        'ikonaLinieSekce' => htmlspecialchars($sekceLinie !== '' ? $sekceLinie : t('linie.hlavicka.sekce')),
+        'ikonaLinieJmeno' => htmlspecialchars($jmenoLinie !== '' ? $jmenoLinie : t('linie.hlavicka.jmeno')),
+        'ikonaLinieEmail' => htmlspecialchars($emailLinie !== '' ? $emailLinie : 'info@gamecon.cz'),
         'specTridy'       => $typ->id() == TypAktivity::DRD
             ? 'aktivity_aktivity-drd'
             : null,
