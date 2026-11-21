@@ -155,6 +155,12 @@ SQL,
             'nová, neaktivní workshop' => [null, (string) TypAktivity::WORKSHOP, 'Typ aktivity „workshop“ se už nepoužívá, vyber jiný.'],
             'larp změněný na bez typu' => [self::ID_AKTIVITY_LARP, (string) TypAktivity::SYSTEMOVA, $bezTypu],
             'larp s prázdným typem'    => [self::ID_AKTIVITY_LARP, '', self::VYBER_TYP],
+            // DB by uložila zaokrouhleně 5 (neaktivní workshop), kontrola by přitom viděla 4 (RPG)
+            'nová, desetinné číslo' => [null, '4.6', self::VYBER_TYP],
+            // jako ponechaný larp (2) by prošlo, uložilo by se ale 3
+            'larp, desetinné číslo' => [self::ID_AKTIVITY_LARP, '2.6', self::VYBER_TYP],
+            'nová, záporné číslo'   => [null, '-1', self::VYBER_TYP],
+            'nová, text'            => [null, 'larp', self::VYBER_TYP],
         ];
     }
 
