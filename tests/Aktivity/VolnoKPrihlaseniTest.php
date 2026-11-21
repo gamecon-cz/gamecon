@@ -16,7 +16,8 @@ use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Pohlavi;
 
 /**
- * Aktivita::isVolnoKPrihlaseni(), podle které filtr „Jen volná místa“ na stránce linie nechává karty.
+ * Aktivita::isVolnoKPrihlaseni() a isVolno(), podle kterých filtr „Jen volná místa“ na stránce linie nechává karty
+ * (během registrace první, mimo ni a v minulém ročníku druhá).
  */
 class VolnoKPrihlaseniTest extends AbstractTestDb
 {
@@ -67,6 +68,45 @@ class VolnoKPrihlaseniTest extends AbstractTestDb
         self::assertFalse($aktivita->isVolnoKPrihlaseni());
     }
 
+    public function testVolneMistoSePocitaIMimoPrihlasovani(): void
+    {
+        $aktivita = $this->aktivita(kapacitaUnisex: 5, stav: StavAktivity::PUBLIKOVANA);
+
+        self::assertTrue($aktivita->isVolno(), 'Co se nezaplnilo, jde zjistit i mimo registraci');
+    }
+
+    public function testUzavrenaPlnaAktivitaNeniVolna(): void
+    {
+        $plna = $this->aktivita(kapacitaUnisex: 1);
+        $this->prihlas($plna, $this->uzivatel(Pohlavi::MUZ_KOD));
+        $nezaplnena = $this->aktivita(kapacitaUnisex: 2);
+        $this->prihlas($nezaplnena, $this->uzivatel(Pohlavi::MUZ_KOD));
+        dbQuery(<<<'SQL'
+UPDATE akce_seznam SET stav = $0 WHERE id_akce IN ($1)
+SQL, [StavAktivity::UZAVRENA, [$plna->id(), $nezaplnena->id()]]);
+
+        self::assertFalse($this->znovuNacti($plna)->isVolno());
+        self::assertTrue($this->znovuNacti($nezaplnena)->isVolno());
+        self::assertFalse($this->znovuNacti($nezaplnena)->isVolnoKPrihlaseni(), 'Na uzavřenou se přihlásit nejde');
+    }
+
+    /**
+     * Stránka linie se mimo registraci ptá bez uživatele: co se nezaplnilo, má vidět každý, i muž, když zbyla jen
+     * ženská místa.
+     */
+    public function testUzavrenaSVolnymiZenskymiMistyJeBezUzivateleVolna(): void
+    {
+        $aktivita = $this->aktivita(kapacitaMuzu: 1, kapacitaZen: 1);
+        $this->prihlas($aktivita, $this->uzivatel(Pohlavi::MUZ_KOD));
+        dbQuery(<<<'SQL'
+UPDATE akce_seznam SET stav = $0 WHERE id_akce = $1
+SQL, [StavAktivity::UZAVRENA, $aktivita->id()]);
+        $aktivita = $this->znovuNacti($aktivita);
+
+        self::assertTrue($aktivita->isVolno());
+        self::assertFalse($aktivita->isVolno($this->uzivatel(Pohlavi::MUZ_KOD)));
+    }
+
     public function testTymovaAktivitaSePocitaPoTymech(): void
     {
         self::assertTrue($this->aktivita(kapacitaUnisex: 5, tymovaKapacita: 1)->isVolnoKPrihlaseni());
@@ -99,6 +139,11 @@ class VolnoKPrihlaseniTest extends AbstractTestDb
         ]);
 
         return Aktivita::zId((int) dbInsertId(), false, $this->systemoveNastaveni);
+    }
+
+    private function znovuNacti(Aktivita $aktivita): Aktivita
+    {
+        return Aktivita::zId($aktivita->id(), false, $this->systemoveNastaveni);
     }
 
     private function prihlas(Aktivita $aktivita, \Uzivatel $uzivatel): void

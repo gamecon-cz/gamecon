@@ -5,7 +5,7 @@ import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
 import { useAktivita, useUrlStav, useÚčastníkPohlaví } from "../../../../store/program/selektory";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
-import { volnoTypZObsazenost } from "../../../../utils";
+import { jePlnoZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 import { Aktivita } from "../../../../store/program/slices/programDataSlice";
@@ -36,11 +36,8 @@ export const tabulkaBuňkaAktivitaTřídy = (
     classes.push("vBudoucnu");
   }
 
-  if (aktivita.obsazenost) {
-    const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
-    if (volnoTyp !== "u" && volnoTyp !== "t" && volnoTyp !== pohlavi) {
-      classes.push("plno");
-    }
+  if (aktivita.obsazenost && jePlnoZObsazenost(aktivita.obsazenost, pohlavi)) {
+    classes.push("plno");
   }
   if (!classes.length) {
     classes.push("otevrene")

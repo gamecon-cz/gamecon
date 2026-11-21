@@ -161,7 +161,8 @@ body {
   text-overflow: ellipsis;
 }
 
-#submenu .adm_submenu_item_ord_1::before {
+#submenu .adm_submenu_item_ord_1::before,
+.main .submenuAktivovatVse::before {
   display: none;
   visibility: hidden;
   overflow: hidden;
@@ -192,6 +193,23 @@ body {
 
 .main #submenu .adm_submenu_item {
   padding-bottom: 4px;
+}
+
+/* Pátý sloupec by sloupce podmenu ještě zúžil, doplnek je proto pod podmenu, oddělený čárou. */
+.main .submenu-obal-s-doplnkem {
+  display: block;
+}
+
+.main .submenu-obal-s-doplnkem .adm_submenu_doplnek {
+  margin-top: 2px;
+  padding: 6px 0 8px;
+  border-top: 1px dashed #aaa;
+  text-align: right;
+}
+
+.main .submenu-obal-s-doplnkem .submenuAktivovatVse button[type=submit] {
+  width: auto;
+  padding: 6px 14px;
 }
 
 .main .submenuAktivovatVse {

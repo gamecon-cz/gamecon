@@ -75,6 +75,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     || urlStav.filtrText
     || urlStav.filtrStavAktivit?.length
     || urlStav.filtrPřihlašovatelné
+    || urlStav.filtrVolné
   );
 
   // V zobrazení po místnostech s aktivním přepínačem „Prázdné“ doplníme i
