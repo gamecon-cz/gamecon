@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Gamecon\Web;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 
 /**
- * The home page, the public modules, the lines of the menu, the pages made in the administration (it decides what is
- * public, a redirect is not a page) and the published blog posts. Organiser profiles, the days of the program and the
+ * The home page, the public modules, the lines of the menu, the archive of lectures (a page under its line, not a module
+ * of its own address), the pages made in the administration (it decides what is public, a redirect is not a page)
+ * and the published blog posts. Organiser profiles, the days of the program and the
  * pages of a line's organisers (`vypraveci/<line>`) stay out, crawlers reach them by links.
  */
 class CestyKSitemape
@@ -53,6 +55,7 @@ class CestyKSitemape
             '',
             ...self::VEREJNE_MODULY,
             ...array_filter([...$cestyLinii, ...$cestyStranek], $this->isCestaKterouRouterVrati(...)),
+            ...array_filter([ArchivPrednasekStranka::getCestaZDatabaze()]),
             ...array_filter($cestyBlogu, \Url::povolena(...)),
         ];
     }

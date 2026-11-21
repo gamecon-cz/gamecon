@@ -10,6 +10,7 @@ use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\EmailovaSablona\KodEmailoveSablonyEnum;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Kanaly\GcMailSablona;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\ObnovaHeslaLog;
 use Gamecon\Uzivatel\ResetHeslaToken;
 use Gamecon\Web\MenuWebu;
@@ -277,7 +278,7 @@ class ObnovaHeslaController extends AbstractController
         ]);
         $telo = GcMailSablona::obal($vykresleno->text, 'Obnova hesla');
 
-        $mail = new GcMail(\Gamecon\SystemoveNastaveni\SystemoveNastaveni::zGlobals(), $telo);
+        $mail = new GcMail(SystemoveNastaveni::zGlobals(), $telo);
         $mail->adresat($uzivatel->mail());
         $mail->predmet($vykresleno->predmet);
         $mail->sablona(KodEmailoveSablonyEnum::OBNOVA_HESLA);
@@ -348,7 +349,7 @@ class ObnovaHeslaController extends AbstractController
             $sablona->assign([
                 'css'        => \perfectcache('soubory/blackarrow/*/*.less'),
                 'chyba'      => \Chyba::vyzvedniHtml(),
-                'menu'       => MenuWebu::html($this->legacySession->getCurrentUser()),
+                'menu'       => MenuWebu::html($this->legacySession->getCurrentUser(), SystemoveNastaveni::zGlobals()),
                 'obsah'      => $obsah,
                 'base'       => URL_WEBU . '/',
                 'info'       => '<title>' . htmlspecialchars($nazev, ENT_QUOTES) . ' – GameCon</title>',

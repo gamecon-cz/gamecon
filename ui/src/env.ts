@@ -5,6 +5,7 @@
 import { ApiPřihlášenýUživatel } from "./api/přihlášenýUživatel";
 import { ApiLokace, ProgramManifest } from "./api/program";
 import { ApiFiltrAktivit, ApiRocnikyAktivit } from "./api/filtrAktivit";
+import { ApiArchivPrednasek } from "./api/archivPrednasek";
 import { range } from "./utils";
 
 
@@ -83,6 +84,8 @@ type GameconPřednačtení = {
   filtrAktivit?: ApiFiltrAktivit | null
   /** jen na stránce linie, která má aktivity i z dřívějších ročníků */
   rocnikyAktivit?: ApiRocnikyAktivit | null
+  /** jen v archivu přednášek */
+  archivPrednasek?: ApiArchivPrednasek
 };
 
 declare global {

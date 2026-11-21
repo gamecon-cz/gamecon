@@ -1,5 +1,5 @@
 import { ComponentChildren, FunctionComponent } from "preact";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import Select, { GroupBase, OptionsOrGroups } from "react-select";
 import { ApiFiltrAktivit, ApiFiltrAktivitKarta, ApiRocnikyAktivit } from "../../api/filtrAktivit";
 import { distinct } from "../../utils";
@@ -10,6 +10,8 @@ import {
   filtrujBezŠtítků, filtrujBezVypravěčů, filtrujPodleŠtítků, filtrujPodleVypravěčů, FiltrKaret, filtrZUrl,
   jeFiltrPrázdný, KartaProFiltr, normalizujText, PRÁZDNÝ_FILTR, urlSFiltrem, urlSRočníkem,
 } from "./filtr";
+import { třídaTlačítka } from "../filtrStranky/tlacitko";
+import { useMenuDoSpodkuOkna } from "../filtrStranky/useMenuDoSpodkuOkna";
 
 import "../program/components/vstupy/ReactSelect.less";
 import "./AktivityFiltr.less";
@@ -49,43 +51,6 @@ const uložZobrazeníSeznamem = (seznam: boolean) => {
   } catch {
     // bez úložiště se volba jen nezapamatuje
   }
-};
-
-const třídaTlačítka = (aktivní: boolean) =>
-  "aktivityFiltr_tlacitko" + (aktivní ? " aktivni" : "");
-
-/** výchozí maxMenuHeight v react-select */
-const NEJMENŠÍ_VÝŠKA_MENU = 300;
-
-/**
- * Menu výběru až ke spodku okna. Kdo vybírá štítky, stejně nekouká na aktivity pod ním.
- * Výška se počítá podle toho, kde zrovna výběr na stránce je, a znovu po každém vykreslení,
- * dokud je menu otevřené: s dalšími vybranými štítky výběr naroste o řádek a menu sjede níž.
- */
-const useMenuDoSpodkuOkna = () => {
-  const obal = useRef<HTMLDivElement>(null);
-  const [otevřené, setOtevřené] = useState(false);
-  const [výška, setVýška] = useState(NEJMENŠÍ_VÝŠKA_MENU);
-
-  useLayoutEffect(() => {
-    const spodekVýběru = obal.current?.getBoundingClientRect().bottom;
-    if (!otevřené || spodekVýběru === undefined) return;
-    // odsazení menu od výběru a kousek místa pod ním
-    const nováVýška = Math.max(NEJMENŠÍ_VÝŠKA_MENU, Math.floor(window.innerHeight - spodekVýběru - 24));
-    // bez porovnání by se vykreslovalo dokola
-    if (nováVýška !== výška) setVýška(nováVýška);
-  });
-
-  return {
-    obal,
-    výška,
-    otevři: () => {
-      setOtevřené(true);
-    },
-    zavři: () => {
-      setOtevřené(false);
-    },
-  };
 };
 
 type RočníkValueLabel = { value: number, label: string };
@@ -157,6 +122,8 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
   );
   // lišta je i u pár karet, jediný den by ale nic nezúžil
   const nabídnoutDny = data.dny.length > 1;
+  // stejně tak volná místa, když nic nemá plno (před registrací je všechno prázdné)
+  const nabídnoutVolné = data.karty.some((karta) => !karta.volno);
 
   const [filtr, setFiltr] = useState<FiltrKaret>(() => {
     // odkaz z jiné linie nebo z loňska: co na stránce není, by v liště nešlo vypnout
@@ -168,7 +135,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
       dny: nabídnoutDny
         ? zUrl.dny.filter((den) => data.dny.some((známý) => známý.klic === den))
         : [],
-      jenVolné: zUrl.jenVolné && data.lzePrihlasovat,
+      jenVolné: zUrl.jenVolné && nabídnoutVolné,
     };
   });
   const [seznam, setSeznam] = useState(načtiZobrazeníSeznamem);
@@ -370,7 +337,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
             ))}
           </div>
         )}
-        {data.lzePrihlasovat && (
+        {nabídnoutVolné && (
           <button
             type="button"
             class={třídaTlačítka(filtr.jenVolné)}

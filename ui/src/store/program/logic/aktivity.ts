@@ -1,7 +1,7 @@
 import { ApiTag, AktivitaStav, jeNeúčast } from "../../../api/program";
 import { Pohlavi } from "../../../api/přihlášenýUživatel";
 import { GAMECON_KONSTANTY } from "../../../env";
-import { volnoTypZObsazenost } from "../../../utils";
+import { jePlnoZObsazenost, volnoTypZObsazenost } from "../../../utils";
 import { pražskéHodiny, pražskýDenVTýdnu, pražskýRok } from "../../../utils/czech-time";
 // Pozor musí být defaultní import!
 import FlexSearch from "flexsearch";
@@ -37,6 +37,8 @@ export type FiltrAktivit = Partial<{
   ročník: number,
   výběr: FiltrProgramTabulkaVýběr,
   filtrPřihlašovatelné: boolean,
+  /** zbývá místo, i mimo registraci a v minulých ročnících (co se nezaplnilo), viz máVolnéMísto() */
+  filtrVolné: boolean,
   filtrLinie: string[],
   filtrTagy: number[],
   filtrStavAktivit: AktivitaStav[],
@@ -70,13 +72,23 @@ export const aktivitaStatusZAktivity = (
     return "vBudoucnu";
   }
 
-  if (aktivita.obsazenost) {
-    const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
-    if (volnoTyp !== "u" && volnoTyp !== "t" && volnoTyp !== pohlavi) {
-      return "plno";
-    }
+  if (aktivita.obsazenost && jePlnoZObsazenost(aktivita.obsazenost, pohlavi)) {
+    return "plno";
   }
   return "volno";
+};
+
+/**
+ * Na aktivitě zbývá místo. Kam se dá přihlásit, tam se přihlášenému počítají jen místa pro jeho pohlaví, jinde (mimo
+ * registraci, proběhlá, minulý ročník) jakékoli volné místo bez ohledu na to, kdo se dívá, ať jde zjistit, co se
+ * nezaplnilo. Stejně jako „Jen volná místa“ na stránce linie (web/moduly/aktivity.php).
+ */
+export const máVolnéMísto = (aktivita: Aktivita, pohlavi: Pohlavi | undefined): boolean => {
+  if (!aktivita.obsazenost) return true;
+  const místaProPohlaví = pohlavi && aktivita.prihlasovatelna && !aktivita.probehnuta;
+  return místaProPohlaví
+    ? !jePlnoZObsazenost(aktivita.obsazenost, pohlavi)
+    : volnoTypZObsazenost(aktivita.obsazenost) !== "x";
 };
 
 export const denAktivity = (časAktivity: Date | number | Aktivita): Date => {
@@ -137,9 +149,16 @@ const zaindexujFullText = (aktivita: Aktivita) => {
 };
 
 
-export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapováníTagů: MapováníTagů) => {
+/**
+ * @param pohlavi přihlášeného: legenda (Otevřené / Plno) mu počítá jen místa pro jeho pohlaví jako obarvení buňky,
+ *   Volná místa jen tam, kam se dá přihlásit
+ */
+export const filtrujAktivity = (
+  aktivity: Aktivita[], filtr: FiltrAktivit, mapováníTagů: MapováníTagů, pohlavi?: Pohlavi,
+) => {
   const {
-    filtrLinie, filtrPřihlašovatelné, filtrTagy: filtrTagyId, ročník, výběr, filtrStavAktivit, filtrText, filtrInterni
+    filtrLinie, filtrPřihlašovatelné, filtrVolné, filtrTagy: filtrTagyId, ročník, výběr, filtrStavAktivit, filtrText,
+    filtrInterni,
   } = filtr;
 
   const textovéFiltry: string[] = [];
@@ -207,17 +226,20 @@ export const filtrujAktivity = (aktivity: Aktivita[], filtr: FiltrAktivit, mapov
       );
   }
 
-  // TODO: přihlašovatelnost aktivity dle pohlaví
   // TODO: přihlašovatelnost aktivity dle pohlaví přidat tooltip na tlačítko
   if (filtrStavAktivit)
     aktivityFiltrované = aktivityFiltrované.filter((aktivita) =>
-      filtrStavAktivit.some((x) => aktivitaStatusZAktivity(aktivita) === x)
+      filtrStavAktivit.some((x) => aktivitaStatusZAktivity(aktivita, pohlavi) === x)
     );
 
   if (filtrPřihlašovatelné)
     aktivityFiltrované = aktivityFiltrované.filter(
       (aktivita) => aktivita.prihlasovatelna && !aktivita.probehnuta
     );
+
+  // na přihlašovatelnosti nezáleží, ať jde i po GC zjistit, co se nezaplnilo; s „Přihlašovatelné“ jen to, kam se dá jít
+  if (filtrVolné)
+    aktivityFiltrované = aktivityFiltrované.filter((aktivita) => máVolnéMísto(aktivita, pohlavi));
 
   if (!filtrInterni)
     aktivityFiltrované = aktivityFiltrované.filter(

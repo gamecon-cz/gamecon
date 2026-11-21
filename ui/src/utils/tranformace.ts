@@ -1,4 +1,5 @@
 import { ApiAktivitaNepřihlášen, ApiTag, ApiObsazenost, OdDo } from "../api/program";
+import { Pohlavi } from "../api/přihlášenýUživatel";
 
 export const tagyZId = (tagyId: number[] | undefined, tagy: ApiTag[]) => {
   return tagyId
@@ -29,6 +30,15 @@ export const volnoTypZObsazenost = (obsazenost: ApiObsazenost) => {
   }
   //else
   return "u"; //je volno a žádné pohlaví nevyžralo limit míst
+};
+
+/**
+ * Pro toho, kdo se dívá, už na aktivitě místo není: přihlášenému se počítají jen místa pro jeho pohlaví,
+ * nepřihlášenému jen místa pro kohokoli. Týmovka se plní po týmech. Podle toho program buňku obarví jako plnou.
+ */
+export const jePlnoZObsazenost = (obsazenost: ApiObsazenost, pohlavi: Pohlavi | undefined): boolean => {
+  const volnoTyp = volnoTypZObsazenost(obsazenost);
+  return volnoTyp !== "u" && volnoTyp !== "t" && volnoTyp !== pohlavi;
 };
 
 export const casRozsahZAktivit = (aktivity: ApiAktivitaNepřihlášen[]): OdDo => {

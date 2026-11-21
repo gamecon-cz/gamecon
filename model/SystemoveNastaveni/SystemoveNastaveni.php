@@ -1004,6 +1004,20 @@ SQL;
         return mezi($this->gcBeziOd(), $this->gcBeziDo());
     }
 
+    /**
+     * Obdoba {@see gcBezi()}, ale porovnává s {@see ted()} místo reálného
+     * time(), takže jde čas v testech a na preview nasimulovat. Hranice jsou
+     * inkluzivní stejně jako v mezi(): v okamžiku GC_BEZI_OD i GC_BEZI_DO
+     * GameCon běží.
+     */
+    public function isGcBeziPodleTed(): bool
+    {
+        $ted = $this->ted()->getTimestamp();
+
+        return $this->gcBeziOd()->getTimestamp() <= $ted
+            && $ted <= $this->gcBeziDo()->getTimestamp();
+    }
+
     public function prihlasovaniUcastnikuOd(int $rocnik = null): DateTimeGamecon
     {
         return DateTimeGamecon::prihlasovaniUcastnikuOd($rocnik ?? $this->rocnik());

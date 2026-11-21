@@ -60,6 +60,12 @@ if (in_array($job, ['mazani_nepripravenych_tymu', 'aktivity_hromadne'])) {
 }
 
 
+if ($job === 'archiv_prednasek_po_gc') {
+    require __DIR__ . '/jobs/archiv_prednasek_po_gc.php';
+
+    return;
+}
+
 if ($job === 'materializace_roli_podle_rocniku') {
     require __DIR__ . '/jobs/materializace_roli_podle_rocniku.php';
 

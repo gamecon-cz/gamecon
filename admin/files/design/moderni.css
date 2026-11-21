@@ -584,6 +584,39 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
+/* Obal podmenu s doplnkem (u Aktivit nebezpečné „aktivovat hromadně“): doplnek má vlastní sloupec vpravo,
+   oddělený čarou, ať se na něj neklikne místo vedlejší položky. Čáru pod podmenu pak kreslí obal. */
+:where(.vzhled-moderni) .submenu-obal-s-doplnkem {
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  margin: 0 0 20px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--m-okraj);
+}
+
+/* Počet sloupců Aktivit se řídí místem, které vedle doplnku zbude, ne šířkou okna. */
+:where(.vzhled-moderni) .submenu-sloupce {
+  container-type: inline-size;
+}
+
+:where(.vzhled-moderni) .submenu-obal-s-doplnkem > .submenu-sloupce {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+:where(.vzhled-moderni) .submenu-obal-s-doplnkem #submenu {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+:where(.vzhled-moderni) .submenu-obal-s-doplnkem .adm_submenu_doplnek {
+  flex: 0 0 auto;
+  padding: 22px 0 0 20px;
+  border-left: 1px solid var(--m-okraj);
+}
+
 :where(.vzhled-moderni) #submenu > li {
   flex: 0 1 auto;
   width: auto;
@@ -607,10 +640,51 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   max-width: none;
 }
 
+/* Aktivity: skupiny jsou sloupce pod nadpisy a položky v nich pod sebou, jako v klasickém vzhledu. Sloupce
+   jsou čtyři, nebo dva, ať nezůstane jeden osiřelý pod třemi. Telefon má posuvný řádek níž. */
+@media (min-width: 640px) {
+  :where(.vzhled-moderni) #submenu.submenu-selected-aktivity {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 12px;
+  }
+
+  :where(.vzhled-moderni) #submenu.submenu-selected-aktivity .adm_submenu_group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  :where(.vzhled-moderni) #submenu.submenu-selected-aktivity .adm_submenu_item {
+    min-width: 0;
+  }
+
+  /* Hranice sloupců počítají s nejdelší položkou (Nová vypravěčská skupina) na jeden řádek. Širší písmo ji
+     zalomí, nepřeteče do vedlejšího sloupce; zaoblení je proto půlka výšky jednoho řádku, ne 999px. */
+  :where(.vzhled-moderni) #submenu.submenu-selected-aktivity .adm_submenu_item a {
+    display: flex;
+    width: 100%;
+    padding-right: 12px;
+    padding-left: 12px;
+    border-radius: 17px;
+    white-space: normal;
+  }
+
+  @container (min-width: 28rem) {
+    :where(.vzhled-moderni) #submenu.submenu-selected-aktivity {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container (min-width: 54rem) {
+    :where(.vzhled-moderni) #submenu.submenu-selected-aktivity {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+}
+
 :where(.vzhled-moderni) #submenu .adm_submenu_item,
 :where(.vzhled-moderni) #submenu .adm_submenu_item_grp_0,
-:where(.vzhled-moderni) #submenu .adm_submenu_item_grp_5,
-:where(.vzhled-moderni) #submenu .adm_submenu_doplnek {
+:where(.vzhled-moderni) #submenu .adm_submenu_item_grp_5 {
   flex: 0 0 auto;
   align-self: auto;
   margin: 0;
@@ -665,7 +739,8 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   outline-offset: 2px;
 }
 
-:where(.vzhled-moderni) .adm_submenu_item_ord_1::before {
+:where(.vzhled-moderni) .adm_submenu_item_ord_1::before,
+:where(.vzhled-moderni) .submenuAktivovatVse::before {
   top: -22px;
   right: auto;
   left: 2px;
@@ -786,10 +861,11 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   outline-offset: 1px;
 }
 
+/* :disabled u tlačítka jen drží specificitu nad button.danger a obecným tlačítkem níž, ať zašedne */
 :where(.vzhled-moderni) input[disabled],
 :where(.vzhled-moderni) textarea[disabled],
 :where(.vzhled-moderni) select[disabled],
-:where(.vzhled-moderni) button[disabled]:not(.no-background-color) {
+:where(.vzhled-moderni) button[disabled]:disabled {
   border-color: var(--m-okraj);
   background-color: var(--m-pozadi);
   color: var(--m-text-tlumeny);
@@ -848,6 +924,46 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   top: 0;
   height: auto;
   line-height: 1.3;
+}
+
+/* Ikonová tlačítka (korekce, smazání a úprava v přehledu aktivit): jen ikona, rámeček až pod myší. */
+:where(.vzhled-moderni) button.tlacitko-ikona {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--m-text-tlumeny);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+:where(.vzhled-moderni) button.tlacitko-ikona:hover {
+  border-color: var(--m-okraj-pole);
+  background: var(--m-hover);
+  color: var(--m-text);
+}
+
+:where(.vzhled-moderni) button.tlacitko-ikona_smazat:hover {
+  color: var(--m-akcent);
+}
+
+:where(.vzhled-moderni) .korekce-stav {
+  font-size: 17px;
+}
+
+:where(.vzhled-moderni) .korekce-stav_ok {
+  color: #1a7f37;
+}
+
+:where(.vzhled-moderni) .korekce-stav_chybi {
+  color: var(--m-akcent);
 }
 
 /* button.danger má vyšší specificitu než obecné tlačítko výše */
@@ -1493,6 +1609,47 @@ body.moderni-menu-otevrene .sloupL {
     display: none;
   }
 
+  /* Aktivity mají skupiny pojmenované, nadpisy proto zůstanou i v posuvném řádku nad první položkou skupiny. */
+  :where(.vzhled-moderni) #submenu.submenu-selected-aktivity {
+    padding-top: 30px;
+  }
+
+  :where(.vzhled-moderni) #submenu.submenu-selected-aktivity .adm_submenu_item_ord_1::before {
+    display: block;
+    top: -20px;
+  }
+
+  /* Doplnek (u Aktivit „aktivovat hromadně“) nesmí zapadnout na konec posuvného řádku: má vlastní pruh pod ním. */
+  :where(.vzhled-moderni) .submenu-obal-s-doplnkem {
+    display: block;
+    margin: 0;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  :where(.vzhled-moderni) .submenu-obal-s-doplnkem #submenu {
+    margin: -12px -12px 0;
+    border-bottom: 1px solid var(--m-okraj);
+  }
+
+  :where(.vzhled-moderni) .submenu-obal-s-doplnkem .adm_submenu_doplnek {
+    margin: 0 -12px 16px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--m-okraj);
+    border-left: 0;
+  }
+
+  :where(.vzhled-moderni) .submenuAktivovatVse {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  :where(.vzhled-moderni) .submenuAktivovatVse::before {
+    position: static;
+  }
+
   :where(.vzhled-moderni) .paticka .protip {
     display: none;
   }
@@ -1938,6 +2095,16 @@ body.moderni-menu-otevrene .sloupL {
     --m-odkaz: #8ab4f8;
     --m-fokus: #6b9cff;
     --m-fokus-stin: rgba(107, 156, 255, 0.35);
+  }
+
+  /* Stav korekce a smazání v přehledu aktivit: tmavší zelená a červená na tmavém pozadí zanikají. */
+  :where(.moderni-tmave .vzhled-moderni) .korekce-stav_ok {
+    color: #3fb950;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .korekce-stav_chybi,
+  :where(.moderni-tmave .vzhled-moderni) button.tlacitko-ikona_smazat:hover {
+    color: #ff7b72;
   }
 
   /* Karta pracovního uživatele v tmavém panelu, ať se od něj odliší. */

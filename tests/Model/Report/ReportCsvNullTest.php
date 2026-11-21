@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Report;
 
+use Gamecon\Report\KonfiguraceReportu;
 use PHPUnit\Framework\TestCase;
 
 class ReportCsvNullTest extends TestCase
@@ -69,11 +70,21 @@ class ReportCsvNullTest extends TestCase
         self::assertStringNotContainsString('<a href', $this->csv($report));
     }
 
+    public function testZnackyLzePonechatProTextOdUzivatelu(): void
+    {
+        $report = \Report::zPoli(['nick'], [['<3 Lucka'], ['a<b']]);
+
+        self::assertSame(
+            "nick\n\"<3 Lucka\"\na<b\n",
+            $this->csv($report, (new KonfiguraceReportu())->setStrippingTagsInCsv(false)),
+        );
+    }
+
     /**
      * Výstup se sbírá přes buffer, protože `tCsv()` posílá hlavičky a píše rovnou
      * na `php://output`; v testu jde o samotné řádky, ne o stahovaný soubor.
      */
-    private function csv(\Report $report): string
+    private function csv(\Report $report, ?KonfiguraceReportu $konfiguraceReportu = null): string
     {
         // Název staženého souboru se odvozuje z REQUEST_URI, které v CLI neexistuje.
         // Bez něj hlásí `nazevReportuZRequestu()` vlastní deprecation a test by měřil
@@ -85,7 +96,7 @@ class ReportCsvNullTest extends TestCase
 
         ob_start();
         try {
-            $report->tCsv();
+            $report->tCsv(null, $konfiguraceReportu);
         } finally {
             $vystup = ob_get_clean();
             if ($puvodniRequestUri === null) {

@@ -118,27 +118,14 @@ class OnlinePrezenceUcastnikHtml
      * koordinaci), ostatní (typicky uživatelé s právem ADMINISTRACE_PREZENCE
      * bez organizátorské role) jen po dobu běhu GameConu – ochrana osobních
      * údajů, aby se čísla nedala hromadně vytáhnout před akcí ani po ní.
+     * Běh GameConu se bere podle injektovaného času, jako zbytek prezence
+     * (editovatelnost, checkboxy), jinak by v testech / preview
+     * s nasimulovaným časem bylo UI nekonzistentní.
      */
     private function smiZobrazitTelefon(\Uzivatel $vypravec): bool
     {
         return $vypravec->jeOrganizator()
-            || $this->gcBeziPodleInjektovanehoCasu();
-    }
-
-    /**
-     * Obdoba {@see SystemoveNastaveni::gcBezi()}, ale porovnává proti
-     * injektovanému času ($this->ted()) místo reálného time(). Zbytek prezence
-     * (editovatelnost, checkboxy) se řídí injektovaným časem, takže i skrývání
-     * telefonů musí, jinak by v testech / preview s nasimulovaným časem bylo UI
-     * nekonzistentní. Hranice jsou inkluzivní stejně jako v mezi() – v okamžiku
-     * GC_BEZI_OD i GC_BEZI_DO je GameCon považován za běžící.
-     */
-    private function gcBeziPodleInjektovanehoCasu(): bool
-    {
-        $ted = $this->systemoveNastaveni->ted()->getTimestamp();
-
-        return $this->systemoveNastaveni->gcBeziOd()->getTimestamp() <= $ted
-            && $ted <= $this->systemoveNastaveni->gcBeziDo()->getTimestamp();
+            || $this->systemoveNastaveni->isGcBeziPodleTed();
     }
 
     private function cssZobrazitKdyz(bool $zobrazit): string
