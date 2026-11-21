@@ -111,6 +111,12 @@ export const nastavFiltrPřihlašovatelné = (přihlašovatelné: boolean) => {
   }, undefined, "nastav filtr přihlašovatelné");
 };
 
+export const nastavFiltrVolné = (volné: boolean) => {
+  useProgramStore.setState((s) => {
+    s.urlStav.filtrVolné = volné;
+  }, undefined, "nastav filtr volné");
+};
+
 export const přepniPodleMístnosti = () => {
   useProgramStore.setState((s) => {
     s.urlStav.podleMístnosti = !s.urlStav.podleMístnosti || undefined;

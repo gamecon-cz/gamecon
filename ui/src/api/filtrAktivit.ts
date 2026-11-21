@@ -13,7 +13,10 @@ export type ApiFiltrAktivitKarta = {
   dny: string[],
   /** id vypravěčů ze všech termínů karty */
   vypraveci: number[],
-  /** aspoň na jeden termín se dá přihlásit a je na něm místo */
+  /**
+   * aspoň jeden termín nemá plno; během registrace se počítají jen termíny, na které se dá přihlásit,
+   * mimo ni a v minulém ročníku stačí volné místo (co se nezaplnilo)
+   */
   volno: boolean,
 };
 
@@ -41,8 +44,6 @@ export type ApiFiltrAktivit = {
   dny: ApiFiltrAktivitDen[],
   /** vypravěči z karet, podle abecedy */
   vypraveci: ApiFiltrAktivitVypravec[],
-  /** nějaký termín je přihlašovatelný, jinak nemá filtr volných míst smysl */
-  lzePrihlasovat: boolean,
 };
 
 /** přepínač ročníku nad aktivitami, jen když tu něco bylo i dřív */
