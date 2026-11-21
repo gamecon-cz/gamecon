@@ -861,10 +861,11 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   outline-offset: 1px;
 }
 
+/* :disabled u tlačítka jen drží specificitu nad button.danger a obecným tlačítkem níž, ať zašedne */
 :where(.vzhled-moderni) input[disabled],
 :where(.vzhled-moderni) textarea[disabled],
 :where(.vzhled-moderni) select[disabled],
-:where(.vzhled-moderni) button[disabled]:not(.no-background-color) {
+:where(.vzhled-moderni) button[disabled]:disabled {
   border-color: var(--m-okraj);
   background-color: var(--m-pozadi);
   color: var(--m-text-tlumeny);
@@ -923,6 +924,46 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   top: 0;
   height: auto;
   line-height: 1.3;
+}
+
+/* Ikonová tlačítka (korekce, smazání a úprava v přehledu aktivit): jen ikona, rámeček až pod myší. */
+:where(.vzhled-moderni) button.tlacitko-ikona {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--m-text-tlumeny);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+:where(.vzhled-moderni) button.tlacitko-ikona:hover {
+  border-color: var(--m-okraj-pole);
+  background: var(--m-hover);
+  color: var(--m-text);
+}
+
+:where(.vzhled-moderni) button.tlacitko-ikona_smazat:hover {
+  color: var(--m-akcent);
+}
+
+:where(.vzhled-moderni) .korekce-stav {
+  font-size: 17px;
+}
+
+:where(.vzhled-moderni) .korekce-stav_ok {
+  color: #1a7f37;
+}
+
+:where(.vzhled-moderni) .korekce-stav_chybi {
+  color: var(--m-akcent);
 }
 
 /* button.danger má vyšší specificitu než obecné tlačítko výše */
@@ -2054,6 +2095,16 @@ body.moderni-menu-otevrene .sloupL {
     --m-odkaz: #8ab4f8;
     --m-fokus: #6b9cff;
     --m-fokus-stin: rgba(107, 156, 255, 0.35);
+  }
+
+  /* Stav korekce a smazání v přehledu aktivit: tmavší zelená a červená na tmavém pozadí zanikají. */
+  :where(.moderni-tmave .vzhled-moderni) .korekce-stav_ok {
+    color: #3fb950;
+  }
+
+  :where(.moderni-tmave .vzhled-moderni) .korekce-stav_chybi,
+  :where(.moderni-tmave .vzhled-moderni) button.tlacitko-ikona_smazat:hover {
+    color: #ff7b72;
   }
 
   /* Karta pracovního uživatele v tmavém panelu, ať se od něj odliší. */
