@@ -455,6 +455,20 @@ body:has(.profilInfo) .sloupL {
   text-decoration: underline;
 }
 
+/* Stav korekce v přehledu aktivit */
+.korekce-stav {
+  font-size: 1.2em;
+  vertical-align: middle;
+}
+
+.korekce-stav_ok {
+  color: #2e7d32;
+}
+
+.korekce-stav_chybi {
+  color: #c62828;
+}
+
 .aktivityProgramovaLinie {
   float: right;
 }
@@ -521,7 +535,8 @@ input, select, label, button, input[type=file] {
   cursor: pointer;
 }
 
-input[disabled], textarea[disabled], select[disabled], button[disabled]:not(.no-background-color) {
+/* :disabled u tlačítka jen drží specificitu, kterou pravidlo mělo, ať zašedne i tlačítko s třídou */
+input[disabled], textarea[disabled], select[disabled], button[disabled]:disabled {
   background-color: lightgray;
 }
 

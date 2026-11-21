@@ -197,6 +197,7 @@ foreach ($aktivity as $aktivita) {
     }
     if ($u->maPravo(Pravo::PROVADI_KOREKCE)) {
         $tpl->assign('opacnyStavKorekce', $aktivita->probehlaKorekce() ? 1 : 0);
+        $tpl->assign('stavKorekce', $r[Sql::PROBEHLA_KOREKCE] ? 'proběhla' : 'neproběhla');
         $tpl->parse("aktivity.aktivita.rychlokorekce1");
     }
     if ($r[Sql::PROBEHLA_KOREKCE]) {
