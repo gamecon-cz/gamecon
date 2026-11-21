@@ -538,10 +538,13 @@ SQL
                 ? 'Vyber typ aktivity.'
                 : null; // existující aktivita si typ ponechá
         }
-        if (!is_scalar($typ) || trim((string)$typ) === '') {
+        // jen celé číslo: uloží se hodnota z formuláře a DB by například „4.6“ zaokrouhlila na jiný typ, než prošel kontrolou
+        $idTypu = is_int($typ) || is_string($typ)
+            ? filter_var($typ, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]])
+            : false;
+        if ($idTypu === false) {
             return 'Vyber typ aktivity.';
         }
-        $idTypu = (int)$typ;
         if ($puvodniAktivita !== null && $idTypu === (int)$puvodniAktivita->a[Sql::TYP]) {
             return null;
         }
