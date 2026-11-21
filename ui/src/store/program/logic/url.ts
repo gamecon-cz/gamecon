@@ -20,6 +20,7 @@ export type ProgramURLStav = {
   ročník: number,
   výběr: ProgramTabulkaVýběr,
   filtrPřihlašovatelné?: boolean,
+  filtrVolné?: boolean,
   aktivitaNáhledId?: number,
   filtrLinie?: string[],
   filtrTagy?: number[],
@@ -90,6 +91,7 @@ const NÁHLED_QUERY_KEY = "idAktivityNahled";
 const LINIE_QUERY_KEY = "linie";
 const TAGY_QUERY_KEY = "tagy";
 const PŘIHLAŠOVATELNÉ_QUERY_KEY = "pouzePrihlasovatelne";
+const VOLNÉ_QUERY_KEY = "pouzeVolne";
 const ROCNIK_QUERY_KEY = "rocnik";
 const STAVY_QUERY_KEY = "stav";
 const TEXT_QUERY_KEY = "text";
@@ -104,6 +106,7 @@ const párováníQueryDoStavu: {
   stavString: keyof ProgramURLStav,
 }[] = [
   { stavString: "filtrPřihlašovatelné", query: PŘIHLAŠOVATELNÉ_QUERY_KEY },
+  { stavString: "filtrVolné", query: VOLNÉ_QUERY_KEY },
   { stavString: "aktivitaNáhledId", query: NÁHLED_QUERY_KEY },
   { stavString: "filtrLinie", query: LINIE_QUERY_KEY },
   { stavString: "filtrTagy", query: TAGY_QUERY_KEY },

@@ -3739,14 +3739,20 @@ SQL,
     }
 
     /**
-     * Dá se na aktivitu přihlásit a zbývá na ní místo. S uživatelem se počítají jen místa pro jeho pohlaví,
-     * bez něj stačí místo pro kohokoli. Týmová aktivita se plní po týmech, stejně jako v obsazenostHtml().
+     * Dá se na aktivitu přihlásit a zbývá na ní místo, viz isVolno().
      */
     public function isVolnoKPrihlaseni(?Uzivatel $uzivatel = null): bool
     {
-        if (!$this->prihlasovatelna()) {
-            return false;
-        }
+        return $this->prihlasovatelna() && $this->isVolno($uzivatel);
+    }
+
+    /**
+     * Zbývá na aktivitě místo, ať se na ni zrovna dá přihlásit, nebo ne (mimo registraci, proběhlá). S uživatelem
+     * se počítají jen místa pro jeho pohlaví, bez něj stačí místo pro kohokoli. Týmová aktivita se plní po týmech,
+     * stejně jako v obsazenostHtml().
+     */
+    public function isVolno(?Uzivatel $uzivatel = null): bool
+    {
         if ($this->tymova() && $this->tymovaKapacita() !== null) {
             return $this->pocetPrihlasenychTymu() < $this->tymovaKapacita();
         }

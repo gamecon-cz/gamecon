@@ -130,6 +130,7 @@ export const inicializujProgramStore = () => {
     || urlStav.filtrLinie?.length
     || urlStav.filtrTagy?.length
     || urlStav.filtrPřihlašovatelné
+    || urlStav.filtrVolné
   ) {
     nastavFiltryOtevřené(true);
   }

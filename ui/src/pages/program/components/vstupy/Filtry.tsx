@@ -11,6 +11,7 @@ import {
   nastavFiltrPřihlašovatelné,
   nastavFiltrRočník,
   nastavFiltrTextu,
+  nastavFiltrVolné,
   přepniAutoRefresh,
   přepniBezÚčastníka,
   přepniPodleMístnosti,
@@ -37,7 +38,7 @@ const ROKY_OPTIONS = ROKY.concat(GAMECON_KONSTANTY.ROCNIK)
 export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
   const { otevřeno } = props;
 
-  const { ročník, filtrPřihlašovatelné, filtrLinie, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, zobrazPrázdné, autoRefresh } = useUrlStav();
+  const { ročník, filtrPřihlašovatelné, filtrVolné, filtrLinie, filtrText, podleMístnosti, bezÚčastníka, zobrazInterni, zobrazPrázdné, autoRefresh } = useUrlStav();
 
   const urlStavMožnosti = useUrlStavMožnosti();
 
@@ -130,6 +131,17 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
               }}
             >
               Přihlašovatelné
+            </button>
+            <button
+              class={
+                "program_filtry_tlacitko" +
+                (filtrVolné ? " aktivni" : "")
+              }
+              onClick={() => {
+                nastavFiltrVolné(!filtrVolné);
+              }}
+            >
+              Volná místa
             </button>
             <button class={
               "program_filtry_tlacitko"
