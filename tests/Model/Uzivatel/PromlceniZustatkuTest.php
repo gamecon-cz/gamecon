@@ -696,6 +696,71 @@ SQL;
     /**
      * @test
      */
+    public function druhyBehSpustenyPredKoncemPrvnihoNicNeodesle()
+    {
+        $this->zajistiLogyAdresar();
+        $systemoveNastaveni = $this->dejSystemoveNastaveniSCasem($this->dejCasRegistraceMinus('1 month'));
+        $vysledekDruhehoBehu = null;
+        $druhyBeh = function () use ($systemoveNastaveni, &$vysledekDruhehoBehu) {
+            $vysledekDruhehoBehu = (new PromlceniZustatku(
+                $systemoveNastaveni,
+                $this->createMock(JobResultLoggerInterface::class),
+            ))->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
+        };
+        // Druhý běh cronu začne, když první už zjistil, že varování ještě neodešla, ale ještě je nerozeslal
+        // ani nezalogoval.
+        $prvniBeh = new class($systemoveNastaveni, $this->createMock(JobResultLoggerInterface::class), $druhyBeh) extends PromlceniZustatku {
+            private bool $druhyBehSpusten = false;
+
+            public function __construct(
+                SystemoveNastaveni $systemoveNastaveni,
+                JobResultLoggerInterface $jobResultLogger,
+                private readonly \Closure $druhyBeh,
+            ) {
+                parent::__construct($systemoveNastaveni, $jobResultLogger);
+            }
+
+            public function najdiUzivateleKPromlceni(): array
+            {
+                if (! $this->druhyBehSpusten) {
+                    $this->druhyBehSpusten = true;
+                    ($this->druhyBeh)();
+                }
+
+                return parent::najdiUzivateleKPromlceni();
+            }
+        };
+        $mailLogger = new MailLogger(LOGY . '/maily.sqlite');
+        $varovaniPredBehy = $mailLogger->spocitej('Tvůj zůstatek');
+
+        $odeslanoPrvnimBehem = $prvniBeh->odesliVarovneEmaily(TypVarovaniPromlceni::MESIC);
+
+        self::assertGreaterThan(0, $odeslanoPrvnimBehem, 'Test potřebuje aspoň jedno odeslané varování');
+        self::assertSame(-1, $vysledekDruhehoBehu, 'Druhý běh nesmí nic rozeslat, dokud první neskončil');
+        self::assertSame(
+            $odeslanoPrvnimBehem,
+            $mailLogger->spocitej('Tvůj zůstatek') - $varovaniPredBehy,
+            'Každý smí dostat varování jen jednou',
+        );
+        self::assertSame(
+            1,
+            (int) dbFetchSingle(<<<'SQL'
+SELECT COUNT(*)
+FROM hromadne_akce_log
+WHERE skupina = 'promlceni-zustatku'
+    AND akce = $0
+SQL,
+                [
+                    0 => 'varovani-mesic-' . ROCNIK,
+                ],
+            ),
+            'Rozesílka se smí zalogovat jen jednou, jinak dostal CFO souhrn dvakrát',
+        );
+    }
+
+    /**
+     * @test
+     */
     public function automatickaPromlceniVratiNullKdyzNebylaProvedena()
     {
         $promlceniZustatku = $this->dejPromlceniZustatku();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel;
 
+use Gamecon\Cron\ZamekJobu;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Logger\JobResultLoggerInterface;
 use Gamecon\Logger\LogHomadnychAkciTrait;
@@ -289,6 +290,26 @@ SQL,
     public function odesliVarovneEmaily(
         TypVarovaniPromlceni $typVarovani,
         bool                 $znovu = false,
+    ): int {
+        // Jestli varování už odešla, se pozná podle logu, do kterého se zapíše až po rozeslání.
+        // Běh, který začne dřív, než jiný skončí, by je tedy rozeslal podruhé (viz ZamekJobu).
+        $zamek = new ZamekJobu(self::SKUPINA_PROMLCENI . '-varovani');
+        if (!$zamek->zamkni()) {
+            $nazev = $this->dejNazevVarovani($typVarovani);
+            $this->jobResultLogger->logs("Varovné e-maily o promlčení ($nazev): Varování právě rozesílá jiný běh, tento nic neodešle");
+
+            return -1;
+        }
+        try {
+            return $this->odesliVarovneEmailyPodZamkem($typVarovani, $znovu);
+        } finally {
+            $zamek->odemkni();
+        }
+    }
+
+    private function odesliVarovneEmailyPodZamkem(
+        TypVarovaniPromlceni $typVarovani,
+        bool                 $znovu,
     ): int {
         $rocnik  = $this->systemoveNastaveni->rocnik();
         $regGcOd = $this->systemoveNastaveni->prihlasovaniUcastnikuOd($rocnik);
