@@ -362,11 +362,25 @@ body:has(.profilInfo) .sloupL {
   margin-right: 5px;
 }
 
-#submenu .adm_submenu_doplnek {
-  margin-right: 10px;
+/* Doplnek podmenu (u Aktivit nebezpečné „aktivovat hromadně“) stojí ve vlastním sloupci vpravo, odděleně
+   od navigace, ať se na něj neklikne místo vedlejší položky. */
+.submenu-obal-s-doplnkem {
+  display: flex;
+  align-items: flex-start;
 }
 
-.adm_submenu_item_ord_1::before {
+.submenu-obal-s-doplnkem #submenu {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.submenu-obal-s-doplnkem .adm_submenu_doplnek {
+  flex: 0 0 16%;
+  padding: 15px 0 10px;
+}
+
+.adm_submenu_item_ord_1::before,
+.submenuAktivovatVse::before {
   position: absolute;
   left: 0;
   top: 0;
@@ -402,7 +416,12 @@ body:has(.profilInfo) .sloupL {
 }
 
 .submenuAktivovatVse {
+  position: relative;
   margin: 0;
+}
+
+.submenuAktivovatVse::before {
+  content: 'Nešmatlat';
 }
 
 /* [type=submit] keeps the specificity above .tlacitko.tlacitko_isDanger, whose padding would otherwise win. */
