@@ -96,7 +96,11 @@ $kartyProFiltr          = [];
 $dnyProFiltr            = [];
 $klicePodleNazvuDne     = [];
 $vypraveciProFiltr      = [];
-$nekteraPrihlasovatelna = false;
+// „Jen volná místa“: během registrace jen termín, na který se dá přihlásit, a přihlášenému jen s místem pro jeho pohlaví.
+// Mimo ni stačí jakékoli volné místo bez ohledu na to, kdo se dívá, ať jde zjistit, co se nezaplnilo. Na minulý ročník
+// se nepřihlašuje, i když v něm aktivita zůstala aktivovaná (prihlasovatelna() rok nehlídá), takže tam vždy stačí volné
+// místo.
+$volnoJenKPrihlaseni = !$minulyRocnik && $systemoveNastaveni->probihaRegistraceAktivit();
 
 // medailonek /<id> má každý, i vypravěčská skupina, která má jen přezdívku a jméno nevyplněné;
 // jméno si vypravěč píše sám a XTemplate neescapuje
@@ -142,11 +146,9 @@ foreach ($skupiny as $skupina) {
             $dnyKarty[$klicDne]     = true;
             $dnyProFiltr[$klicDne] ??= ['datum' => $den->format('Y-m-d'), 'nazev' => $nazevDne];
         }
-        // na minulý ročník se nepřihlašuje, i když v něm aktivita zůstala aktivovaná (prihlasovatelna() rok nehlídá)
-        if (!$minulyRocnik) {
-            $nekteraPrihlasovatelna = $nekteraPrihlasovatelna || $aktivita->prihlasovatelna();
-            $volnoNaKarte           = $volnoNaKarte || $aktivita->isVolnoKPrihlaseni($u);
-        }
+        $volnoNaKarte = $volnoNaKarte || ($volnoJenKPrihlaseni
+            ? $aktivita->isVolnoKPrihlaseni($u)
+            : $aktivita->isVolno());
         $vypraveciTohotoTerminu = $vypraveciTerminu[$aktivita->id()];
         if ($vypraveciTohotoTerminu) {
             $t->assign('vypravec', implode(', ', $vypraveciTohotoTerminu));
@@ -234,24 +236,23 @@ if (count($kartyProFiltr) >= 2) {
     (new Collator('cs'))->asort($vypraveciProFiltr);
 
     $filtrAktivit = [
-        'karty'          => $kartyProFiltr,
+        'karty'     => $kartyProFiltr,
         // seřazené podle pořadí kategorie a názvu, viz Tag::dotaz()
-        'tagy'           => array_map(static fn(
+        'tagy'      => array_map(static fn(
             Tag $tag,
         ) => [
             'id'        => $tag->id(),
             'nazev'     => $tag->nazev(),
             'kategorie' => $nazvyKategoriiTagu[$tag->idKategorieTagu()] ?? '',
         ], Tag::zIds(array_values(array_unique(array_merge(...array_column($kartyProFiltr, 'tagy')))))),
-        'dny'            => array_map(static fn(
+        'dny'       => array_map(static fn(
             string $klic,
             array  $den,
         ) => ['klic' => $klic, 'nazev' => $den['nazev']], array_keys($dnyProFiltr), $dnyProFiltr),
-        'vypraveci'      => array_map(static fn(
+        'vypraveci' => array_map(static fn(
             int    $id,
             string $jmeno,
         ) => ['id' => $id, 'jmeno' => $jmeno], array_keys($vypraveciProFiltr), $vypraveciProFiltr),
-        'lzePrihlasovat' => $nekteraPrihlasovatelna,
     ];
 }
 

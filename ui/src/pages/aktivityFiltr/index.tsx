@@ -122,6 +122,8 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
   );
   // lišta je i u pár karet, jediný den by ale nic nezúžil
   const nabídnoutDny = data.dny.length > 1;
+  // stejně tak volná místa, když nic nemá plno (před registrací je všechno prázdné)
+  const nabídnoutVolné = data.karty.some((karta) => !karta.volno);
 
   const [filtr, setFiltr] = useState<FiltrKaret>(() => {
     // odkaz z jiné linie nebo z loňska: co na stránce není, by v liště nešlo vypnout
@@ -133,7 +135,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
       dny: nabídnoutDny
         ? zUrl.dny.filter((den) => data.dny.some((známý) => známý.klic === den))
         : [],
-      jenVolné: zUrl.jenVolné && data.lzePrihlasovat,
+      jenVolné: zUrl.jenVolné && nabídnoutVolné,
     };
   });
   const [seznam, setSeznam] = useState(načtiZobrazeníSeznamem);
@@ -335,7 +337,7 @@ const AktivityFiltrSDaty: FunctionComponent<TAktivityFiltrSDatyProps> = (props) 
             ))}
           </div>
         )}
-        {data.lzePrihlasovat && (
+        {nabídnoutVolné && (
           <button
             type="button"
             class={třídaTlačítka(filtr.jenVolné)}
