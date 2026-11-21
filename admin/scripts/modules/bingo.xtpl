@@ -1,0 +1,164 @@
+<!-- begin:bingo -->
+<link rel="stylesheet" href="files/design/bingo.css?version={cssVerze}">
+
+<div class="bingo">
+
+<!-- begin:bezJednani -->
+<p class="bingo-info">Není naplánované žádné jednání rady. Přidej termín dole a pak si na něj vygeneruj kartu.</p>
+<!-- end:bezJednani -->
+
+<!-- begin:neexistujiciJednani -->
+<p class="bingo-info">Tohle jednání neexistuje. <a href="bingo">Zpět na aktuální jednání</a></p>
+<!-- end:neexistujiciJednani -->
+
+<!-- begin:jednani -->
+<section class="bingo-hra" data-url-stavu="{urlStavu}" data-url-akci="{urlAkci}" data-id-jednani="{idJednani}"
+         data-id-uzivatele="{idUzivatele}" data-id-karty="{idKarty}" data-volne-pole="{volnePole}" data-rady="{rady}"
+         data-stav="{stav}">
+  <!-- begin:odkazNaAktualni -->
+  <p><a href="bingo"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Aktuální jednání</a></p>
+  <!-- end:odkazNaAktualni -->
+
+  <h2>Jednání rady, {datum}</h2>
+
+  <!-- Nad kartou nic, co se mění: popis i tlačítka se při startu mění, karta by poskočila pod prstem. -->
+  <!-- begin:karta -->
+  <form method="post" action="{urlAkci}" class="bingo-karta" aria-label="Moje karta">
+    <input type="hidden" name="akce" value="odskrtnout">
+    <input type="hidden" name="jednani" value="{idJednani}">
+    <!-- begin:pole -->
+    <!-- begin:fraze -->
+    <button type="submit" name="zmena" value="{idFraze}-{novyStav}" class="bingo-pole{tridaPole}"
+            data-id-fraze="{idFraze}" data-pozice="{pozice}" title="{titulek}" {disabled}>{text}</button>
+    <!-- end:fraze -->
+    <!-- begin:volne -->
+    <div class="bingo-pole bingo-pole--volne bingo-pole--zaznelo" data-pozice="{pozice}">Volné pole</div>
+    <!-- end:volne -->
+    <!-- end:pole -->
+  </form>
+  <!-- end:karta -->
+
+  <p class="bingo-popis" role="status">{popis}</p>
+
+  <!-- begin:spusteni -->
+  <form method="post" action="{urlAkci}" class="bingo-spusteni" {skrytSpusteni}>
+    <input type="hidden" name="akce" value="spustit">
+    <input type="hidden" name="jednani" value="{idJednani}">
+    <button type="submit" data-potvrzeni="Spustit soutěž všem? Karty si pak už nikdo nevymění.">
+      <i class="fa-solid fa-play" aria-hidden="true"></i> Spustit soutěž
+    </button>
+  </form>
+  <!-- end:spusteni -->
+
+  <!-- vítěznou kartu vykreslí bingo.js -->
+  <div class="bingo-vitezove" hidden>
+    <h3>🏆 Vítězná karta</h3>
+    <div class="bingo-vitezove-karty"></div>
+  </div>
+
+  <!-- begin:bezKarty -->
+  <p class="bingo-info">Na tomhle jednání jsi kartu neměl{a}.</p>
+  <!-- end:bezKarty -->
+
+  <!-- begin:maloFrazi -->
+  <p class="bingo-info">Na kartu je potřeba {potreba} frází, v poolu jich je {pocet}. Přidej další dole.</p>
+  <!-- end:maloFrazi -->
+
+  <!-- begin:generovani -->
+  <form method="post" action="{urlAkci}" class="bingo-generovani" {skrytGenerovani}>
+    <input type="hidden" name="akce" value="vygenerovat-kartu">
+    <input type="hidden" name="jednani" value="{idJednani}">
+    <button type="submit" data-potvrzeni="{potvrzeniGenerovani}">
+      <i class="fa-solid fa-shuffle" aria-hidden="true"></i> {textGenerovani}
+    </button>
+  </form>
+  <!-- end:generovani -->
+
+  <!-- begin:ostatni -->
+  <div class="bingo-ostatni" {skrytOstatni}>
+    <h3>Zaznělo něco, co nemáš na kartě?</h3>
+    <p class="bingo-info">Fráze z karet ostatních. Odškrtnutím ji označíš všem.</p>
+    <form method="post" action="{urlAkci}" class="bingo-ostatni-seznam">
+      <input type="hidden" name="akce" value="odskrtnout">
+      <input type="hidden" name="jednani" value="{idJednani}">
+    </form>
+  </div>
+  <!-- end:ostatni -->
+
+  <dialog class="bingo-vyhlaseni" aria-labelledby="bingoVyhlaseniNadpis">
+    <h2 id="bingoVyhlaseniNadpis">🎉 BINGO! 🎉</h2>
+    <p class="bingo-vyhlaseni-text"></p>
+    <div class="bingo-vyhlaseni-karty"></div>
+    <form method="dialog">
+      <button type="submit" autofocus>Zavřít</button>
+    </form>
+  </dialog>
+</section>
+<!-- end:jednani -->
+
+<h2>Fráze v poolu ({pocetFrazi})</h2>
+<form method="post" class="bingo-nova-fraze">
+  <input type="hidden" name="akce" value="pridat-frazi">
+  <input type="text" name="text" maxlength="{maxDelkaFraze}" required aria-label="Nová fráze"
+         placeholder="Třeba: Když jsem byl dramaturg programu">
+  <button type="submit"><i class="fa-solid fa-plus" aria-hidden="true"></i> Přidat do poolu</button>
+</form>
+<ul class="bingo-pool">
+  <!-- begin:fraze -->
+  <li>
+    <span class="bingo-pool-text">{text}</span>
+    <span class="bingo-autor">{autor}</span>
+    <form method="post">
+      <input type="hidden" name="akce" value="smazat-frazi">
+      <input type="hidden" name="id_fraze" value="{idFraze}">
+      <button type="submit" class="bingo-smazat" title="Smazat z poolu" aria-label="Smazat z poolu"
+              data-potvrzeni="Smazat frázi z poolu? Na kartách, které ji už mají, zůstane.">
+        <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+      </button>
+    </form>
+  </li>
+  <!-- end:fraze -->
+</ul>
+
+<h2>Termíny jednání</h2>
+<p class="bingo-info">Každé jednání je samostatná soutěž, začíná v 19:00, nebo když ji někdo spustí.</p>
+<form method="post" class="bingo-novy-termin">
+  <input type="hidden" name="akce" value="pridat-jednani">
+  <input type="date" name="datum" min="{dnes}" required aria-label="Datum jednání">
+  <button type="submit"><i class="fa-solid fa-plus" aria-hidden="true"></i> Přidat termín</button>
+</form>
+<table class="bingo-terminy">
+  <thead>
+  <tr>
+    <th>Jednání</th>
+    <th>Karet</th>
+    <th>Výsledek</th>
+    <th></th>
+  </tr>
+  </thead>
+  <tbody>
+  <!-- begin:termin -->
+  <tr class="{tridaTerminu}">
+    <td><a href="bingo?jednani={idTerminu}">{datumTerminu}</a></td>
+    <td>{karet}</td>
+    <td>{vysledek}</td>
+    <td>
+      <!-- begin:smazat -->
+      <form method="post">
+        <input type="hidden" name="akce" value="smazat-jednani">
+        <input type="hidden" name="jednani" value="{idTerminu}">
+        <button type="submit" class="bingo-smazat" title="Smazat termín i s kartami" aria-label="Smazat termín"
+                data-potvrzeni="Smazat termín i s vygenerovanými kartami?">
+          <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+        </button>
+      </form>
+      <!-- end:smazat -->
+    </td>
+  </tr>
+  <!-- end:termin -->
+  </tbody>
+</table>
+
+</div>
+<script src="files/bingo.js?version={jsVerze}"></script>
+<!-- end:bingo -->

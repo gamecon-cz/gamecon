@@ -24,6 +24,7 @@ class UzivateleHodnotySqlStruktura
     public const MRTVY_MAIL                          = 'mrtvy_mail';
     public const FORUM_RAZENI                        = 'forum_razeni';
     public const RANDOM                              = 'random';
+    public const RAZITKO_PRIHLASENI                  = 'razitko_prihlaseni';
     public const ZUSTATEK                            = 'zustatek';
     public const POHLAVI                             = 'pohlavi';
     public const REGISTROVAN                         = 'registrovan';

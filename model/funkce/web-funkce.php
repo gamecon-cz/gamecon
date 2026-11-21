@@ -247,3 +247,12 @@ function cestaObrazkuLinieNaTitulce(int $idTypu): string
 
     return $fallbackCesta . '?v=' . filemtime(ADRESAR_WEBU_S_OBRAZKY . '/' . $fallbackCesta);
 }
+
+/**
+ * Cesta k souboru webu (vůči kořeni webu) s otiskem obsahu proti cachování, např. soubory/ui/bundle.js?version=…
+ * Sdílí ji stránky s Preactem (stránka linie, archiv přednášek).
+ */
+function zabalWebSoubor(string $cestaKSouboru): string
+{
+    return $cestaKSouboru . '?version=' . md5_file(WWW . '/' . $cestaKSouboru);
+}

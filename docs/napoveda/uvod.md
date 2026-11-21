@@ -13,7 +13,14 @@ webu GameConu:
 
 1. Do pole **Jméno** napiš svůj login (přezdívku).
 2. Do pole **Heslo** napiš heslo.
-3. Klikni na **Přihlásit**.
+3. Na svém počítači nebo telefonu můžeš zaškrtnout **Trvale přihlásit**:
+   zůstaneš přihlášený i po zavření prohlížeče, třeba pro online prezenci
+   v **Moje aktivity**. Skončí, když se v adminu odhlásíš, změníš si heslo
+   nebo na webu v Nastavení odhlásíš ostatní zařízení; nepoužité vyprší po
+   roce. Na sdíleném počítači, třeba na infopultu, ho nezaškrtávej. Kdo chce
+   prohlížeč opustit úplně odhlášený, odhlásí se v administraci i na webu,
+   každý si trvalé přihlášení pamatuje zvlášť.
+4. Klikni na **Přihlásit**.
 
 Když se přihlášení nepovede, uvidíš hlášku **„Chybné přihlašovací jméno nebo
 heslo"** — zkontroluj překlepy a zkus to znovu.

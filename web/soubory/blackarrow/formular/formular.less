@@ -288,6 +288,7 @@ input[type=checkbox] {
 // generický formulář - submity
 
 .formular_primarni, .formular_sekundarni, .formular_negativni {
+  font-family: inherit; // tlačítko písmo nedědí, input ano (_zaklad.less)
   font-weight: bold;
   font-size: 12px;
   text-transform: uppercase;
@@ -336,6 +337,8 @@ input[type=checkbox] {
   margin-left: 12px;
   border: solid 2px #84888c;
   background-color: transparent;
+  // Safari na iOS dává tlačítku type="submit" bílé písmo na modrém pozadí; bez barvy by na průhledném zmizelo
+  color: var(--gc-dark);
   line-height: 48px;
   padding: 0 19px;
   @media (max-width: 900px) {

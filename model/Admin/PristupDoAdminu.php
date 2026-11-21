@@ -9,9 +9,10 @@ use Gamecon\Pravo;
 /**
  * Smí přihlášený v adminu aspoň jednu stránku? Kdo ne (účastník bez práv), toho admin odmítne u API i u zvláštních
  * stránek (program účastníka, reporty) a nenabídne mu výběr vzhledu. Omnibox má užší okruh, @see OmniboxAdminu.
+ * Stránka z @see PRAVA_JEN_STRANKY do adminu pustí, ale API a zvláštní stránky neotevře.
  *
  * Rozhoduje seznam práv stránek, ne hlavičky modulů: čtení hlaviček by stálo desítky souborů na každý požadavek API.
- * Že každé právo z hlaviček modulů v seznamu je, hlídá test.
+ * Že každé právo z hlaviček modulů v jednom ze seznamů je, hlídá test.
  */
 final class PristupDoAdminu
 {
@@ -36,6 +37,15 @@ final class PristupDoAdminu
     ];
 
     /**
+     * Práva stránek, které admin API ani zvláštní stránky nepotřebují, právo => proč. Kdo má jen je, otevře svou
+     * stránku a vybere si vzhled, ale API a zvláštní stránky (interní program, reporty) ho odmítnou.
+     */
+    public const array PRAVA_JEN_STRANKY = [
+        Pravo::ADMINISTRACE_BINGO => 'Bingo mají všichni orgové včetně pauzujícího full-orga, který jinak v adminu nic'
+            . ' nesmí. Stav si stránka bere sama od sebe (bingo?stav=1), API nepotřebuje.',
+    ];
+
+    /**
      * Zvláštní stránky, které admin ukazuje i nepřihlášenému a účastníkovi bez práv (tabule na infopultu, program
      * na obrazovkách), stránka => důvod.
      */
@@ -44,9 +54,21 @@ final class PristupDoAdminu
         'program-obecny'     => 'program na obrazovkách, bez přihlášení',
     ];
 
+    /**
+     * Smí admin API a zvláštní stránky.
+     */
     public static function isPovolen(?\Uzivatel $prihlaseny): bool
     {
         return $prihlaseny !== null && $prihlaseny->maNekterePravo(self::PRAVA);
+    }
+
+    /**
+     * Smí v adminu aspoň jednu stránku, třeba jen tu z @see PRAVA_JEN_STRANKY.
+     */
+    public static function isPovolenaStranka(?\Uzivatel $prihlaseny): bool
+    {
+        return $prihlaseny !== null
+            && $prihlaseny->maNekterePravo([...self::PRAVA, ...array_keys(self::PRAVA_JEN_STRANKY)]);
     }
 
     public static function isVerejnaStranka(string $stranka): bool

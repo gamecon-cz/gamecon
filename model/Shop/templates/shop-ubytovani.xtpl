@@ -31,7 +31,7 @@
         <!-- end:normal -->
 
         <!-- begin:hinted -->
-        <div class="shop_popis shopUbytovani_radek gc_tooltip">
+        <div class="shop_popis shopUbytovani_radek gc_tooltip" tabindex="0">
             {typ} <span class="shopUbytovani_i"></span>
             <div class="shop_popisCena">{cena}&thinsp;Kč&thinsp;/&thinsp;noc</div>
             <div class="tooltip_obsah">{hint}</div>

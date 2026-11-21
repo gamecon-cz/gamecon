@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\CestyKSitemape;
@@ -78,6 +79,15 @@ $kanonickaCesta = $url?->cela() ?? '';
 $m = $url
     ? Modul::zUrl(null, $systemoveNastaveni)
     : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
+// archive of lectures under the page of their line (/prednasky/archiv); a directory web/moduly/prednasky would make
+// the sitemap take /prednasky and its pages for a module (CestyKSitemape::isCestaKterouRouterVrati)
+if (! $m && $url?->cast(1) === ArchivPrednasekStranka::PODSTRANKA && $url->cast(2) === null
+    && ($typArchivu = TypAktivity::zUrl((string) $url->cast(0)))?->id() === TypAktivity::PREDNASKA
+) {
+    $m = Modul::zNazvu(ArchivPrednasekStranka::MODUL, null, $systemoveNastaveni);
+    $m->param('typ', $typArchivu);
+    $kanonickaCesta = ArchivPrednasekStranka::getCesta($typArchivu);
+}
 if (! $m && ($stranka = Stranka::zUrl())) {
     if ($stranka->isRedirect()) {
         header('Location: ' . $stranka->redirectUrl(), true, 301);

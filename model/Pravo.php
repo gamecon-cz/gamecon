@@ -19,7 +19,6 @@ class Pravo extends \DbObject
      */
     public const PORADANI_AKTIVIT                 = 4; // Uživatel může pořádat aktivity (je v nabídce pořadatelů aktivit a má v administraci nabídku „moje aktivity“)
     public const PREKRYVANI_AKTIVIT               = 5; // Smí mít zaregistrovaných víc aktivit v jeden čas
-    public const PLNY_SERVIS                      = 7; // Uživatele kompletně platí a zajišťuje GC
     public const ZMENA_HISTORIE_AKTIVIT           = 8; // Může přihlašovat a odhlašovat lidi z aktivit, které už proběhly
     public const PRIHLASOVANI_NA_DOSUD_NEOTEVRENE = 9; // Může přihlašovat a odhlašovat lidi z aktivit, které ještě nejsou Aktivované
 
@@ -39,6 +38,7 @@ class Pravo extends \DbObject
     public const ADMINISTRACE_WEB_LOGA      = 112;
     public const ADMINISTRACE_DEV           = 113;
     public const PREPNUTI_NA_UZIVATELE      = 114; // Smí se v adminu přihlásit (přepnout) jako libovolný uživatel (dříve hardcoded superadmin)
+    public const ADMINISTRACE_BINGO         = 116; // Bingo z jednání rady, migrace ho dala rolím s titulem organizátora
 
     public const PLACKA_ZDARMA    = 1002;
     public const KOSTKA_ZDARMA    = 1003;

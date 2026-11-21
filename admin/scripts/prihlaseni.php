@@ -9,21 +9,45 @@ use Gamecon\Dev\SsoPrihlaseniZUrl;
 use Gamecon\Exceptions\UzivatelNenalezen;
 use Gamecon\Login\Login;
 use Gamecon\Uzivatel\PrepnutiNaUzivatele;
+use Gamecon\Uzivatel\PrihlaseniQrKodem;
 
 /*
  * Kód starající o přihlášení uživatele a výběr uživatele pro práci
  */
 // Přihlášení. Zpět na preview, odkud brána preview poslala do adminu, se jde přes ?returnTo=; formulář se odesílá
 // na tutéž URL, takže parametr přežije odeslání, a chyba() po špatném hesle vrací na ni (back()) také.
+// Trvalé přihlášení dá cookie jen hostu adminu: na ostré a betě je to jiný host než web, a tak jiná cookie i řádek,
+// viz docs/generated/prihlaseni-na-vice-zarizenich.md.
 $u = null;
-if (post(Login::LOGIN_INPUT_NAME) && post(Login::PASSWORD_INPUT_NAME)) {
-    $pravePrihlaseny = Uzivatel::prihlas(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME));
+// Tlačítko Přihlásit QR kódem je ve stejném formuláři, vyplněné heslo pak nepřihlašuje.
+if (! post(Login::QR_INPUT_NAME) && post(Login::LOGIN_INPUT_NAME) && post(Login::PASSWORD_INPUT_NAME)) {
+    $pravePrihlaseny = post(Login::TRVALE_INPUT_NAME)
+        ? Uzivatel::prihlasTrvale(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME))
+        : Uzivatel::prihlas(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME));
     if (! $pravePrihlaseny) {
         chyba('Chybné přihlašovací jméno nebo heslo');
     }
     back(NavratNaPreview::getBezpecnaUrl(get(NavratNaPreview::PARAMETR)));
 }
 $u = Uzivatel::zSession();
+
+// Přihlášení QR kódem: po založení žádosti ukáže přihlašovací stránka kód (Login::htmlLogin()) a ptá se
+// api/prihlaseni-qr, dokud ho někdo neschválí. Až po zSession(), které spustí session, kam se žádost uloží.
+if ($u === null && post(Login::QR_INPUT_NAME)) {
+    $chybaQr = PrihlaseniQrKodem::zSession(doAdminu: true)->zaloz(
+        (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+        (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+        trvale: (bool) post(Login::TRVALE_INPUT_NAME),
+    );
+    if ($chybaQr !== null) {
+        chyba($chybaQr);
+    }
+    back();
+}
+if (post(Login::QR_ZRUSIT_INPUT_NAME)) {
+    PrihlaseniQrKodem::zSession(doAdminu: true)->zrus();
+    back();
+}
 
 // Magické přihlášení z administračního rozcestníku (?gcsso= token). Kdy přihlásí, drží ArchivSsoPrihlaseni,
 // výběr klíče a odstranění tokenu z URL SsoPrihlaseniZUrl (společná s webem).
@@ -121,7 +145,8 @@ if ($u !== null && post('prihlasitSeJakoUzivatel')) {
         }
         $u = $prepnutiNaUzivatele->prepni($u, $naKoho);
         // infopulťák se na vypravěče přepíná, aby za něj vyplnil prezenci
-        back($u->jeVypravec() || $u->jePartner()
+        // null: přepnul se zpět na sebe, ale na jiném zařízení se mezitím odhlásil z ostatních
+        back($u !== null && ($u->jeVypravec() || $u->jePartner())
             ? $u->mojeAktivityAdminUrl()
             : null
         );

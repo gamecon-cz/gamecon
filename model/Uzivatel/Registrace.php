@@ -69,6 +69,16 @@ class Registrace
         }
     }
 
+    public function zpracujOdhlaseniOstatnichZarizeni(): void
+    {
+        if (! $this->u || ! post('odhlasitOstatniZarizeni')) {
+            return;
+        }
+        $this->u->odhlasNaOstatnichZarizenich();
+        $a = $this->u->koncovkaDlePohlavi();
+        oznameni("Na ostatních zařízeních jsi odhlášen{$a}.");
+    }
+
     public function ulozZmeny(): bool
     {
         try {
@@ -158,11 +168,18 @@ class Registrace
             : '';
     }
 
-    private function hlavickaPolozky(string $nazev, string $labelRequired, string $tooltip = ''): string
+    /**
+     * @param string $idPole s ním je titulek <label for>, pro položku, kterou celou neobaluje <label>
+     */
+    private function hlavickaPolozky(string $nazev, string $labelRequired, string $tooltip = '', string $idPole = ''): string
     {
+        $titulek = $idPole !== ''
+            ? "<label class=\"formular_polozkaTitulek\" for=\"{$idPole}\">{$nazev}{$labelRequired}</label>"
+            : "<span class=\"formular_polozkaTitulek\">{$nazev}{$labelRequired}</span>";
+
         return <<<HTML
 <div class="formular_polozkaNadpis">
-    <span class="formular_polozkaTitulek">{$nazev}{$labelRequired}</span>
+    {$titulek}
     {$tooltip}
 </div>
 HTML;
@@ -196,7 +213,8 @@ HTML;
     public function zobrazHtml()
     {
         ?>
-      <form method="post" class="formular_stranka">
+      <div class="formular_stranka">
+      <form method="post">
         <div class="bg"></div>
 
           <?php
@@ -230,7 +248,7 @@ HTML;
           <h2 class="formular_sekceNadpis" style="float: left">Osobní</h2>
 
           <div class="formular_tooltip">
-            <div class="gc_tooltip">
+            <div class="gc_tooltip" tabindex="0">
               Proč potřebujeme osobní údaje?
               <div class="tooltip_obsah">
                 Potřebujeme je, abychom:<br>
@@ -259,7 +277,7 @@ HTML;
                 moznosti: ZpusobZobrazeniNaWebu::proSelect(),
                 tooltip: <<<HTML
 <div class="formular_tooltip">
-  <div class="gc_tooltip">
+  <div class="gc_tooltip" tabindex="0">
     Kde se použije?
     <div class="tooltip_obsah">
       Tohle nastavení ovlivní jen veřejný web, například detail aktivity, medailonky vypravěčů a veřejné seznamy.
@@ -276,7 +294,7 @@ HTML
                   moznosti: Pohlavi::seznamProSelect(),
                   tooltip: <<<HTML
 <div class="formular_tooltip">
-  <div class="gc_tooltip">
+  <div class="gc_tooltip" tabindex="0">
     Proč potřebujeme znát pohlaví?
     <div class="tooltip_obsah">
       Informace slouží pouze interně pro<br>
@@ -311,7 +329,7 @@ HTML
             </span>
           </label>
           <div class="formular_tooltip">
-            <div class="gc_tooltip">
+            <div class="gc_tooltip" tabindex="0">
               Shrnutí souhlasu
               <div class="tooltip_obsah">
                 Tvé údaje předáme jen těm, komu to ze zákona či z provozní potřeby musíme doložit (např. poskytovateli ubytování či vypravěčům).<br><br>
@@ -338,7 +356,7 @@ HTML
                 <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
                   <?php
               } else { ?>
-                <div class="gc_tooltip">
+                <div class="gc_tooltip" tabindex="0">
                   <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni"
                          disabled>
                   <div class="tooltip_obsah">
@@ -357,6 +375,43 @@ HTML
         <div style="height: 30px"></div>
       </form>
 
+        <?php
+        if ($this->u) { ?>
+          <!-- vlastní formulář pod tlačítkem Uložit, aby se nastavení neukládalo ani nekontrolovalo -->
+          <form method="post">
+            <h2 class="formular_sekceNadpis">Přihlášená zařízení</h2>
+            <p>
+              Odhlásí tě na všech ostatních zařízeních a prohlížečích, tady zůstaneš
+              přihlášen<?php echo $this->u->koncovkaDlePohlavi(); ?>. Totéž udělá změna hesla.
+              Neuložené změny nastavení výš se zahodí.
+            </p>
+            <input type="hidden" name="odhlasitOstatniZarizeni" value="true">
+            <button type="submit" class="formular_sekundarni" style="margin-left: 0">
+              Odhlásit ostatní zařízení
+            </button>
+          </form>
+
+          <h2 class="formular_sekceNadpis">Přihlásit jiné zařízení</h2>
+          <p>
+            Na přihlašovací stránce jiného zařízení, na webu i v administraci, zvol <b>Přihlásit QR kódem</b>
+            a kód naskenuj fotoaparátem telefonu, nebo tady.
+          </p>
+          <button type="button" class="formular_sekundarni" style="margin-left: 0"
+                  data-ctecka-qr
+                  data-adresa-schvaleni="<?php echo htmlspecialchars(URL_WEBU . '/' . PrihlaseniQrKodem::STRANKA_SCHVALENI); ?>"
+                  data-jsqr="<?php echo htmlspecialchars(URL_WEBU . '/soubory/jsqr/jsQR.js?version=' . md5_file(WWW . '/soubory/jsqr/jsQR.js')); ?>">
+            Načíst QR kód
+          </button>
+          <div class="cteckaQr" data-ctecka-qr-okno hidden>
+            <video class="cteckaQr_video" playsinline muted></video>
+            <p class="cteckaQr_zprava" data-ctecka-qr-zprava aria-live="polite"></p>
+            <button type="button" class="formular_sekundarni" style="margin-left: 0" data-ctecka-qr-zavrit>
+              Zavřít
+            </button>
+          </div>
+            <?php
+        } ?>
+      </div>
         <?php
     }
 
@@ -406,15 +461,18 @@ HTML
             : '';
 
         $labelRequired = $this->labelRequired($requiredHtml);
+        $idPole = "select_{$klic}";
 
+        // Položku neobaluje <label>, jen titulek je <label for>: ťuknutí na tooltip v hlavičce by jinak
+        // předalo klik selectu a na iPhonu otevřelo výběr, který tooltip u spodního okraje zakryje.
         return <<<HTML
-            <label class="formular_polozka {$chybaTrida}">
-                {$this->hlavickaPolozky($nazev, $labelRequired, $tooltip)}
-                <select name="{$this->inputName()}[{$klic}]" {$requiredHtml} {$disabledHtml}>
+            <div class="formular_polozka {$chybaTrida}">
+                {$this->hlavickaPolozky($nazev, $labelRequired, $tooltip, $idPole)}
+                <select id="{$idPole}" name="{$this->inputName()}[{$klic}]" {$requiredHtml} {$disabledHtml}>
                 {$moznostiHtml}
                 </select>
                 {$chybaHtml}
-            </label>
+            </div>
         HTML;
     }
 
@@ -444,7 +502,7 @@ HTML
         if ($tooltip !== '') {
             $tooltipHtml = <<<HTML
 <div style="float: right">
-    <div class="gc_tooltip" style="position: relative; top: -4em;">
+    <div class="gc_tooltip" tabindex="0" style="position: relative; top: -4em;">
         ℹ️
         <div class="tooltip_obsah" style="right: -247px; top: 2em;">
             {$tooltip}
@@ -476,7 +534,7 @@ HTML;
     <h2 class="formular_sekceNadpis" style="float: left">Adresa trvalého pobytu</h2>
 
     <div class="formular_tooltip">
-        <div class="gc_tooltip">
+        <div class="gc_tooltip" tabindex="0">
             Proč potřebujeme adresu?
             <div class="tooltip_obsah">
                 Informaci o trvalém bydlišti jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.<br><br>
@@ -508,7 +566,7 @@ HTML;
     <h2 class="formular_sekceNadpis" style="float: left">Platný doklad totožnosti</h2>
 
     <div class="formular_tooltip">
-        <div class="gc_tooltip">
+        <div class="gc_tooltip" tabindex="0">
             Proč potřebujeme doklad?
             <div class="tooltip_obsah">
                 Číslo identifikačního dokladu jsme bohužel ze zákona povinni odevzdávat poskytovateli ubytování.<br><br>

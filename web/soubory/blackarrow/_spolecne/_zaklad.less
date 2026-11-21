@@ -81,6 +81,10 @@ hr {
   color: #515151;
 }
 
+// Spouštěč má v šabloně tabindex="0" a tooltip se ukáže i při fokusu (:focus-within níž). Safari na iOS
+// po ťuknutí na obyčejný <div> :hover nezapne, ani s cursor: pointer; otevřel se jen tooltip v <label>
+// s aktivním polem. Prvek s tabindex po ťuknutí dostane fokus a ten vydrží, dokud se neťukne jinam.
+// Otevřít tooltip jde zároveň klávesnicí.
 .gc_tooltip {
   cursor: help;
   position: relative;
@@ -143,7 +147,8 @@ hr {
 }
 
 .gc_tooltip:hover > .tooltip_obsah,
-.gc_tooltip:active > .tooltip_obsah {
+.gc_tooltip:active > .tooltip_obsah,
+.gc_tooltip:focus-within > .tooltip_obsah {
   visibility: visible;
   opacity: 1;
   margin-top: 0;

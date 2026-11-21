@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.slice.call(forms)
     .forEach(function (form) {
       form.addEventListener('submit', function (event) {
+        // tlačítko s formnovalidate (Přihlásit QR kódem) jméno ani heslo nepotřebuje
+        if (event.submitter && event.submitter.formNoValidate) {
+          return
+        }
         if (!form.checkValidity()) {
           event.preventDefault()
           event.stopPropagation()

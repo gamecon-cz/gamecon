@@ -14,7 +14,38 @@ input[type=text].form-control, input[type=password].form-control {
   z-index: -100;
 }
 
+/* přihlášení QR kódem, kód má vlastní bílé pozadí */
+.prihlaseniQr {
+  max-width: 520px;
+}
+
+.prihlaseniQr_kod {
+  display: block;
+  width: 240px;
+  max-width: 100%;
+  height: auto;
+  transition: opacity 0.3s;
+}
+
+.prihlaseniQr-konec .prihlaseniQr_kod {
+  opacity: 0.1;
+}
+
+.prihlaseniQr_navod li {
+  margin-bottom: 0.5rem;
+}
+
+.prihlaseniQr_cislo {
+  margin-left: 0.25rem;
+  font-size: 2rem;
+  font-weight: bold;
+  vertical-align: middle;
+}
+
 @media (prefers-color-scheme: dark) {
+  .prihlaseniQr {
+    color: #fff;
+  }
   body {
     background-color: #000;
   }
@@ -27,5 +58,9 @@ input[type=text].form-control, input[type=password].form-control {
   input.form-control, input.form-control:focus {
     background-color: #3b3b3b;
     color: #fff;
+  }
+  /* jen nápověda u zaškrtávátka, ne hlášky (.form-text.alert), které mají vlastní barvu na světlém pozadí */
+  .form-check .form-text {
+    color: #adb5bd;
   }
 }
