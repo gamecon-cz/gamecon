@@ -21,7 +21,7 @@ use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
  *
  * @var Uzivatel $u
  * @var SystemoveNastaveni $systemoveNastaveni
- * @var string $submenuDoplnek HTML na konec posledního sloupce podmenu, viz admin/index.php
+ * @var string $submenuDoplnek HTML do vlastního sloupce vedle podmenu (na telefonu do pruhu pod ním), viz admin/index.php
  */
 
 if (post('smazat')) {

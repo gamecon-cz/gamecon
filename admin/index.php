@@ -398,7 +398,13 @@ foreach ($submenu as $url => $polozka) {
 }
 $xtpl->assign('stranka', $stranka);
 $xtpl->assign('podstranka', $podstranka);
-if ($submenuDoplnek !== '') {
+// doplnek stojí ve vlastním sloupci vedle podmenu (na telefonu pod ním), obal ho s podmenu skládá dohromady;
+// je mimo #submenu, takže se skrývá zvlášť, ať bez viditelného podmenu nezůstane samotný
+$zobrazitDoplnek = ! $allHidden && $submenuDoplnek !== '';
+$xtpl->assign('submenuObalTrida', $zobrazitDoplnek
+    ? ' submenu-obal-s-doplnkem'
+    : '');
+if ($zobrazitDoplnek) {
     $xtpl->assign('doplnek', $submenuDoplnek);
     $xtpl->parse('all.submenu.doplnek');
 }
