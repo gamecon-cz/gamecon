@@ -134,7 +134,7 @@ try {
 // sestavení menu
 $menu = '';
 if (! $m->bezStranky() && ! $m->bezMenu()) {
-    $menu = Gamecon\Web\MenuWebu::html($u);
+    $menu = Gamecon\Web\MenuWebu::html($u, $systemoveNastaveni);
 }
 
 // výstup (s ohledem na to co modul nastavil)
