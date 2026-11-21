@@ -101,6 +101,12 @@ body.vzhled-moderni {
   text-align: left;
 }
 
+@supports (height: 100dvh) {
+  :where(.vzhled-moderni) .obal {
+    min-height: 100dvh;
+  }
+}
+
 :where(.vzhled-moderni) .sloupL {
   position: sticky;
   top: 0;
@@ -142,9 +148,13 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
   padding-bottom: 52px;
 }
 
+/* Sloupec se roztáhne na výšku okna a patička (margin-top: auto) se na krátké stránce drží dole. */
 :where(.vzhled-moderni) .sloupR {
   position: relative;
+  display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
+  align-self: stretch;
   min-width: 0;
   max-width: var(--m-sirka-obsahu);
   margin: 0 auto;
@@ -1250,6 +1260,7 @@ body.vzhled-moderni:has(.profilInfo) .sloupL {
 
 .moderni-paticka {
   display: flex;
+  margin-top: auto;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
@@ -1513,6 +1524,17 @@ body.moderni-menu-otevrene .sloupL {
   @supports (height: 100dvh) {
     :where(.vzhled-moderni) .sloupL {
       height: auto;
+    }
+  }
+
+  /* Horní lišta je v toku nad .obal, bez odečtení by se i krátká stránka o její výšku posouvala. */
+  :where(.vzhled-moderni) .obal {
+    min-height: calc(100vh - var(--m-vyska-listy));
+  }
+
+  @supports (height: 100dvh) {
+    :where(.vzhled-moderni) .obal {
+      min-height: calc(100dvh - var(--m-vyska-listy));
     }
   }
 
