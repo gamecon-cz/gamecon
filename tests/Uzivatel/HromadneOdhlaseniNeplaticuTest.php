@@ -16,12 +16,16 @@ use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniAzPoZacatkuVlny;
 use Gamecon\Uzivatel\Exceptions\HromadneOdhlasovaniJePrilisBrzyPoVlne;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJeBrzy;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
+use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
 use Gamecon\Uzivatel\KategorieNeplatice;
 use Granam\RemoveDiacritics\RemoveDiacritics;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 use function PHPUnit\Framework\assertCount;
 
@@ -49,6 +53,28 @@ class HromadneOdhlaseniNeplaticuTest extends AbstractTestDb
         self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY,
         self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT,
         self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT,
+    ];
+
+    /**
+     * Neplatiči z fixtures, kteří se registrovali dva týdny před hromadným odhlašováním.
+     */
+    private const array NEPLATICI_K_ODHLASENI = [
+        [
+            'neplatic'            => self::VELKY_DLUH_NIC_NEDAM,
+            'kategorie_neplatice' => KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
+        ],
+        [
+            'neplatic'            => self::VELKY_DLUH_DAM_MALO,
+            'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
+        ],
+        [
+            'neplatic'            => self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI,
+            'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
+        ],
+        [
+            'neplatic'            => self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY,
+            'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
+        ],
     ];
 
     protected static bool $disableStrictTransTables = true;
@@ -512,6 +538,190 @@ SQL;
     }
 
     /**
+     * Incident z 1. 7. 2026 (Trello 1464): třetí vlna ve 20:26, první hromadné odhlašování deset minut před ní,
+     * ale CRON ho pustil až ve 21:14 a zrušil i aktivity přihlášené ve třetí vlně.
+     */
+    #[Test]
+    public function zpozdenyCronPoZacatkuTretiVlnyNeodhlasujeAOdkazeNaDalsiOdhlasovani(): void
+    {
+        $systemoveNastaveni = $this->dejSystemoveNastaveniSTretiVlnou(
+            ted: new DateTimeImmutableStrict('2026-07-01 21:14:00'),
+            tretiVlnaKdy: new DateTimeImmutableStrict('2026-07-01 20:26:00'),
+        );
+        self::assertEquals(
+            new DateTimeImmutableStrict('2026-07-01 20:16:00'),
+            $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy(),
+            'CRON ve 21:14 by měl pořád pracovat s prvním hromadným odhlašováním ve 20:16',
+        );
+
+        $this->expectException(HromadneOdhlasovaniAzPoZacatkuVlny::class);
+        $this->expectExceptionMessage("odhlásí až další hromadné odhlašování '2026-07-10 00:00:00'");
+
+        // stejně jako CRON, tedy s výchozím časem odhlašování i výchozím k datu
+        (new HromadneOdhlaseniNeplaticu($systemoveNastaveni))->neplaticiAKategorie()->current();
+    }
+
+    #[Test]
+    public function zpozdeneHromadneOdhlaseniPoZacatkuVlnyNikohoNeodhlasiANezapiseSeJakoProvedene(): void
+    {
+        $ted = new DateTimeImmutableStrict();
+        $systemoveNastaveni = $this->dejSystemoveNastaveniSTretiVlnou($ted, $ted->modifyStrict('-48 minutes'));
+        $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
+        $this->zajistiMailyDoSouboru();
+
+        try {
+            $hromadneOdhlaseniNeplaticu->hromadneOdhlasit(basename(__CLASS__, '.php'), new Zaznamnik());
+            self::fail('Hromadné odhlášení po začátku vlny, před kterou mělo proběhnout, mělo odmítnout běžet');
+        } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) { // tohle chytá CRON
+            self::assertInstanceOf(HromadneOdhlasovaniAzPoZacatkuVlny::class, $nevhodnyCasProHromadneOdhlasovani);
+        }
+
+        foreach (self::LETOS_PRIHLASENI_UZIVATELE as $idUzivatele) {
+            $uzivatel = \Uzivatel::zIdUrcite($idUzivatele);
+            self::assertTrue($uzivatel->gcPrihlasen(), "Uživatel '{$uzivatel->celeJmeno()}' měl zůstat přihlášen");
+        }
+        self::assertSame(
+            [self::ID_LARP_AKTIVITY, self::ID_RPG_AKTIVITY, self::ID_JINE_AKTIVITY],
+            $this->idckaPrihlasenychAktivit(\Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY)),
+            'Neplatiči neměla zmizet žádná aktivita',
+        );
+        self::assertNull(
+            $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($systemoveNastaveni->prvniHromadneOdhlasovani()),
+            'Přeskočené odhlašování se nesmí zapsat jako provedené',
+        );
+    }
+
+    /**
+     * Začátek třetí vlny vůči skutečnému času běhu; první hromadné odhlašování je deset minut před vlnou.
+     */
+    public static function provideZacatekTretiVlnyVuciBehuOdhlasovani(): array
+    {
+        return [
+            'běží přesně v naplánovaný čas, deset minut před vlnou'  => ['+10 minutes', null],
+            'vteřinu před začátkem vlny'                             => ['+1 second', null],
+            'přesně se začátkem vlny, bez tolerance'                 => ['+0 seconds', HromadneOdhlasovaniAzPoZacatkuVlny::class],
+            'zpožděný CRON 48 minut po začátku vlny'                 => ['-48 minutes', HromadneOdhlasovaniAzPoZacatkuVlny::class],
+            'poslední běh, pro který je první odhlašování nejbližší' => ['-1 day +10 minutes', HromadneOdhlasovaniAzPoZacatkuVlny::class],
+            'pak už se čeká na druhé odhlašování'                    => ['-1 day +10 minutes -1 second', NaHromadneOdhlasovaniJeBrzy::class],
+            'druhé odhlašování po třetí vlně běží jako dřív'         => ['-9 days', null],
+        ];
+    }
+
+    #[DataProvider('provideZacatekTretiVlnyVuciBehuOdhlasovani')]
+    #[Test]
+    public function hromadneOdhlasovaniPredVlnouNeodhlasujePoJejimZacatku(
+        string $tretiVlnaVuciBehu,
+        ?string $ocekavanaVyjimka,
+    ): void {
+        $ted = new DateTimeImmutableStrict();
+        $systemoveNastaveni = $this->dejSystemoveNastaveniSTretiVlnou($ted, $ted->modifyStrict($tretiVlnaVuciBehu));
+
+        if ($ocekavanaVyjimka !== null) {
+            $this->expectException($ocekavanaVyjimka);
+        }
+        $neplatici = $this->serazeniNeplaticiAKategorie(
+            $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy(), // jako CRON
+            $ted,
+            $ted->modifyStrict(DateTimeGamecon::VYCHOZI_PLATNOST_HROMADNYCH_AKCI_ZPETNE),
+            new HromadneOdhlaseniNeplaticu($systemoveNastaveni),
+        );
+
+        self::assertSame(self::NEPLATICI_K_ODHLASENI, $neplatici);
+    }
+
+    /**
+     * E-mail s varováním neplatičům (a podobně e-maily pro CFO) se ptá, koho by odhlašování odhlásilo,
+     * jako by běželo až za tři dny. Ten posunutý čas může být po začátku vlny, skutečný čas ale ne.
+     *
+     * @see admin/cron/jobs/mail_varovani_neplaticum_o_brzkem_odhlaseni.php
+     */
+    #[Test]
+    public function varovaniPredOdhlasovanimSeRidiSkutecnymCasemNeSimulovanym(): void
+    {
+        $ted = new DateTimeImmutableStrict();
+        $posun = '+3 days';
+        $kDatu = $ted->modifyStrict($posun);
+        $tretiVlnaKdy = $kDatu->modifyStrict('-48 minutes');
+        $systemoveNastaveni = $this->dejSystemoveNastaveniSTretiVlnou($ted, $tretiVlnaKdy);
+        $platnostZpetneKDatu = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)->modifyStrict($posun);
+        $hromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($systemoveNastaveni, $platnostZpetneKDatu);
+
+        self::assertEquals($systemoveNastaveni->prvniHromadneOdhlasovani(), $hromadneOdhlasovaniKdy);
+        self::assertGreaterThan($tretiVlnaKdy, $kDatu, 'Pro tento test potřebujeme simulovaný čas běhu až po začátku vlny');
+
+        self::assertSame(
+            self::NEPLATICI_K_ODHLASENI,
+            $this->serazeniNeplaticiAKategorie(
+                $hromadneOdhlasovaniKdy,
+                $kDatu,
+                $platnostZpetneKDatu,
+                new HromadneOdhlaseniNeplaticu($systemoveNastaveni),
+            ),
+        );
+    }
+
+    /**
+     * Vlny a hromadná odhlašování spočítané od třetí vlny stejně jako výchozí hodnoty v DateTimeGamecon.
+     */
+    private function dejSystemoveNastaveniSTretiVlnou(
+        DateTimeImmutableStrict $ted,
+        DateTimeImmutableStrict $tretiVlnaKdy,
+    ): SystemoveNastaveni {
+        $puvodni = SystemoveNastaveni::zGlobals();
+
+        return new class($puvodni, $ted, $tretiVlnaKdy) extends SystemoveNastaveni {
+            public function __construct(
+                SystemoveNastaveni $puvodni,
+                DateTimeImmutableStrict $ted,
+                private readonly DateTimeImmutableStrict $tretiVlna,
+            ) {
+                parent::__construct(
+                    rocnik: $puvodni->rocnik(),
+                    ted: $ted,
+                    prostredi: $puvodni->prostredi(),
+                    databazoveNastaveni: $puvodni->databazoveNastaveni(),
+                    rootAdresarProjektu: $puvodni->rootAdresarProjektu(),
+                    privateCacheDir: $puvodni->privateCacheDir(),
+                    kernel: $puvodni->kernel(),
+                    publicCacheDir: $puvodni->publicCacheDir(),
+                );
+            }
+
+            public function prvniVlnaKdy(): DateTimeGamecon
+            {
+                return DateTimeGamecon::createFromInterface($this->tretiVlna->modifyStrict('-6 weeks'));
+            }
+
+            public function druhaVlnaKdy(): DateTimeGamecon
+            {
+                return DateTimeGamecon::createFromInterface($this->tretiVlna->modifyStrict('-3 weeks'));
+            }
+
+            public function tretiVlnaKdy(): DateTimeGamecon
+            {
+                return DateTimeGamecon::createFromInterface($this->tretiVlna);
+            }
+
+            public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict
+            {
+                return $this->tretiVlna->modifyStrict('-10 minutes');
+            }
+
+            public function druheHromadneOdhlasovani(): DateTimeImmutableStrict
+            {
+                return DateTimeImmutableStrict::createFromInterface(
+                    $this->tretiVlna->modifyStrict('+9 days')->setTime(0, 0),
+                );
+            }
+
+            public function tretiHromadneOdhlasovani(): DateTimeImmutableStrict
+            {
+                return $this->druheHromadneOdhlasovani()->modifyStrict('+1 week');
+            }
+        };
+    }
+
+    /**
      * @test
      */
     public function hromadneOdhlaseniOdhlasiSpravneUzivateleNeboObjednavky()
@@ -540,28 +750,10 @@ SQL;
             $hromadneOdhlaseniNeplaticu,
         );
 
-        $ocekavaniNeplaticiPredOdhlasenim = [
-            [
-                'neplatic'            => self::VELKY_DLUH_NIC_NEDAM,
-                'kategorie_neplatice' => KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
-            ],
-            [
-                'neplatic'            => self::VELKY_DLUH_DAM_MALO,
-                'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
-            ],
-            [
-                'neplatic'            => self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI,
-                'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
-            ],
-            [
-                'neplatic'            => self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY,
-                'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
-            ],
-        ];
         $testovaciNicNedamNeodhlasovat = \Uzivatel::zIdUrcite(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT);
         self::assertTrue($testovaciNicNedamNeodhlasovat->maRoli(Role::LETOSNI_NEODHLASOVAT), 'Uživatel Nic Neodhlašovat by měl mít roli Neodhlašovat');
         self::assertTrue($testovaciNicNedamNeodhlasovat->maPravo(Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY), 'Uživatel Nic Neodhlašovat by měl mít právo Nerušit Objednávky');
-        self::assertSame($ocekavaniNeplaticiPredOdhlasenim, $neplaticiAKategoriePredOdhlasenim);
+        self::assertSame(self::NEPLATICI_K_ODHLASENI, $neplaticiAKategoriePredOdhlasenim);
 
         foreach (self::LETOS_PRIHLASENI_UZIVATELE as $idUzivatele) {
             $testovaciUzivatelPoOdhlaseni = \Uzivatel::zIdUrcite($idUzivatele);
