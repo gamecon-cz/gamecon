@@ -9,7 +9,8 @@
 <ol>
     <li>Připrav balíky.</li>
     <li>
-        Balík stáhni a soubor nahraj do chatu s AI (Claude, ChatGPT…), případně vlož jeho obsah do zprávy.
+        Balíky stáhni (jednotlivě, nebo všechny naráz v ZIPu) a každý soubor nahraj do vlastního chatu s AI
+        (Claude, ChatGPT…), případně vlož jeho obsah do zprávy.
         Pokyny pro AI jsou v souboru, nic nepiš. Když AI odpověď přeruší, napiš jí „pokračuj“.
         <!-- begin:krokApi -->
         <br>
@@ -17,7 +18,7 @@
         obvykle do hodiny, a stránka si je načte, až ji otevřeš (podívá se nejvýš jednou za minutu).
         <!-- end:krokApi -->
     </li>
-    <li>Odpověď AI z chatu nahraj zpět: vlož ji do pole níže, nebo vyber soubor. Jde to i po částech a opakovaně.</li>
+    <li>Odpověď AI z chatu nahraj zpět: vlož ji do pole níže, nebo vyber soubory (i víc naráz). Jde to i po částech a opakovaně.</li>
     <li>Projdi návrhy: přijmi, ručně uprav, nebo zamítni.</li>
 </ol>
 
@@ -128,6 +129,9 @@
 </form>
 <!-- end:poslatVse -->
 <p>
+    <a href="{urlModulu}?stahnout=zip">Stáhnout všechny balíky v ZIPu</a>, každý balík jako vlastní soubor
+    pro jeden chat.
+    <br>
     <a href="{urlModulu}?stahnout=1">Stáhnout všechny balíky v jednom souboru</a>,
     pro AI, která zvládne pracovat se souborem (třeba Claude Code).
 </p>
@@ -153,7 +157,8 @@
 <form method="post" enctype="multipart/form-data">
     <textarea name="odpoved" rows="8" class="korektury-odpoved" placeholder="Sem vlož odpověď AI…"></textarea>
     <p>
-        nebo soubor s odpovědí <input type="file" name="souborOdpovedi" accept=".txt,.md,text/plain">
+        nebo soubory s odpověďmi (jde vybrat víc naráz, nejvýš {nejvysSouboru})
+        <input type="file" name="souboryOdpovedi[]" accept=".txt,.md,text/plain" multiple>
         <button type="submit" name="importovat" value="1">Načíst odpověď</button>
     </p>
 </form>

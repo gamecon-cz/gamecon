@@ -9,6 +9,7 @@ use Gamecon\Aktivita\Korektura\Exceptions\ExportUzBezi;
 use Gamecon\Aktivita\Korektura\Exceptions\KorekturuNelzeVyridit;
 use Gamecon\Aktivita\Korektura\Exceptions\OdesilaniAiUzBezi;
 use Gamecon\Aktivita\Korektura\KorekturyTextu;
+use Gamecon\Aktivita\Korektura\NahraneOdpovedi;
 use Gamecon\Aktivita\Korektura\RozdilTextu;
 use Gamecon\Aktivita\Korektura\TextyAktivity;
 use Gamecon\Pravo;
@@ -43,6 +44,19 @@ $korektury = new KorekturyTextu(
     // batches sent before a switch of the provider are read with its own token
     davkyDalsichPoskytovatelu: static fn (PoskytovatelAi $poskytovatel) => $pripojeniAi->dejDavky($poskytovatel),
 );
+
+if (get('stahnout') === 'zip') {
+    $zip = $korektury->zipBaliku();
+    if ($zip === null) {
+        chyba('Žádný balík nečeká na odpověď AI, není co stáhnout.');
+    }
+    header('Content-Type: application/zip');
+    header('Content-Disposition: attachment; filename="' . $korektury->nazevZipu() . '"');
+    header('Content-Length: ' . strlen($zip));
+    echo $zip;
+
+    exit;
+}
 
 if (get('stahnout') !== null) {
     $balik = get('balik') !== null && get('balik') !== ''
@@ -94,20 +108,28 @@ if (post('zrusitBalik')) {
     oznameni("Balík zrušen, jeho aktivity se vrátily mezi neopravené (počet: {$pocet}).");
 }
 
+// PHP drops a POST over post_max_size whole, the page would look as if nothing was sent
+if ($_POST === [] && $_FILES === [] && $_SERVER['REQUEST_METHOD'] === 'POST' && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+    chyba('Odeslané soubory jsou dohromady větší, než server přijme (' . ini_get('post_max_size') . '), nahraj je po menších částech.');
+}
+
 if (post('importovat')) {
-    $odpoved = (string) post('odpoved');
-    $soubor = postFile('souborOdpovedi');
-    if ($soubor !== '' && is_uploaded_file($soubor)) {
-        $odpoved .= "\n" . file_get_contents($soubor);
+    // several files at once, an answer of each chat in its own, each parsed on its own (KorekturyTextu::importujOdpovedi())
+    $nahrane = NahraneOdpovedi::zFormulare($_FILES['souboryOdpovedi'] ?? null, (int) ini_get('max_file_uploads'));
+    $odpovedi = $nahrane->odpovediPodleSouboru;
+    if (trim((string) post('odpoved')) !== '') {
+        $odpovedi = [
+            'vložená odpověď' => (string) post('odpoved'),
+        ] + $odpovedi;
     }
-    if (trim($odpoved) === '') {
-        chyba('Vlož odpověď AI do pole, nebo vyber soubor s ní.');
+    if ($odpovedi === [] && $nahrane->varovani === []) {
+        chyba('Vlož odpověď AI do pole, nebo vyber soubory s ní.');
     }
-    $vysledek = $korektury->importuj($odpoved);
+    $vysledek = $korektury->importujOdpovedi($odpovedi);
     $_SESSION[$klicImportu] = [
         'pocetNavrhu'  => $vysledek->pocetNavrhu,
         'pocetBezZmen' => $vysledek->pocetBezZmen,
-        'varovani'     => $vysledek->varovani,
+        'varovani'     => [...$nahrane->varovani, ...$vysledek->varovani],
     ];
     back(URL_ADMIN . '/' . $urlModulu . '#import');
 }
@@ -154,6 +176,7 @@ $t->assign([
     'velikostBaliku' => KorekturyTextu::VYCHOZI_VELIKOST_BALIKU,
     'pocetKExportu'  => $korektury->pocetKExportu(),
     'poskytovatelAi' => $davkyAi?->poskytovatel()->nazev() ?? '',
+    'nejvysSouboru'  => (int) ini_get('max_file_uploads'),
 ]);
 if ($korektury->jeAiPripojena()) {
     $t->parse('korektury.krokApi');
