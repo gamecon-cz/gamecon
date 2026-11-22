@@ -72,6 +72,138 @@ class KorekturyTextuTest extends AbstractTestDb
     }
 
     /**
+     * One file per package, so that each goes to a chat of its own.
+     *
+     * @test
+     */
+    public function zipObsahujeKazdyCekajiciBalikJakoVlastniSoubor(): void
+    {
+        self::assertNull($this->korektury->zipBaliku(), 'Bez balíků není co stáhnout');
+
+        $prvni = $this->vytvorAktivitu('V prvním balíku');
+        $druha = $this->vytvorAktivitu('Ve druhém balíku');
+        $baliky = $this->korektury->exportuj(1, \Uzivatel::SYSTEM);
+        self::assertCount(2, $baliky);
+
+        $cesta = tempnam(sys_get_temp_dir(), 'korektury-test-');
+        try {
+            file_put_contents($cesta, (string) $this->korektury->zipBaliku());
+            $zip = new \ZipArchive();
+            self::assertTrue($zip->open($cesta, \ZipArchive::RDONLY));
+            $soubory = [];
+            for ($i = 0; $i < $zip->numFiles; ++$i) {
+                $soubory[(string) $zip->getNameIndex($i)] = (string) $zip->getFromIndex($i);
+            }
+            $zip->close();
+        } finally {
+            unlink($cesta);
+        }
+
+        self::assertSame(
+            array_map(fn (int $balik) => $this->korektury->nazevSouboru($balik), $baliky),
+            array_keys($soubory),
+        );
+        $obsahy = array_values($soubory);
+        self::assertSame($this->korektury->soubor($baliky[0]), $obsahy[0], 'Stejný soubor jako stažení jednoho balíku');
+        self::assertStringContainsString('<gc-aktivita id="' . $prvni . '">', $obsahy[0]);
+        self::assertStringNotContainsString('<gc-aktivita id="' . $druha . '">', $obsahy[0]);
+        self::assertStringContainsString('<gc-aktivita id="' . $druha . '">', $obsahy[1]);
+        self::assertStringEndsWith('.zip', $this->korektury->nazevZipu());
+    }
+
+    /**
+     * A ZIP that fails halfway leaves nothing in the temp directory: an archive left open would be written
+     * by its destructor after the file is deleted.
+     *
+     * @test
+     */
+    public function nepovedenyZipPoSobeNicNenecha(): void
+    {
+        $this->vytvorAktivitu('V prvním balíku');
+        $this->vytvorAktivitu('Ve druhém balíku');
+        $this->korektury->exportuj(1, \Uzivatel::SYSTEM);
+        $repository = new class extends KorekturyTextuRepository {
+            private int $dotazu = 0;
+
+            public function dejCekajiciNaOdpoved(?int $balik): array
+            {
+                if (++$this->dotazu === 2) {
+                    throw new \RuntimeException('Databáze spadla');
+                }
+
+                return parent::dejCekajiciNaOdpoved($balik);
+            }
+        };
+        $docasne = static fn () => glob(sys_get_temp_dir() . '/' . KorekturyTextu::PREDPONA_DOCASNEHO_ZIPU . '*') ?: [];
+        $predtim = $docasne();
+
+        try {
+            (new KorekturyTextu($this->systemoveNastaveni, $repository))->zipBaliku();
+            self::fail('Čekána výjimka z databáze');
+        } catch (\RuntimeException $runtimeException) {
+            self::assertSame('Databáze spadla', $runtimeException->getMessage());
+        }
+        gc_collect_cycles();
+
+        self::assertSame($predtim, $docasne());
+    }
+
+    /**
+     * Joined into one text, a block cut at the end of one file would end at the first closing tag of the next one,
+     * a continuation after „pokračuj“, and the texts of two activities would make one proposal.
+     *
+     * @test
+     */
+    public function odpovediZeSouboruSeCtouKazdaZvlast(): void
+    {
+        $useknuta = $this->vytvorAktivitu('Useknutá');
+        $pokracovani = $this->vytvorAktivitu('Z pokračování');
+        $this->korektury->exportuj(1000, \Uzivatel::SYSTEM);
+
+        $vysledek = $this->korektury->importujOdpovedi([
+            '1.txt'  => "<gc-aktivita id=\"{$useknuta}\">\n<gc-popis>Začátek popisu useknuté",
+            '10.txt' => "konec popisu jiné aktivity</gc-popis>\n</gc-aktivita>\n"
+                . "<gc-aktivita id=\"{$pokracovani}\"><gc-nazev>Opravený název</gc-nazev></gc-aktivita>",
+        ]);
+
+        self::assertSame(1, $vysledek->pocetNavrhu);
+        $otevrene = $this->repository->dejOtevrene([$useknuta, $pokracovani]);
+        self::assertSame(StavKorekturyEnum::EXPORTOVANO, $otevrene[$useknuta]->stav, 'Useknutý blok se neslepí s cizím koncem');
+        self::assertNull($otevrene[$useknuta]->navrhPopis);
+        self::assertSame('Opravený název', $otevrene[$pokracovani]->navrhNazev);
+        self::assertNotEmpty(
+            array_filter($vysledek->varovani, static fn (string $varovani) => str_starts_with($varovani, '1.txt: ')),
+            'Varování říká, ze kterého souboru je: ' . implode(' | ', $vysledek->varovani),
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function souborKteryNeniOdpovediSePreskociSVarovanim(): void
+    {
+        $idAktivity = $this->vytvorAktivitu('S balíkem mezi odpověďmi');
+        $balik = $this->korektury->exportuj(1000, \Uzivatel::SYSTEM)[0];
+        $odpoved = "<gc-aktivita id=\"{$idAktivity}\"><gc-nazev>Z UTF-16</gc-nazev></gc-aktivita>";
+
+        $vysledek = $this->korektury->importujOdpovedi([
+            'balik.txt'     => $this->korektury->soubor($balik),
+            'utf16.txt'     => mb_convert_encoding($odpoved, 'UTF-16LE', 'UTF-8'),
+            'prazdny.txt'   => "\n",
+            'bez-bloku.txt' => 'Omlouvám se, nemohu pomoci.',
+        ]);
+
+        self::assertSame(0, $vysledek->pocetNavrhu, 'Balík by jinak vrátil všechny texty beze změny a šly by označit jako opravené');
+        self::assertSame(StavKorekturyEnum::EXPORTOVANO, $this->repository->dejOtevrene([$idAktivity])[$idAktivity]->stav);
+        foreach (['balik.txt: je stažený balík', 'utf16.txt: není v kódování UTF-8', 'prazdny.txt: je prázdný', 'bez-bloku.txt: V odpovědi není žádný blok'] as $ocekavane) {
+            self::assertNotEmpty(
+                array_filter($vysledek->varovani, static fn (string $varovani) => str_starts_with($varovani, $ocekavane)),
+                "Čekáno „{$ocekavane}…“ v: " . implode(' | ', $vysledek->varovani),
+            );
+        }
+    }
+
+    /**
      * @test
      */
     public function prijatyNavrhZapiseTextyCeleRodineAOznaciJiJakoOpravenou(): void

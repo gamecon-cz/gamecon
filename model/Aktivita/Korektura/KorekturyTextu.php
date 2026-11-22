@@ -27,6 +27,8 @@ class KorekturyTextu
     // a proofreading that rewrites more than this is suspicious
     private const float VELKY_PODIL_ZMEN = 0.3;
 
+    public const string PREDPONA_DOCASNEHO_ZIPU = 'korektury-zip-';
+
     /**
      * @param (\Closure(PoskytovatelAi): ?DavkyAi)|null $davkyDalsichPoskytovatelu the batches of a provider not used
      *                                                                             now, to read and cancel the batches sent before a switch of the provider
@@ -227,12 +229,101 @@ class KorekturyTextu
     }
 
     /**
+     * Every package waiting for the AI's answer as a file of its own, each for one chat, all in one ZIP.
+     *
+     * @return string|null the ZIP, null when no package waits
+     */
+    public function zipBaliku(): ?string
+    {
+        $baliky = array_keys($this->repository->dejCekajiciBaliky());
+        if ($baliky === []) {
+            return null;
+        }
+
+        $cesta = tempnam(sys_get_temp_dir(), self::PREDPONA_DOCASNEHO_ZIPU);
+        if ($cesta === false) {
+            throw new \RuntimeException('Nejde vytvořit dočasný soubor pro ZIP s balíky.');
+        }
+        $zip = new \ZipArchive();
+        $otevreny = false;
+        try {
+            if ($zip->open($cesta, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new \RuntimeException("Nejde otevřít ZIP s balíky {$cesta}.");
+            }
+            $otevreny = true;
+            foreach ($baliky as $balik) {
+                if (! $zip->addFromString($this->nazevSouboru($balik), $this->soubor($balik))) {
+                    throw new \RuntimeException("Balík {$balik} nejde přidat do ZIPu.");
+                }
+            }
+            $otevreny = false;
+            if (! $zip->close()) {
+                throw new \RuntimeException("Nejde zapsat ZIP s balíky {$cesta}.");
+            }
+
+            return (string) file_get_contents($cesta);
+        } finally {
+            if ($otevreny) {
+                // an archive left open would be written by its destructor, after the file below is deleted
+                $zip->unchangeAll();
+                $zip->close();
+            }
+            if (is_file($cesta)) {
+                unlink($cesta);
+            }
+        }
+    }
+
+    public function nazevZipu(): string
+    {
+        return (new SouborKorektur())->nazevZipu($this->systemoveNastaveni->rocnik());
+    }
+
+    /**
      * An answer can come in parts and again, a later proposal for an activity replaces the earlier one
      * until the proofreader settles it.
      */
     public function importuj(string $odpoved): VysledekImportu
     {
         return $this->importujOdpoved(OdpovedAi::rozparsuj($odpoved));
+    }
+
+    /**
+     * Several answers at once, each parsed on its own: joined into one text, a block cut at the end of one file
+     * would end at the first closing tag of the next one (a continuation after „pokračuj“ starts with the tail of
+     * a block), and the texts of two activities would make one proposal. A later answer for an activity replaces
+     * an earlier one, as with answers imported one by one. A source that is no answer is skipped with a warning
+     * under its name.
+     *
+     * @param array<string, string> $odpovediPodleZdroje the answer by where it came from (a file name, the text field)
+     */
+    public function importujOdpovedi(array $odpovediPodleZdroje): VysledekImportu
+    {
+        $navrhy = [];
+        $varovani = [];
+        foreach ($odpovediPodleZdroje as $zdroj => $odpoved) {
+            if (trim($odpoved) === '') {
+                $varovani[] = "{$zdroj}: je prázdný, přeskakuji ho.";
+                continue;
+            }
+            // UTF-16 (Notepad's „Unicode“) has a zero byte in every ASCII character, which is valid UTF-8 even so
+            if (str_contains($odpoved, "\0") || ! mb_check_encoding($odpoved, 'UTF-8')) {
+                $varovani[] = "{$zdroj}: není v kódování UTF-8 (ulož ho jako UTF-8), přeskakuji ho.";
+                continue;
+            }
+            if (SouborKorektur::jeBalik($odpoved)) {
+                $varovani[] = "{$zdroj}: je stažený balík pro AI, ne její odpověď, přeskakuji ho.";
+                continue;
+            }
+            $odpovedAi = OdpovedAi::rozparsuj($odpoved);
+            foreach ($odpovedAi->varovani as $varovaniOdpovedi) {
+                $varovani[] = "{$zdroj}: {$varovaniOdpovedi}";
+            }
+            // array_replace keeps the activity IDs as keys, a later answer wins
+            $navrhy = array_replace($navrhy, $odpovedAi->navrhy);
+        }
+
+        return $this->importujOdpoved(new OdpovedAi($navrhy, $varovani));
     }
 
     private function importujOdpoved(OdpovedAi $odpovedAi): VysledekImportu

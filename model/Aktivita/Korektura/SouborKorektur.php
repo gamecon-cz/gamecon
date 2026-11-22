@@ -20,6 +20,9 @@ class SouborKorektur
     public const ZNACKA_ZMENY = 'gc-zmeny';
     public const ZNACKA_DRIVEJSI = 'gc-drivejsi';
 
+    // the first line of the instructions, by which a downloaded package is told from an answer
+    private const string NADPIS_POKYNU = '# Korektura textů aktivit GameConu';
+
     private const string POKYNY = <<<'TEXT'
 # Korektura textů aktivit GameConu %rocnik%
 
@@ -83,6 +86,20 @@ TEXT;
         return $balik !== null
             ? "korektura-gamecon-{$rocnik}-balik-{$balik}.txt"
             : "korektura-gamecon-{$rocnik}.txt";
+    }
+
+    /**
+     * A package file, not an answer: picked among the answers by mistake it would bring every text back unchanged,
+     * and the proofreader would mark them proofread with one click.
+     */
+    public static function jeBalik(string $obsah): bool
+    {
+        return preg_match('~^' . preg_quote(self::NADPIS_POKYNU, '~') . '\b~mu', $obsah) === 1;
+    }
+
+    public function nazevZipu(int $rocnik): string
+    {
+        return "korektura-gamecon-{$rocnik}-baliky.zip";
     }
 
     /**
