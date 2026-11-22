@@ -568,10 +568,21 @@
   margin-top: 50px;
   text-align: center;
   display: block;
-  width: 350px;
-  margin-left: auto;
-  margin-right: auto;
+  // Řádek nadpisu je široký jako celá tabulka (všechny hodiny), uprostřed by
+  // ho na mobilu ani na užším monitoru nebylo vidět. Přilepíme ho k levému
+  // okraji posuvné oblasti (.programPosuv_obal), stejně jako sloupec linií.
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: min(350px, calc(100vw - 40px));
+  box-sizing: border-box;
   height: auto;
+
+  @media (max-width: 800px) {
+    font-size: 20px;
+    padding: 14px 20px;
+    margin-top: 30px;
+  }
 }
 
 .modal {
@@ -626,4 +637,27 @@
   padding: 20px;
   border: 1px solid #888;
   width: min(80%, 50em);
+}
+
+// Do 1200 px dny a tlačítka vpravo skládáme do mřížky stejně širokých dlaždic.
+// Flex s flex-grow tu roztahoval osamocená tlačítka na konci řádku (třeba
+// samotnou Neděli nebo Vypravěče a Filtry přes půl obrazovky).
+@media (max-width: 1200px) {
+  .program_dny {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-right: 0;
+  }
+
+  .program_dny_vpravo {
+    display: contents;
+  }
+
+  .program_dny > .program_den,
+  .program_dny .program_filtry_tlacitko {
+    width: auto;
+    margin: 0;
+    box-sizing: border-box;
+  }
 }
