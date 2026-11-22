@@ -11,7 +11,8 @@
     <li>
         Balíky stáhni (jednotlivě, nebo všechny naráz v ZIPu) a každý soubor nahraj do vlastního chatu s AI
         (Claude, ChatGPT…), případně vlož jeho obsah do zprávy.
-        Pokyny pro AI jsou v souboru, nic nepiš. Když AI odpověď přeruší, napiš jí „pokračuj“.
+        Pokyny pro AI jsou v souboru, nic nepiš. AI vrátí odpověď jako soubor ke stažení (…-odpoved.txt). Když ho
+        nevytvoří a odpoví textem, zkopíruj ho, a když odpověď přeruší, napiš jí „pokračuj“.
         <!-- begin:krokApi -->
         <br>
         Nebo balík pošli AI rovnou tlačítkem „Poslat AI“ (přes API k {poskytovatelAi}). Odpovědi dojdou samy,

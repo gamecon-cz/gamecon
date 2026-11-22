@@ -63,17 +63,30 @@ Celý opravený popis…
 <gc-zmeny>čárka před „který“, české uvozovky</gc-zmeny>
 </gc-aktivita>
 <gc-aktivita id="124"></gc-aktivita>
-
-## Texty ke korektuře
 TEXT;
+
+    // only in the file for a chat: a chat writes a long answer as text by itself (ChatGPT did), to be copied
+    // by hand, and a file comes back whole and goes to the upload as it is; the API answers with text anyway
+    private const string ODPOVED_SOUBOREM = <<<'TEXT'
+## Odpověď jako soubor
+
+Odpověď ulož do textového souboru %soubor% (kódování UTF-8) a dej mi ho ke stažení. V souboru budou jen bloky <gc-aktivita>, do chatu napiš jen to, že je soubor hotový. Zapiš do souboru všechny aktivity, i když je odpověď dlouhá. Jen když soubor vytvořit nemůžeš, napiš bloky přímo do chatu.
+TEXT;
+
+    private const string NADPIS_TEXTU = '## Texty ke korektuře';
 
     /**
      * @param array<KorekturaTextu>     $korektury
      * @param array<int, DrivejsiTexty> $drivejsiPodleAktivit by activity ID
+     * @param int|null                  $balik                null for all packages in one file, it names the answer file
      */
-    public function vytvor(array $korektury, array $drivejsiPodleAktivit, int $rocnik): string
+    public function vytvor(array $korektury, array $drivejsiPodleAktivit, int $rocnik, ?int $balik = null): string
     {
-        $bloky = [$this->pokyny($rocnik)];
+        $bloky = [
+            $this->pravidla($rocnik),
+            str_replace('%soubor%', $this->nazevSouboruOdpovedi($rocnik, $balik), self::ODPOVED_SOUBOREM),
+            self::NADPIS_TEXTU,
+        ];
         foreach ($korektury as $korektura) {
             $bloky[] = $this->blokAktivity($korektura, $drivejsiPodleAktivit[$korektura->idAktivity] ?? null);
         }
@@ -86,6 +99,15 @@ TEXT;
         return $balik !== null
             ? "korektura-gamecon-{$rocnik}-balik-{$balik}.txt"
             : "korektura-gamecon-{$rocnik}.txt";
+    }
+
+    /**
+     * The name the chat gives its answer file: the package's own, so that answers downloaded from several chats
+     * are told apart.
+     */
+    public function nazevSouboruOdpovedi(int $rocnik, ?int $balik): string
+    {
+        return preg_replace('~\.txt$~', '-odpoved.txt', $this->nazevSouboru($rocnik, $balik));
     }
 
     /**
@@ -103,9 +125,14 @@ TEXT;
     }
 
     /**
-     * The same for a file and for the API, where they go as the system prompt.
+     * The system prompt of the API: the rules and the format of the answer as in the file, without asking for a file.
      */
     public function pokyny(int $rocnik): string
+    {
+        return $this->pravidla($rocnik) . "\n\n" . self::NADPIS_TEXTU;
+    }
+
+    private function pravidla(int $rocnik): string
     {
         return str_replace('%rocnik%', (string) $rocnik, self::POKYNY);
     }
