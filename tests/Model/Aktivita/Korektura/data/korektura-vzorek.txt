@@ -38,6 +38,10 @@ Celý opravený popis…
 </gc-aktivita>
 <gc-aktivita id="124"></gc-aktivita>
 
+## Odpověď jako soubor
+
+Odpověď ulož do textového souboru korektura-gamecon-2022-odpoved.txt (kódování UTF-8) a dej mi ho ke stažení. V souboru budou jen bloky <gc-aktivita>, do chatu napiš jen to, že je soubor hotový. Zapiš do souboru všechny aktivity, i když je odpověď dlouhá. Jen když soubor vytvořit nemůžeš, napiš bloky přímo do chatu.
+
 ## Texty ke korektuře
 
 <gc-aktivita id="4046">

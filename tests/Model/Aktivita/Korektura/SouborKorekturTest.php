@@ -43,6 +43,41 @@ TEXT,
     }
 
     /**
+     * A chat writes a long answer as text by itself, to be copied by hand; asked for a file, it gives one named
+     * after the package. The API answers with text whatever it is asked, so its prompt does not ask for a file.
+     *
+     * @test
+     */
+    public function chatDostanePokynVratitOdpovedJakoSouborApiNe(): void
+    {
+        $souborKorektur = new SouborKorektur();
+        $soubor = $souborKorektur->vytvor(
+            [$this->korektura(7, new TextyAktivity('Krycí jména', 'Hra se slovy', 'Popis'))],
+            [],
+            2026,
+            3,
+        );
+
+        self::assertStringContainsString('ulož do textového souboru korektura-gamecon-2026-balik-3-odpoved.txt', $soubor);
+        self::assertLessThan(
+            strpos($soubor, '## Texty ke korektuře'),
+            strpos($soubor, '## Odpověď jako soubor'),
+            'Pokyn k souboru je před texty',
+        );
+        self::assertStringContainsString(
+            'korektura-gamecon-2026-odpoved.txt',
+            $souborKorektur->vytvor([], [], 2026),
+            'Všechny balíky v jednom souboru',
+        );
+        self::assertTrue(SouborKorektur::jeBalik($soubor));
+
+        $pokynyApi = $souborKorektur->pokyny(2026);
+        self::assertStringNotContainsString('Odpověď jako soubor', $pokynyApi);
+        self::assertStringEndsWith('## Texty ke korektuře', $pokynyApi);
+        self::assertStringStartsWith('# Korektura textů aktivit GameConu 2026', $pokynyApi);
+    }
+
+    /**
      * @test
      */
     public function drivejsiVerzeJeUAktivityVeVlastnimBloku(): void

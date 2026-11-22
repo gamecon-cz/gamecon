@@ -75,7 +75,7 @@ class KorekturyTextu
         $rocnik = $this->systemoveNastaveni->rocnik();
         $korektury = $this->repository->dejCekajiciNaOdpoved($balik);
 
-        return (new SouborKorektur())->vytvor($korektury, $this->drivejsiTexty($korektury), $rocnik);
+        return (new SouborKorektur())->vytvor($korektury, $this->drivejsiTexty($korektury), $rocnik, $balik);
     }
 
     /**
