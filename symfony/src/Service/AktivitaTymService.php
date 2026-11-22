@@ -741,6 +741,10 @@ class AktivitaTymService
         if ($minKapacita !== null && $limit < $minKapacita) {
             throw new \Chyba('Limit nemůže být nižší než minimální kapacita (' . $minKapacita . ')');
         }
+        $maxKapacita = $prvniAktivita?->getTeamMax();
+        if ($maxKapacita !== null && $limit > $maxKapacita) {
+            throw new \Chyba('Limit nemůže být vyšší než maximální kapacita (' . $maxKapacita . ')');
+        }
         $team->setLimit($limit);
         $this->em->flush();
     }
