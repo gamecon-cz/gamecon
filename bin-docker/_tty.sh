@@ -20,10 +20,11 @@ function docker_run {
 	fi
 }
 
+# `up -d` and `exec`, so that the boot script of `web` has run (it maps www-data to the host uid, a one-off `run --rm`
+# container skips it). Nothing is stopped afterwards: a `stop` would also stop services this call did not start.
 function docker_compose_run {
   docker compose up -d
 	docker compose exec $DC_INTERACTIVITY "$@"
-	docker compose stop
 }
 
 function docker_compose_exec {
