@@ -9,13 +9,15 @@
 <ol>
     <li>Připrav balíky.</li>
     <li>
-        Pošli je AI tlačítkem „Poslat AI“. Odpovědi dojdou samy, obvykle do hodiny, a stránka si je načte, až ji otevřeš
-        (podívá se nejvýš jednou za minutu).
+        Balík stáhni a soubor nahraj do chatu s AI (Claude, ChatGPT…), případně vlož jeho obsah do zprávy.
+        Pokyny pro AI jsou v souboru, nic nepiš. Když AI odpověď přeruší, napiš jí „pokračuj“.
+        <!-- begin:krokApi -->
         <br>
-        Nebo balík stáhni a soubor nahraj do chatu s AI (Claude, ChatGPT…), případně vlož jeho obsah do zprávy.
-        Pokyny pro AI jsou v souboru, nic nepiš. Když AI odpověď přeruší, napiš jí „pokračuj“. Odpověď pak vlož níže
-        a načti, jde to i po částech a opakovaně.
+        Nebo balík pošli AI rovnou tlačítkem „Poslat AI“ (přes API k {poskytovatelAi}). Odpovědi dojdou samy,
+        obvykle do hodiny, a stránka si je načte, až ji otevřeš (podívá se nejvýš jednou za minutu).
+        <!-- end:krokApi -->
     </li>
+    <li>Odpověď AI z chatu nahraj zpět: vlož ji do pole níže, nebo vyber soubor. Jde to i po částech a opakovaně.</li>
     <li>Projdi návrhy: přijmi, ručně uprav, nebo zamítni.</li>
 </ol>
 
@@ -69,7 +71,7 @@
     }
 </style>
 
-<h2>1. Pošli texty AI</h2>
+<h2>1. Připrav a stáhni balíky pro AI</h2>
 
 <p>Neopravených textů, které ještě nejsou na korektuře: <strong>{pocetKExportu}</strong></p>
 
@@ -88,7 +90,7 @@
         <th>Balík</th>
         <th>Aktivit</th>
         <!-- begin:hlavickaAi -->
-        <th>AI přes API</th>
+        <th>{poskytovatelAi} přes API</th>
         <!-- end:hlavickaAi -->
         <th></th>
         <th></th>
@@ -132,14 +134,21 @@
 <!-- end:baliky -->
 
 <!-- begin:bezAi -->
-<p><em>Posílání AI přes API tu není zapnuté (chybí klíč k API), texty jdou jen přes soubor.</em></p>
+<p>
+    <em>
+        Texty jdou k AI ručně přes soubor, posílání přes API je vypnuté.
+        <!-- begin:zapnout -->
+        Zapíná se v <a href="dev/ai">Dev → Připojení AI</a>.
+        <!-- end:zapnout -->
+    </em>
+</p>
 <!-- end:bezAi -->
 
 <!-- begin:chybaAi -->
 <div class="error no-image">{chybaAi}</div>
 <!-- end:chybaAi -->
 
-<h2 id="import">2. Nahraj odpověď AI z chatu</h2>
+<h2 id="import">2. Nahraj odpověď AI zpět</h2>
 
 <form method="post" enctype="multipart/form-data">
     <textarea name="odpoved" rows="8" class="korektury-odpoved" placeholder="Sem vlož odpověď AI…"></textarea>

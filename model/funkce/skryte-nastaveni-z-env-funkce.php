@@ -59,8 +59,6 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
         // Přihlášení do Vševědy (?gcsso=). Vlastní tajemství jen pro ostrou: GAMECON_SSO_SECRET dostává
         // každé preview, a z něj odvozený klíč by si tak mohla podepsat libovolná větev.
         $VSEVEDA_SSO_SECRET = getenv('VSEVEDA_SSO_SECRET');
-        // Korektury textů aktivit přes API Anthropicu (Claude). Bez klíče jdou texty k AI jen přes soubor.
-        $ANTHROPIC_API_KEY = getenv('ANTHROPIC_API_KEY');
 
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
@@ -121,9 +119,6 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
 
             // Přihlášení do Vševědy: jen ostrá
             define('VSEVEDA_SSO_SECRET', '{$VSEVEDA_SSO_SECRET}');
-
-            // Korektury textů aktivit přes API Anthropicu
-            define('ANTHROPIC_API_KEY', '{$ANTHROPIC_API_KEY}');
             PHP,
         );
     }

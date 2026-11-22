@@ -26,6 +26,19 @@ class Sifrovatko
         }
     }
 
+    /**
+     * Null instead of a message when the text cannot be decrypted (another key, a damaged text): for a secret
+     * the code uses, where the message would go out as the secret itself.
+     */
+    public static function desifrujNeboNull(string $zasifrovanyText): ?string
+    {
+        try {
+            return Crypto::decrypt($zasifrovanyText, self::vytvorKlic());
+        } catch (CryptoException) {
+            return null;
+        }
+    }
+
     protected static function vytvorKlic()
     {
         return Key::loadFromAsciiSafeString(SECRET_CRYPTO_KEY);

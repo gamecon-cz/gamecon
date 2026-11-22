@@ -131,5 +131,3 @@ jobs:
                     # Přihlášení do Vševědy. JEN ostrá: beta ani preview ho nedostanou, jinak by si
                     # přihlášení mohla podepsat libovolná větev. Shodné s vseveda.sso.secret v ansiblu.
                     VSEVEDA_SSO_SECRET: ${{ secrets.VSEVEDA_SSO_SECRET }}
-                    # Korektury textů aktivit přes API Anthropicu (Claude), společné s betou.
-                    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

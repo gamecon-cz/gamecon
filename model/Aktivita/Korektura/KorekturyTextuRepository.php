@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita\Korektura;
 
+use Gamecon\Ai\PoskytovatelAi;
+use Gamecon\Aktivita\Korektura\Exceptions\ExportUzBezi;
 use Gamecon\Aktivita\Korektura\Exceptions\OdesilaniAiUzBezi;
 use Gamecon\Aktivita\Korektura\SqlStruktura\AkceKorekturaSqlStruktura as Sql;
 use Gamecon\Aktivita\TypAktivity;
 
 class KorekturyTextuRepository
 {
-    // sending a batch takes seconds, its HTTP request at most the client's timeout
-    private const int CEKANI_NA_ZAMEK_ODESILANI_AI_SEKUND = 60;
+    // sending a batch takes seconds, its HTTP request at most the client's timeout; an export takes less
+    private const int CEKANI_NA_ZAMEK_SEKUND = 60;
 
     /**
      * Main activities of the year (one for a family of instances, which share the texts) whose texts
@@ -209,8 +211,7 @@ SQL,
 
     /**
      * Runs the sending to the AI's API alone, so that a double click or a second tab does not pay for the same
-     * texts twice: the other one waits, then finds them sent. A lock of the server, hence named by the database
-     * (ostrá and beta share the server).
+     * texts twice: the other one waits, then finds them sent.
      *
      * @template T
      *
@@ -222,38 +223,94 @@ SQL,
      */
     public function vZamkuOdesilaniAi(callable $odeslani): mixed
     {
-        $zamek = (string) dbOneCol("SELECT CONCAT(DATABASE(), '.korektury-odesilani-ai')");
-        if ((int) dbOneCol('SELECT GET_LOCK($0, $1)', [
-            0 => $zamek,
-            1 => self::CEKANI_NA_ZAMEK_ODESILANI_AI_SEKUND,
-        ]) !== 1) {
-            throw new OdesilaniAiUzBezi('Texty AI právě posílá jiné okno, zkus to za chvíli znovu.');
+        return $this->vZamku(
+            'korektury-odesilani-ai',
+            $odeslani,
+            static fn () => new OdesilaniAiUzBezi('Texty AI právě posílá jiné okno, zkus to za chvíli znovu.'),
+        );
+    }
+
+    /**
+     * Runs the export alone: a double click would otherwise read the same texts twice and give each activity two
+     * open rows, the second one sent to the AI and paid again and again.
+     *
+     * @template T
+     *
+     * @param callable(): T $export
+     *
+     * @return T
+     *
+     * @throws ExportUzBezi when another export takes too long
+     */
+    public function vZamkuExportu(callable $export): mixed
+    {
+        return $this->vZamku(
+            'korektury-export',
+            $export,
+            static fn () => new ExportUzBezi('Balíky právě připravuje jiné okno, zkus to za chvíli znovu.'),
+        );
+    }
+
+    /**
+     * A lock of the server, hence named by the database (ostrá and beta share the server).
+     *
+     * @template T
+     *
+     * @param callable(): T                 $akce
+     * @param callable(): \RuntimeException $chybaKdyzSeNedocka
+     *
+     * @return T
+     */
+    private function vZamku(string $nazev, callable $akce, callable $chybaKdyzSeNedocka): mixed
+    {
+        $zamek = (string) dbOneCol(<<<'SQL'
+SELECT CONCAT(DATABASE(), '.', $0)
+SQL,
+            [
+                0 => $nazev,
+            ],
+        );
+        if ((int) dbOneCol(<<<'SQL'
+SELECT GET_LOCK($0, $1)
+SQL,
+            [
+                0 => $zamek,
+                1 => self::CEKANI_NA_ZAMEK_SEKUND,
+            ],
+        ) !== 1) {
+            throw $chybaKdyzSeNedocka();
         }
         try {
-            return $odeslani();
+            return $akce();
         } finally {
-            dbQuery('SELECT RELEASE_LOCK($0)', [
-                0 => $zamek,
-            ]);
+            dbQuery(<<<'SQL'
+SELECT RELEASE_LOCK($0)
+SQL,
+                [
+                    0 => $zamek,
+                ],
+            );
         }
     }
 
     /**
-     * Only the texts still waiting for the AI and in no batch yet, a text already in a batch keeps it.
+     * Only the texts still waiting for the AI and in no batch yet, a text already in a batch keeps it. The batch
+     * remembers its provider and the database that sent it.
      *
      * @param array<int> $idsKorektur
      */
-    public function oznacOdeslaneAi(array $idsKorektur, string $idDavky): void
+    public function oznacOdeslaneAi(array $idsKorektur, string $idDavky, PoskytovatelAi $poskytovatel): void
     {
         dbQuery(<<<'SQL'
 UPDATE akce_korektura
-SET id_davky_ai = $1, odeslano_ai_kdy = NOW()
+SET id_davky_ai = $1, poskytovatel_ai = $3, prostredi_ai = DATABASE(), odeslano_ai_kdy = NOW()
 WHERE id_korektury IN ($0) AND stav = $2 AND id_davky_ai IS NULL
 SQL,
             [
                 0 => $idsKorektur,
                 1 => $idDavky,
                 2 => StavKorekturyEnum::EXPORTOVANO,
+                3 => $poskytovatel->value,
             ],
         );
     }
@@ -263,20 +320,27 @@ SQL,
      *
      * @param int|null $balik null for all packages
      *
-     * @return array<string> IDs of the AI batches
+     * @return array<OdeslanaDavkaAi> a list, not keyed by the ID: a numeric ID would turn into an int key
      */
     public function dejDavkyAi(?int $balik = null): array
     {
-        return array_map('strval', dbFetchColumn(<<<'SQL'
-SELECT DISTINCT id_davky_ai
+        return array_map(
+            static fn (array $radek) => new OdeslanaDavkaAi(
+                id: (string) $radek[Sql::ID_DAVKY_AI],
+                poskytovatel: (string) $radek[Sql::POSKYTOVATEL_AI],
+                zTetoDatabaze: (bool) $radek['z_teto_databaze'],
+            ),
+            dbFetchAll(<<<'SQL'
+SELECT DISTINCT id_davky_ai, poskytovatel_ai, COALESCE(prostredi_ai = DATABASE(), 0) AS z_teto_databaze
 FROM akce_korektura
 WHERE id_davky_ai IS NOT NULL AND ($0 IS NULL OR balik = $0)
 ORDER BY id_davky_ai
 SQL,
-            [
-                0 => $balik,
-            ],
-        ));
+                [
+                    0 => $balik,
+                ],
+            ),
+        );
     }
 
     /**
@@ -304,7 +368,7 @@ SQL,
     {
         dbQuery(<<<'SQL'
 UPDATE akce_korektura
-SET id_davky_ai = NULL, odeslano_ai_kdy = NULL
+SET id_davky_ai = NULL, poskytovatel_ai = NULL, prostredi_ai = NULL, odeslano_ai_kdy = NULL
 WHERE id_davky_ai = $0
 SQL,
             [

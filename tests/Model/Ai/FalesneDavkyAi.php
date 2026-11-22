@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Tests\Model\Aktivita\Korektura;
+namespace Gamecon\Tests\Model\Ai;
 
-use Gamecon\Aktivita\Korektura\DavkyAi;
-use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
-use Gamecon\Aktivita\Korektura\OdpovedAiNaPozadavek;
+use Gamecon\Ai\DavkyAi;
+use Gamecon\Ai\Exceptions\ChybaApiAi;
+use Gamecon\Ai\OdpovedAiNaPozadavek;
+use Gamecon\Ai\PoskytovatelAi;
 
 /**
  * Batches that stay in memory: a test sees what went out and decides when and what the AI answers.
@@ -38,9 +39,23 @@ class FalesneDavkyAi implements DavkyAi
      */
     private array $chyby = [];
 
+    public function __construct(
+        private readonly PoskytovatelAi $poskytovatel = PoskytovatelAi::ANTHROPIC,
+    ) {
+    }
+
+    public function poskytovatel(): PoskytovatelAi
+    {
+        return $this->poskytovatel;
+    }
+
+    public function overSpojeni(): void
+    {
+    }
+
     public function odesli(string $pokyny, array $zpravy): string
     {
-        $idDavky = 'msgbatch_test_' . (count($this->odeslane) + 1);
+        $idDavky = "{$this->poskytovatel->value}_batch_test_" . (count($this->odeslane) + 1);
         $this->odeslane[$idDavky] = [
             'pokyny' => $pokyny,
             'zpravy' => $zpravy,
