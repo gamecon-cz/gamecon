@@ -7,16 +7,16 @@ namespace Gamecon\Report;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
-class FinanceLideVDatabaziAZustatky
+readonly class FinanceLideVDatabaziAZustatky
 {
 
-    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
+    public function __construct(private SystemoveNastaveni $systemoveNastaveni)
     {
     }
 
     public function exportuj(
         ?string $format,
-        string  $doSouboru = null,
+        ?string  $doSouboru = null,
     )
     {
         $result = dbFetchAll(<<<SQL
@@ -61,29 +61,29 @@ SQL,
             exit('V tabulce nejsou žádná data.');
         }
 
-        $ucastPodleRoku = [];
-        $maxRok         = $this->systemoveNastaveni->poPrihlasovaniUcastniku()
+        $prihlaseniPodleRoku = [];
+        $maxRok         = $this->systemoveNastaveni->jePoPrihlasovaniUcastniku()
             ? $this->systemoveNastaveni->rocnik()
             : $this->systemoveNastaveni->rocnik() - 1;
         for ($rokUcasti = 2009; $rokUcasti <= $maxRok; $rokUcasti++) {
-            $ucastPodleRoku[Role::pritomenNaRocniku($rokUcasti)] = 'účast ' . $rokUcasti;
+            $prihlaseniPodleRoku[Role::prihlasenNaRocnik($rokUcasti)] = 'prihlaseni ' . $rokUcasti;
         }
 
         $obsah = [];
         foreach ($result as $r) {
             $uzivatel = \Uzivatel::zIdUrcite($r['id_uzivatele'], true);
             $r['současný stav účtu'] = $uzivatel->finance()->stav();
-            $ucastiHistorie   = [];
+            $prihlaseniHistorie   = [];
             $idsRoliUcastnika = explode(',', $r['ids_roli'] ?? '');
-            foreach ($ucastPodleRoku as $idRolePritomenNaRocniku => $nazevUcasti) {
-                $ucastiHistorie[$nazevUcasti] = in_array($idRolePritomenNaRocniku, $idsRoliUcastnika, false)
+            foreach ($prihlaseniPodleRoku as $idRolePrihlasenNaRocnik => $nazevPrihlaseni) {
+                $prihlaseniHistorie[$nazevPrihlaseni] = in_array($idRolePrihlasenNaRocnik, $idsRoliUcastnika, false)
                     ? 'ano'
                     : 'ne';
             }
             unset($r['ids_roli']); // nechceme to v reportu
             $obsah[] = [
                 ...$r,
-                ...$ucastiHistorie,
+                ...$prihlaseniHistorie,
             ];
         }
 
