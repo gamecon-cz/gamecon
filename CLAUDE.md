@@ -441,7 +441,6 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 | `SERVER_NAME` | `docker run -e` | `<slug>.preview.gamecon.cz` | konzistentní s tím, co by Apache nastavil z requestu |
 | `VSEVEDA_SSO_SECRET` | nepředáváno (ani beta, ani archiv) | n/a | **úmyslně jen ostrá** — podepisuje přihlášení do Vševědy (`vseveda.preview.gamecon.cz`), která pracuje nad kopií ostré DB. Preview běží kód libovolné větve, takže by si s ním přihlášení mohlo podepsat samo. |
 | `GOOGLE_API_CREDENTIALS` | (nevyplněno) | prázdné | úmyslné — vyřešíme později, většina toků v preview netřeba |
-| `ANTHROPIC_API_KEY` | **zatím nedoručeno** | prázdné | korektury textů aktivit přes API (`AnthropicDavkyAi`). Ostra i beta mají společný GitHub secret `ANTHROPIC_API_KEY`. Do preview doplnit `-e ANTHROPIC_API_KEY` z ansible `secrets.yaml` (`deploy-preview-branch.sh.j2`), do té doby preview nabízí jen korekturu přes soubor. Archivy ne (`archive/YYYY` funkci nemá). Lokálně jen z `GAMECON_ANTHROPIC_API_KEY` (`.env`) přes `docker-compose.yml`, schválně ne z obecného `ANTHROPIC_API_KEY` v shellu (placené volání bez vědomí), jinak prázdné |
 | `PREVIEW_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi preview | bake je správná cesta — společná hodnota |
 | `ARCHIVE_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi archive | bake je správná cesta |
 | `DEPLOY_*` (rsync nasazení) | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |

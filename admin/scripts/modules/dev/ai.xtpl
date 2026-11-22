@@ -1,0 +1,117 @@
+<!-- begin:ai -->
+
+<h1>Připojení AI</h1>
+
+<p>
+    Přes API může admin posílat texty umělé inteligenci rovnou, bez kopírování do chatu. Jde to dávkově: dávka stojí
+    polovinu a odpovědi dojdou obvykle do hodiny, nejpozději do 24 hodin. Zatím to používají
+    <a href="aktivity/korektury">Korektury textů</a>.
+</p>
+<p>
+    Bez zvoleného připojení jdou texty k AI ručně: korektor stáhne balík, nahraje ho do chatu s AI a odpověď nahraje
+    zpět. Platí se pak předplatné chatu, ne API.
+</p>
+<p>
+    Token se ukládá zašifrovaný a jen pro tuto databázi (<code>{totoProstredi}</code>). Kopie databáze na betě nebo
+    v preview ho nepoužije, aby nemohla posílat texty na účet ostré ani rušit její dávky.
+</p>
+
+<style>
+    .ai-pripojeni label {
+        display: block;
+        margin: 0.5em 0;
+    }
+
+    .ai-pripojeni input[type=password], .ai-pripojeni input[type=text] {
+        width: 30em;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .ai-pripojeni small {
+        color: #555;
+    }
+</style>
+
+<!-- begin:cekajiciDavky -->
+<div class="warning no-image">
+    Na odpověď přes API čekají dávky korektur:
+    <!-- begin:davky -->
+    {pocetDavek}&nbsp;u&nbsp;{poskytovatelDavek};
+    <!-- end:davky -->
+    po přepnutí na jiného poskytovatele se dál načtou tokenem toho původního. Smazáním jeho tokenu jejich odpovědi
+    propadnou a texty půjdou poslat znovu, vypnutí připojení je nechá čekat do jeho zapnutí.
+</div>
+<!-- end:cekajiciDavky -->
+
+<h2>Používat</h2>
+
+<form method="post" class="ai-pripojeni">
+    <label>
+        <input type="radio" name="pouzivat" value="" {nicChecked}>
+        Nic, texty jdou k AI jen ručně přes soubor
+    </label>
+    <!-- begin:volba -->
+    <label>
+        <input type="radio" name="pouzivat" value="{poskytovatel}" {checked} {disabled}>
+        {nazev} <small>(model {model})</small>
+        <!-- begin:bezTokenu -->
+        <small>– nejdřív ulož token níže</small>
+        <!-- end:bezTokenu -->
+    </label>
+    <!-- end:volba -->
+    <button type="submit" name="zvolit" value="1">Uložit volbu</button>
+</form>
+
+<!-- begin:poskytovatel -->
+<h2>{nazev}</h2>
+
+<!-- begin:bezTokenu -->
+<p>Token není uložený.</p>
+<!-- end:bezTokenu -->
+<!-- begin:token -->
+<p>Uložený token končí na <code>…{konecTokenu}</code> (poslední změna {zmeneno}).</p>
+<!-- end:token -->
+<!-- begin:jineProstredi -->
+<div class="warning no-image">
+    Uložený token patří databázi <code>{prostredi}</code>, sem se dostal s její kopií a tady se nepoužije.
+    Zadej token pro tuto databázi, nebo ho smaž.
+</div>
+<!-- end:jineProstredi -->
+<!-- begin:necitelny -->
+<div class="warning no-image">
+    Uložený token nejde rozšifrovat (jiný šifrovací klíč), zadej ho znovu.
+</div>
+<!-- end:necitelny -->
+
+<form method="post" class="ai-pripojeni" autocomplete="off">
+    <input type="hidden" name="poskytovatel" value="{poskytovatel}">
+    <label>
+        Token
+        <br>
+        <input type="password" name="token" autocomplete="new-password">
+        <br>
+        <small>
+            Založí ho správce účtu na <a href="{urlTokenu}" target="_blank" rel="noopener">{urlTokenu}</a>.
+            Prázdné pole nechá uložený token. Ověřit spojení zkusí token a model z polí, ještě než je uložíš.
+        </small>
+    </label>
+    <label>
+        Model
+        <br>
+        <input type="text" name="model" value="{model}" placeholder="{vychoziModel}">
+        <br>
+        <small>Prázdné pole = {vychoziModel}. Jiný model musí umět dávky a nastavení úsilí (effort).</small>
+    </label>
+    <button type="submit" name="ulozit" value="1">Uložit</button>
+    <button type="submit" name="overit" value="1" title="Ověří token a model z polí, uložené i neuložené">Ověřit spojení</button>
+    <!-- begin:smazat -->
+    <button type="submit" name="smazat" value="1" formnovalidate
+            onclick="return window.confirm('Smazat token pro {nazev}? Když se používá, korektury půjdou jen přes soubor.')">
+        Smazat token
+    </button>
+    <!-- end:smazat -->
+</form>
+<!-- end:poskytovatel -->
+
+<!-- end:ai -->

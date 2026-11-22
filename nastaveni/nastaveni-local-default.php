@@ -179,10 +179,4 @@ if (! defined('VSEVEDA_SSO_SECRET')) {
     define('VSEVEDA_SSO_SECRET', getenv('VSEVEDA_SSO_SECRET') ?: '');
 }
 
-// Korektury textů aktivit přes API Anthropicu. Lokálně prázdné (texty jdou k AI jen přes soubor), dokud ho vývojář
-// nezadá jako GAMECON_ANTHROPIC_API_KEY do .env (docker-compose.yml).
-if (! defined('ANTHROPIC_API_KEY')) {
-    define('ANTHROPIC_API_KEY', getenv('ANTHROPIC_API_KEY') ?: '');
-}
-
 error_reporting(E_ALL);

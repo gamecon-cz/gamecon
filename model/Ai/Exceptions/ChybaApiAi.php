@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Aktivita\Korektura\Exceptions;
+namespace Gamecon\Ai\Exceptions;
 
 use Psr\Http\Client\ClientExceptionInterface;
 
@@ -11,6 +11,8 @@ use Psr\Http\Client\ClientExceptionInterface;
  */
 class ChybaApiAi extends \RuntimeException
 {
+    private bool $davkaSkoncilaBezOdpovedi = false;
+
     public function __construct(
         string $message,
         // null when the API did not answer at all
@@ -21,12 +23,23 @@ class ChybaApiAi extends \RuntimeException
     }
 
     /**
-     * The API does not know the batch (any more): its results are kept for 29 days, a key of another workspace
-     * does not see it. Waiting for it makes no sense.
+     * The batch has ended and will never bring an answer, the API refused it as a whole (an input it could not read).
      */
-    public function jeNeznamaDavka(): bool
+    public static function davkaSkoncilaBezOdpovedi(string $message): self
     {
-        return $this->kodHttp === 404;
+        $chyba = new self($message, 200);
+        $chyba->davkaSkoncilaBezOdpovedi = true;
+
+        return $chyba;
+    }
+
+    /**
+     * Waiting for the batch makes no sense: the API does not know it (any more, results are kept for about
+     * a month, a key of another account does not see it), or it ended without any answer.
+     */
+    public function jeDavkaZtracena(): bool
+    {
+        return $this->davkaSkoncilaBezOdpovedi || $this->kodHttp === 404;
     }
 
     /**

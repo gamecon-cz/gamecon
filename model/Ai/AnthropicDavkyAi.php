@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Aktivita\Korektura;
+namespace Gamecon\Ai;
 
-use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
+use Gamecon\Ai\Exceptions\ChybaApiAi;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -21,13 +21,15 @@ use Psr\Http\Message\ResponseInterface;
  */
 class AnthropicDavkyAi implements DavkyAi
 {
-    public const string MODEL = 'claude-opus-5-5';
+    // proofreading has to be careful, and a year of texts costs a few dollars even so
+    public const string VYCHOZI_MODEL = 'claude-opus-5-5';
 
     public const string VERZE_API = '2026-10-21';
 
     private const string URL_DAVEK = 'https://api.anthropic.com/v1/messages/batches';
 
-    // proofreading has to be careful, and a year of texts costs a few dollars even so
+    private const string URL_MODELU = 'https://api.anthropic.com/v1/models';
+
     private const string EFFORT = 'high';
 
     // one activity: its texts once more and the thinking before them, a batch is not cut by an HTTP timeout
@@ -38,6 +40,7 @@ class AnthropicDavkyAi implements DavkyAi
 
     public function __construct(
         private readonly string $klicApi,
+        private readonly string $model = self::VYCHOZI_MODEL,
         private readonly ClientInterface $http = new Client([
             'timeout'         => self::TIMEOUT_SEKUND,
             'connect_timeout' => 10,
@@ -45,14 +48,22 @@ class AnthropicDavkyAi implements DavkyAi
     ) {
     }
 
-    /**
-     * Null without the key, the proofreading then goes through a file only.
-     */
-    public static function zNastaveni(): ?self
+    public function poskytovatel(): PoskytovatelAi
     {
-        return defined('ANTHROPIC_API_KEY') && ANTHROPIC_API_KEY !== ''
-            ? new self(ANTHROPIC_API_KEY)
-            : null;
+        return PoskytovatelAi::ANTHROPIC;
+    }
+
+    /**
+     * The model's own page: a wrong token ends with 401, a model the API does not know with 404, before any batch
+     * waits a day for nothing.
+     */
+    public function overSpojeni(): void
+    {
+        try {
+            $this->posli('GET', self::URL_MODELU . '/' . rawurlencode($this->model));
+        } catch (ChybaApiAi $chybaApiAi) {
+            throw $chybaApiAi->kodHttp === 404 ? new ChybaApiAi("Token platí, ale model „{$this->model}“ API nezná.", 404, $chybaApiAi) : $chybaApiAi;
+        }
     }
 
     public function odesli(string $pokyny, array $zpravy): string
@@ -62,7 +73,7 @@ class AnthropicDavkyAi implements DavkyAi
             $pozadavky[] = [
                 'custom_id' => $idPozadavku,
                 'params'    => [
-                    'model'         => self::MODEL,
+                    'model'         => $this->model,
                     'max_tokens'    => self::MAX_TOKENS,
                     'output_config' => [
                         'effort' => self::EFFORT,
@@ -132,7 +143,7 @@ class AnthropicDavkyAi implements DavkyAi
             'succeeded' => is_array($vysledek['message'] ?? null)
                 ? $this->odpovedZeZpravy($vysledek['message'])
                 : OdpovedAiNaPozadavek::chyba('odpověď AI bez zprávy'),
-            'errored'   => OdpovedAiNaPozadavek::chyba(
+            'errored' => OdpovedAiNaPozadavek::chyba(
                 'chyba API: ' . ($vysledek['error']['error']['message'] ?? 'bez popisu'),
             ),
             'canceled' => OdpovedAiNaPozadavek::chyba('dávka byla zrušena'),
@@ -199,19 +210,7 @@ class AnthropicDavkyAi implements DavkyAi
             $popis = is_array($chyba) && is_string($chyba['error']['message'] ?? null)
                 ? $chyba['error']['message']
                 : '';
-            throw new ChybaApiAi(
-                sprintf(
-                    'API AI vrátilo chybu %d%s%s',
-                    $odpoved->getStatusCode(),
-                    $popis !== ''
-                        ? ": {$popis}"
-                        : '',
-                    $odpoved->hasHeader('request-id')
-                        ? " (request-id {$odpoved->getHeaderLine('request-id')})"
-                        : '',
-                ),
-                $odpoved->getStatusCode(),
-            );
+            throw new ChybaApiAi(sprintf('API AI vrátilo chybu %d%s%s', $odpoved->getStatusCode(), $popis !== '' ? ": {$popis}" : '', $odpoved->hasHeader('request-id') ? " (request-id {$odpoved->getHeaderLine('request-id')})" : ''), $odpoved->getStatusCode());
         }
 
         return $odpoved;

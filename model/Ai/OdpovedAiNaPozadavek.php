@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Aktivita\Korektura;
+namespace Gamecon\Ai;
 
 /**
  * The AI's answer to one request of a batch: its text, or why there is none.

@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Gamecon\Aktivita\Korektura;
 
-use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
+use Gamecon\Ai\DavkyAi;
+use Gamecon\Ai\Exceptions\ChybaApiAi;
+use Gamecon\Ai\OdpovedAiNaPozadavek;
+use Gamecon\Ai\PoskytovatelAi;
+use Gamecon\Aktivita\Korektura\Exceptions\ExportUzBezi;
 use Gamecon\Aktivita\Korektura\Exceptions\KorekturuNelzeVyridit;
 use Gamecon\Aktivita\Korektura\Exceptions\OdesilaniAiUzBezi;
 use Gamecon\Cache\ProgramStaticFileGenerator;
@@ -23,11 +27,16 @@ class KorekturyTextu
     // a proofreading that rewrites more than this is suspicious
     private const float VELKY_PODIL_ZMEN = 0.3;
 
+    /**
+     * @param (\Closure(PoskytovatelAi): ?DavkyAi)|null $davkyDalsichPoskytovatelu the batches of a provider not used
+     *                                                                             now, to read and cancel the batches sent before a switch of the provider
+     */
     public function __construct(
         private readonly SystemoveNastaveni $systemoveNastaveni,
         private readonly KorekturyTextuRepository $repository = new KorekturyTextuRepository(),
         // null without the API, the texts then go through a file only
         private readonly ?DavkyAi $davkyAi = null,
+        private readonly ?\Closure $davkyDalsichPoskytovatelu = null,
     ) {
     }
 
@@ -43,14 +52,17 @@ class KorekturyTextu
 
     /**
      * @return array<int> numbers of the new packages
+     *
+     * @throws ExportUzBezi
      */
     public function exportuj(int $velikostBaliku, int $exportoval): array
     {
-        return $this->repository->vytvorBaliky(
+        // read inside the lock, so that an export that ran meanwhile has its texts in packages already
+        return $this->repository->vZamkuExportu(fn (): array => $this->repository->vytvorBaliky(
             $this->repository->dejTextyKExportu($this->systemoveNastaveni->rocnik()),
             $velikostBaliku,
             $exportoval,
-        );
+        ));
     }
 
     /**
@@ -103,6 +115,7 @@ class KorekturyTextu
             $this->repository->oznacOdeslaneAi(
                 array_map(static fn (KorekturaTextu $korektura) => $korektura->id, $korektury),
                 $idDavky,
+                $davkyAi->poskytovatel(),
             );
 
             return count($korektury);
@@ -112,34 +125,59 @@ class KorekturyTextu
     /**
      * Imports the answers of the AI batches that have ended, as if they came in a file. The texts a batch
      * brought no proposal for (an error, a refusal, a cut answer) go back among the texts to send. A batch whose
-     * answers cannot be read now does not hold up the others, it is asked again next time.
+     * answers cannot be read now does not hold up the others, it is asked again next time. A batch sent before
+     * a switch of the provider is read with the former provider's token while it is stored.
      */
     public function nactiOdpovediAi(): VysledekNacteniAi
     {
-        $davkyAi = $this->pripojeneDavkyAi();
+        // asked only with the API connected, a batch of a former provider waits till then
+        $this->pripojeneDavkyAi();
         $navrhy = [];
         $varovani = [];
         $chyby = [];
         $skonceneDavky = [];
-        foreach ($this->repository->dejDavkyAi() as $idDavky) {
+        $nedostupniPoskytovatele = [];
+        foreach ($this->repository->dejDavkyAi() as $davka) {
+            $idDavky = $davka->id;
+            if (! $davka->zTetoDatabaze) {
+                // a copy of another database (ostrá → beta) brought its rows along: the batch is the original's,
+                // cancelling it from here would take the answers it waits for
+                $this->repository->uvolniZDavkyAi($idDavky);
+                $chyby[] = "Dávku AI {$idDavky} poslala jiná databáze, tahle je její kopie a na dávku nečeká. Aktivity, které na ni čekaly, jdou poslat znovu.";
+                continue;
+            }
             $cekajici = $this->repository->dejCekajiciVDavceAi($idDavky);
             if ($cekajici === []) {
                 // its texts were settled meanwhile (a proposal from the chat approved or rejected)
-                $this->zrusDavkuAi($idDavky);
+                $this->zrusDavkuAi($davka);
+                continue;
+            }
+            $davkyAi = $this->davkyPoskytovatele($davka->poskytovatel);
+            if ($davkyAi === null) {
+                // the token of the provider was deleted, nothing reaches the batch any more
+                $this->repository->uvolniZDavkyAi($idDavky);
+                $chyby[] = sprintf(
+                    'Dávka AI %s šla k %s, pro kterého tu už není token. Její odpovědi se nenačtou, aktivity, které na ni čekaly, jdou poslat znovu.',
+                    $idDavky,
+                    PoskytovatelAi::tryFrom($davka->poskytovatel)?->nazev() ?? $davka->poskytovatel,
+                );
+                continue;
+            }
+            if (in_array($davka->poskytovatel, $nedostupniPoskytovatele, true)) {
                 continue;
             }
             try {
                 $odpovedi = $davkyAi->dejOdpovedi($idDavky);
             } catch (ChybaApiAi $chybaApiAi) {
-                if ($chybaApiAi->jeNeznamaDavka()) {
+                if ($chybaApiAi->jeDavkaZtracena()) {
                     $this->repository->uvolniZDavkyAi($idDavky);
-                    $chyby[] = "Dávku AI {$idDavky} už API nezná, aktivity, které na ni čekaly, jdou poslat znovu. ({$chybaApiAi->getMessage()})";
+                    $chyby[] = "Na dávku AI {$idDavky} už nemá smysl čekat, aktivity, které na ni čekaly, jdou poslat znovu. ({$chybaApiAi->getMessage()})";
                     continue;
                 }
                 $chyby[] = "Odpovědi AI z dávky {$idDavky} se nepodařilo načíst, zkusím to znovu při dalším otevření stránky. ({$chybaApiAi->getMessage()})";
                 if ($chybaApiAi->jeChybaCelehoApi()) {
-                    // the other batches would end the same, and each would let the proofreader wait
-                    break;
+                    // the other batches of the provider would end the same, and each would let the proofreader wait
+                    $nedostupniPoskytovatele[] = $davka->poskytovatel;
                 }
                 continue;
             }
@@ -358,9 +396,9 @@ class KorekturyTextu
     {
         $davkyBaliku = $this->repository->dejDavkyAi($balik);
         $pocet = $this->repository->zrusBalik($balik);
-        foreach ($davkyBaliku as $idDavky) {
-            if ($this->repository->dejCekajiciVDavceAi($idDavky) === []) {
-                $this->zrusDavkuAi($idDavky);
+        foreach ($davkyBaliku as $davka) {
+            if ($this->repository->dejCekajiciVDavceAi($davka->id) === []) {
+                $this->zrusDavkuAi($davka);
             }
         }
 
@@ -421,13 +459,32 @@ class KorekturyTextu
     }
 
     /**
-     * Nothing waits for the batch any more: it is cancelled, so that the AI does not work for nothing,
-     * and its texts forget it.
+     * The batches of the provider the batch went to: the used one, or a former one while its token is stored.
      */
-    private function zrusDavkuAi(string $idDavky): void
+    private function davkyPoskytovatele(string $poskytovatel): ?DavkyAi
     {
+        if ($this->davkyAi?->poskytovatel()->value === $poskytovatel) {
+            return $this->davkyAi;
+        }
+        $poskytovatelAi = PoskytovatelAi::tryFrom($poskytovatel);
+
+        return $poskytovatelAi !== null && $this->davkyDalsichPoskytovatelu !== null
+            ? ($this->davkyDalsichPoskytovatelu)($poskytovatelAi)
+            : null;
+    }
+
+    /**
+     * Nothing waits for the batch any more: it is cancelled, so that the AI does not work for nothing,
+     * and its texts forget it. A batch another database sent (this one is its copy) is not cancelled, the original
+     * may wait for it; neither is one of a provider without a stored token, nothing reaches it.
+     */
+    private function zrusDavkuAi(OdeslanaDavkaAi $davka): void
+    {
+        $idDavky = $davka->id;
         try {
-            $this->davkyAi?->zrus($idDavky);
+            if ($davka->zTetoDatabaze) {
+                $this->davkyPoskytovatele($davka->poskytovatel)?->zrus($idDavky);
+            }
         } catch (ChybaApiAi $chybaApiAi) {
             // it may have ended meanwhile, nothing reads its answer anyway
             error_log("Korektury: dávku AI {$idDavky} se nepodařilo zrušit: {$chybaApiAi->getMessage()}");

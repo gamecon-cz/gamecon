@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Tests\Model\Aktivita\Korektura;
+namespace Gamecon\Tests\Model\Ai;
 
-use Gamecon\Aktivita\Korektura\AnthropicDavkyAi;
-use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
+use Gamecon\Ai\AnthropicDavkyAi;
+use Gamecon\Ai\Exceptions\ChybaApiAi;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
@@ -51,7 +51,7 @@ class AnthropicDavkyAiTest extends TestCase
         $telo = json_decode((string) $this->pozadavky[0]->getBody(), true, flags: JSON_THROW_ON_ERROR);
         self::assertSame(['korektura-1', 'korektura-2'], array_column($telo['requests'], 'custom_id'));
         $parametry = $telo['requests'][1]['params'];
-        self::assertSame(AnthropicDavkyAi::MODEL, $parametry['model']);
+        self::assertSame(AnthropicDavkyAi::VYCHOZI_MODEL, $parametry['model']);
         self::assertSame('Pokyny pro korektora', $parametry['system']);
         self::assertSame([[
             'role'    => 'user',
@@ -163,7 +163,7 @@ class AnthropicDavkyAiTest extends TestCase
                 $this->davkyAi()->dejOdpovedi('msgbatch_test');
                 self::fail("{$pripad}: čekána ChybaApiAi");
             } catch (ChybaApiAi $chybaApiAi) {
-                self::assertFalse($chybaApiAi->jeNeznamaDavka(), $pripad);
+                self::assertFalse($chybaApiAi->jeDavkaZtracena(), $pripad);
                 self::assertFalse($chybaApiAi->jeChybaCelehoApi(), "{$pripad}: chyba té dávky, ne celého API");
             }
         }
@@ -199,7 +199,7 @@ class AnthropicDavkyAiTest extends TestCase
         }
 
         self::assertCount(3, $chyby);
-        self::assertTrue($chyby[0]->jeNeznamaDavka());
+        self::assertTrue($chyby[0]->jeDavkaZtracena());
         self::assertFalse($chyby[0]->jeChybaCelehoApi());
         self::assertTrue($chyby[1]->jeChybaCelehoApi());
         self::assertTrue($chyby[2]->jeChybaCelehoApi());
@@ -242,7 +242,29 @@ class AnthropicDavkyAiTest extends TestCase
         self::assertSame('https://api.anthropic.com/v1/messages/batches/msgbatch_test/cancel', (string) $this->pozadavky[0]->getUri());
     }
 
-    private function davkyAi(): AnthropicDavkyAi
+    /**
+     * @test
+     */
+    public function overeniSpojeniSePtaNaZvolenyModel(): void
+    {
+        $this->odpovedi[] = $this->json([
+            'type' => 'model',
+            'id'   => AnthropicDavkyAi::VYCHOZI_MODEL,
+        ]);
+        $this->odpovedi[] = new Response(404, [], '{"type":"error","error":{"type":"not_found_error","message":"model: claude-preklep"}}');
+
+        $this->davkyAi()->overSpojeni();
+
+        self::assertSame('GET', $this->pozadavky[0]->getMethod());
+        self::assertSame('https://api.anthropic.com/v1/models/' . AnthropicDavkyAi::VYCHOZI_MODEL, (string) $this->pozadavky[0]->getUri());
+        self::assertSame('klic-testu', $this->pozadavky[0]->getHeaderLine('x-api-key'));
+
+        $this->expectException(ChybaApiAi::class);
+        $this->expectExceptionMessage('Token platí, ale model „claude-preklep“ API nezná.');
+        $this->davkyAi('claude-preklep')->overSpojeni();
+    }
+
+    private function davkyAi(string $model = AnthropicDavkyAi::VYCHOZI_MODEL): AnthropicDavkyAi
     {
         $transporter = new class($this->pozadavky, $this->odpovedi) implements ClientInterface {
             /**
@@ -268,7 +290,7 @@ class AnthropicDavkyAiTest extends TestCase
             }
         };
 
-        return new AnthropicDavkyAi('klic-testu', $transporter);
+        return new AnthropicDavkyAi('klic-testu', $model, $transporter);
     }
 
     /**
@@ -337,7 +359,7 @@ class AnthropicDavkyAiTest extends TestCase
             'id'      => 'msg_test',
             'type'    => 'message',
             'role'    => 'assistant',
-            'model'   => AnthropicDavkyAi::MODEL,
+            'model'   => AnthropicDavkyAi::VYCHOZI_MODEL,
             'content' => [
                 [
                     'type'      => 'thinking',

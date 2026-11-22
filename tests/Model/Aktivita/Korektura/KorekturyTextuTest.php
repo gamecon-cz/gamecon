@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\Aktivita\Korektura;
 
-use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
+use Gamecon\Ai\Exceptions\ChybaApiAi;
+use Gamecon\Ai\OdpovedAiNaPozadavek;
+use Gamecon\Ai\PoskytovatelAi;
 use Gamecon\Aktivita\Korektura\Exceptions\KorekturuNelzeVyridit;
 use Gamecon\Aktivita\Korektura\KorekturyTextu;
 use Gamecon\Aktivita\Korektura\KorekturyTextuRepository;
-use Gamecon\Aktivita\Korektura\OdpovedAiNaPozadavek;
 use Gamecon\Aktivita\Korektura\StavKorekturyEnum;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\AbstractTestDb;
+use Gamecon\Tests\Model\Ai\FalesneDavkyAi;
 
 class KorekturyTextuTest extends AbstractTestDb
 {
@@ -369,6 +371,99 @@ TEXT),
     }
 
     /**
+     * A batch ID means something to its provider only: after the developer switches the provider, the batch sent
+     * before is read with the former provider's token, not asked at the new provider's API.
+     *
+     * @test
+     */
+    public function poPrepnutiPoskytovateleSeDavkaPredchozihoNacteJehoTokenem(): void
+    {
+        $idAktivity = $this->vytvorAktivitu('Odeslaná před přepnutím');
+        $this->korektury->exportuj(1000, \Uzivatel::SYSTEM);
+        $this->korektury->posliAi(null);
+        $davkaClaude = $this->davkyAi->posledniDavka();
+        $davkyOpenAi = new FalesneDavkyAi(PoskytovatelAi::OPENAI);
+        $korektury = new KorekturyTextu(
+            $this->systemoveNastaveni,
+            $this->repository,
+            $davkyOpenAi,
+            fn (PoskytovatelAi $poskytovatel) => $poskytovatel === PoskytovatelAi::ANTHROPIC
+                ? $this->davkyAi
+                : null,
+        );
+
+        self::assertSame([], $korektury->nactiOdpovediAi()->chyby, 'Běžící dávka Claude se čeká dál');
+        self::assertSame([$davkaClaude], $this->davkyAi->dotazy, 'Ptá se tokenem Claude');
+        self::assertSame([], $davkyOpenAi->dotazy, 'API OpenAI se na dávku Claude neptá');
+
+        $this->davkyAi->dokonci($davkaClaude, static fn (int $idAktivity) => OdpovedAiNaPozadavek::text(
+            "<gc-aktivita id=\"{$idAktivity}\"><gc-popis>Návrh od Claude.</gc-popis></gc-aktivita>",
+        ));
+
+        self::assertSame(1, $korektury->nactiOdpovediAi()->vysledekImportu?->pocetNavrhu, 'Zaplacené odpovědi nepropadnou');
+        self::assertSame('Návrh od Claude.', $this->repository->dejOtevrene([$idAktivity])[$idAktivity]->navrhPopis);
+        self::assertSame([], $this->repository->dejDavkyAi());
+    }
+
+    /**
+     * @test
+     */
+    public function davkaPoskytovateleBezTokenuSeUvolniATextyJdouPoslatZnovu(): void
+    {
+        $idAktivity = $this->vytvorAktivitu('Odeslaná před smazáním tokenu');
+        $balik = $this->korektury->exportuj(1000, \Uzivatel::SYSTEM)[0];
+        $this->korektury->posliAi(null);
+        $davkyOpenAi = new FalesneDavkyAi(PoskytovatelAi::OPENAI);
+        $korektury = new KorekturyTextu($this->systemoveNastaveni, $this->repository, $davkyOpenAi, static fn () => null);
+
+        $nacteni = $korektury->nactiOdpovediAi();
+
+        self::assertSame([], $davkyOpenAi->dotazy, 'Na dávku Claude se API OpenAI neptá');
+        self::assertSame([], $davkyOpenAi->zrusene, 'Ani ji nezkouší zrušit');
+        self::assertCount(1, $nacteni->chyby);
+        self::assertStringContainsString(PoskytovatelAi::ANTHROPIC->nazev(), $nacteni->chyby[0]);
+        self::assertNull($this->repository->dejOtevrene([$idAktivity])[$idAktivity]->idDavkyAi);
+
+        self::assertSame(1, $korektury->posliAi(null), 'Text jde poslat novému poskytovateli');
+        $davky = $this->repository->dejDavkyAi($balik);
+        self::assertCount(1, $davky);
+        self::assertSame($davkyOpenAi->posledniDavka(), $davky[0]->id);
+        self::assertSame(PoskytovatelAi::OPENAI->value, $davky[0]->poskytovatel);
+        self::assertTrue($davky[0]->zTetoDatabaze);
+    }
+
+    /**
+     * A copy of the database (ostrá → beta) brings the rows waiting for ostrá's batch along. Beta with a token
+     * of the same account must not cancel that batch, ostrá waits for its answers.
+     *
+     * @test
+     */
+    public function davkuOdeslanouZJineDatabazeKopieNerusiAniSeNaNiNepta(): void
+    {
+        $this->vytvorAktivitu('Z kopie, ve zrušeném balíku');
+        $zruseny = $this->korektury->exportuj(1000, \Uzivatel::SYSTEM)[0];
+        $this->korektury->posliAi($zruseny);
+        $cekajici = $this->vytvorAktivitu('Z kopie, čekající');
+        $this->korektury->exportuj(1000, \Uzivatel::SYSTEM);
+        $this->korektury->posliAi(null);
+        self::assertCount(2, $this->davkyAi->odeslane);
+        // what a copy of the database looks like: the batches were sent from the original
+        dbQuery("UPDATE akce_korektura SET prostredi_ai = 'ostra_original' WHERE id_davky_ai IS NOT NULL");
+
+        $this->korektury->zrusBalik($zruseny);
+
+        self::assertSame([], $this->davkyAi->zrusene, 'Zrušení balíku v kopii dávku originálu nezruší');
+
+        $nacteni = $this->korektury->nactiOdpovediAi();
+
+        self::assertSame([], $this->davkyAi->dotazy, 'Na dávku originálu se kopie neptá');
+        self::assertSame([], $this->davkyAi->zrusene);
+        self::assertCount(1, $nacteni->chyby);
+        self::assertSame([], $this->repository->dejDavkyAi(), 'Kopie na dávky originálu nečeká');
+        self::assertNull($this->repository->dejOtevrene([$cekajici])[$cekajici]->idDavkyAi, 'Text jde z kopie poslat znovu');
+    }
+
+    /**
      * A later proposal replaces an earlier one, whichever way each came.
      *
      * @test
@@ -428,6 +523,37 @@ TEXT),
         } catch (ChybaApiAi) {
         }
         self::assertSame(1, (int) dbOneCol("SELECT IS_FREE_LOCK({$zamek})"));
+    }
+
+    /**
+     * A double click on Připrav balíky must not give an activity two open rows.
+     *
+     * @test
+     */
+    public function exportBeziVZamku(): void
+    {
+        $zamek = "CONCAT(DATABASE(), '.korektury-export')";
+        $this->vytvorAktivitu('Exportovaná v zámku');
+
+        $drzitelZamku = null;
+        $repository = new class($drzitelZamku, $zamek) extends KorekturyTextuRepository {
+            public function __construct(
+                private mixed &$drzitelZamku,
+                private readonly string $zamek,
+            ) {
+            }
+
+            public function vytvorBaliky(array $textyPodleAktivit, int $velikostBaliku, int $exportoval): array
+            {
+                $this->drzitelZamku = dbOneCol("SELECT IS_USED_LOCK({$this->zamek})");
+
+                return parent::vytvorBaliky($textyPodleAktivit, $velikostBaliku, $exportoval);
+            }
+        };
+
+        self::assertCount(1, (new KorekturyTextu($this->systemoveNastaveni, $repository))->exportuj(1000, \Uzivatel::SYSTEM));
+        self::assertNotNull($drzitelZamku, 'Balíky vznikají v zámku');
+        self::assertSame(1, (int) dbOneCol("SELECT IS_FREE_LOCK({$zamek})"), 'Po exportu se zámek uvolní');
     }
 
     /**

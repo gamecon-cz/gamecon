@@ -6,7 +6,7 @@ use Gamecon\SystemoveNastaveni\AnonymizovanaDatabaze;
 /**
  * Rozcestník pro vývojářské nástroje.
  *
- * Naviguje na Chyby / SQL update / Mail logy.
+ * Naviguje na Chyby / SQL update / Mail logy / Připojení AI.
  * Anonymizovaná databáze se generuje cronem
  * (admin/cron/anonymizace_databaze.php) jednou denně; tato stránka
  * jen zpřístupní poslední vygenerovaný soubor ke stažení rovnou
@@ -78,6 +78,10 @@ $datumAnonymExportu = AnonymizovanaDatabaze::datumPoslednihoExportu();
     <a href="<?php echo URL_ADMIN; ?>/dev/logy">
         <h3>Mail logy</h3>
         <p>Záznamy odeslaných e-mailů.</p>
+    </a>
+    <a href="<?php echo URL_ADMIN; ?>/dev/ai">
+        <h3>Připojení AI</h3>
+        <p>Token k API Claude nebo ChatGPT pro korektury textů; bez něj jdou texty k AI ručně přes soubor.</p>
     </a>
 </div>
 

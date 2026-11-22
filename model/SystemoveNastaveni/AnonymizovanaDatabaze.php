@@ -47,6 +47,7 @@ class AnonymizovanaDatabaze
         'bingo_karta',
         'bingo_karta_pole',
         'bingo_zazneni',
+        'ai_pripojeni',              // AI API tokens, encrypted, but a developer's copy has no use for them
     ];
 
     public static function vytvorZGlobals(): self

@@ -2,18 +2,21 @@
 
 declare(strict_types=1);
 
-use Gamecon\Aktivita\Korektura\AnthropicDavkyAi;
-use Gamecon\Aktivita\Korektura\Exceptions\ChybaApiAi;
+use Gamecon\Ai\Exceptions\ChybaApiAi;
+use Gamecon\Ai\PoskytovatelAi;
+use Gamecon\Ai\PripojeniAi;
+use Gamecon\Aktivita\Korektura\Exceptions\ExportUzBezi;
 use Gamecon\Aktivita\Korektura\Exceptions\KorekturuNelzeVyridit;
 use Gamecon\Aktivita\Korektura\Exceptions\OdesilaniAiUzBezi;
 use Gamecon\Aktivita\Korektura\KorekturyTextu;
 use Gamecon\Aktivita\Korektura\RozdilTextu;
 use Gamecon\Aktivita\Korektura\TextyAktivity;
+use Gamecon\Pravo;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * Korektura textů aktivit pomocí AI: balíky textů jdou AI přes API, nebo se stáhnou do AI chatu a odpověď
- * se nahraje zpět. Korektor pak každý návrh přijme, upraví, nebo zamítne.
+ * Korektura textů aktivit pomocí AI: balík textů se stáhne do AI chatu a odpověď se nahraje zpět, nebo jde AI
+ * přes API, když ho vývojář zapne v Dev → Připojení AI. Korektor pak každý návrh přijme, upraví, nebo zamítne.
  *
  * nazev: Korektury textů
  * ikona: spell-check
@@ -32,7 +35,14 @@ $klicKontrolyAi = 'korektury_ai_zkontrolovano';
 // each look at a batch is a request to the API, a click on Přijmout must not wait for it every time
 $kontrolaAiNejvyseZaSekund = 60;
 $naStrankuNavrhu = 20;
-$korektury = new KorekturyTextu($systemoveNastaveni, davkyAi: AnthropicDavkyAi::zNastaveni());
+$pripojeniAi = new PripojeniAi();
+$davkyAi = $pripojeniAi->dejPouzivaneDavky();
+$korektury = new KorekturyTextu(
+    $systemoveNastaveni,
+    davkyAi: $davkyAi,
+    // batches sent before a switch of the provider are read with its own token
+    davkyDalsichPoskytovatelu: static fn (PoskytovatelAi $poskytovatel) => $pripojeniAi->dejDavky($poskytovatel),
+);
 
 if (get('stahnout') !== null) {
     $balik = get('balik') !== null && get('balik') !== ''
@@ -49,7 +59,11 @@ if (get('stahnout') !== null) {
 
 if (post('exportovat')) {
     $velikostBaliku = max(1, min(200, (int) post('velikostBaliku') ?: KorekturyTextu::VYCHOZI_VELIKOST_BALIKU));
-    $baliky = $korektury->exportuj($velikostBaliku, $u->id());
+    try {
+        $baliky = $korektury->exportuj($velikostBaliku, $u->id());
+    } catch (ExportUzBezi $exportUzBezi) {
+        chyba(htmlspecialchars($exportUzBezi->getMessage(), ENT_QUOTES));
+    }
     if ($baliky === []) {
         oznameni('Není co exportovat, všechny texty jsou opravené nebo už na korektuře.');
     }
@@ -139,7 +153,11 @@ $t->assign([
     'urlModulu'      => $urlModulu,
     'velikostBaliku' => KorekturyTextu::VYCHOZI_VELIKOST_BALIKU,
     'pocetKExportu'  => $korektury->pocetKExportu(),
+    'poskytovatelAi' => $davkyAi?->poskytovatel()->nazev() ?? '',
 ]);
+if ($korektury->jeAiPripojena()) {
+    $t->parse('korektury.krokApi');
+}
 
 $cekajiciBaliky = $korektury->dejCekajiciBaliky();
 $neposlanoAi = 0;
@@ -179,6 +197,9 @@ if ($cekajiciBaliky !== []) {
     $t->parse('korektury.baliky');
 }
 if (! $korektury->jeAiPripojena()) {
+    if ($u->maPravo(Pravo::ADMINISTRACE_DEV)) {
+        $t->parse('korektury.bezAi.zapnout');
+    }
     $t->parse('korektury.bezAi');
 }
 foreach ($chybyAi as $chybaAi) {
