@@ -32,6 +32,10 @@ function nazevStranky(?string $slug): string {
     if ($slug === 'muj') {
         return 'Můj program';
     }
+    // zrcadlí nadpisProgramu() z ui/src/store/program/logic/url.ts
+    if ($slug === 'vsechny-dny') {
+        return 'Program – všechny dny';
+    }
     if (isset($dny[$slug])) {
         return 'Program ' . $dny[$slug]->format('l');
     }

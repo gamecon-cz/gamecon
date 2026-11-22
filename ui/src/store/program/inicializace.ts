@@ -34,7 +34,7 @@ export const inicializujProgramStore = () => {
   // ne jen proti aktuálnímu klientskému výběru – jinak by endsWith neseděl a
   // prefix by se ztratil.
   const prefixTitulku = (() => {
-    const odpovídajícíNadpis = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true, jeAdmin: true })
+    const odpovídajícíNadpis = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true })
       .map(nadpisProgramu)
       .filter((nadpis) => document.title.endsWith(nadpis))
       .sort((a, b) => b.length - a.length)[0];

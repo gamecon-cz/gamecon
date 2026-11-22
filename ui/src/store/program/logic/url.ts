@@ -170,7 +170,7 @@ export const parsujUrl = (url: string) => {
     || "";
 
   // TODO: co tady dělá přihlášen: true ?? nemá být náhodou z předaných konstant ?
-  const výběr = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true, jeAdmin: GAMECON_KONSTANTY.JE_ADMIN })
+  const výběr = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true })
     .find(x => urlZTabulkaVýběr(x) === den)
     ?? URL_STATE_VÝCHOZÍ_MOŽNOST;
 
@@ -204,7 +204,7 @@ export const parsujUrl = (url: string) => {
 /** vytvoří url z aktuálního url-stavu nebo z předaného stavu */
 export const generujUrl = (urlStav: ProgramURLStav): string | undefined => {
   const výběr =
-    urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true, jeAdmin: GAMECON_KONSTANTY.JE_ADMIN }).find(x => porovnejTabulkaVýběr(x, urlStav.výběr));
+    urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true }).find(x => porovnejTabulkaVýběr(x, urlStav.výběr));
 
   if (!výběr) return undefined;
 
@@ -227,8 +227,8 @@ export const generujUrl = (urlStav: ProgramURLStav): string | undefined => {
   return url;
 };
 
-export const urlStavProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: boolean, ročník?: number, jeAdmin?: boolean }): ProgramTabulkaVýběr[] =>
-  ((props?.jeAdmin ?? false) ? [{ typ: "všechny_dny" } as ProgramTabulkaVýběr] : [])
+export const urlStavProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: boolean, ročník?: number }): ProgramTabulkaVýběr[] =>
+  ([{ typ: "všechny_dny" }] as ProgramTabulkaVýběr[])
     .concat(
       GAMECON_KONSTANTY.PROGRAM_DNY
         .map((den) => ({
