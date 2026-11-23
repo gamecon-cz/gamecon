@@ -109,6 +109,9 @@ final class NahravaniObrazku
     private const PREVODITELNE_ZDROJE = [self::JPG, self::PNG, self::WEBP, self::AVIF, self::GIF];
     /** ext4 dovolí 255 bajtů na název, zbytek je rezerva na příponu */
     private const MAX_DELKA_NAZVU_BAJTU = 150;
+
+    /** Kolik čísel za názvem zkusí @see self::ulozNovyPodVolnymNazvem(), než to vzdá */
+    private const MAX_CISLO_VOLNEHO_NAZVU = 999;
     /** Výchozí strop pixelů; obrázek, který se při uložení zmenší, se jen jednou dekóduje, takže mu stačí vždy aspoň tenhle */
     public const MAX_PIXELU = 50_000_000;
     /** Tečka na začátku: dočasný soubor nevypíše žádný seznam obrázků */
@@ -634,9 +637,7 @@ final class NahravaniObrazku
         $this->overNazevSouboru($nazevBezPripony);
         $adresar = $this->adresarUvnitrKorene($relativniAdresar, true);
         $cil = $adresar . '/' . $nazevBezPripony . '.' . $obrazek->pripona;
-        $existujici = file_exists($cil)
-            ? $cil
-            : $this->obrazekStejnehoNazvu($adresar, $nazevBezPripony, $obrazek->mime);
+        $existujici = $this->souborStejnehoNazvu($obrazek, $adresar, $nazevBezPripony);
         if ($existujici !== null) {
             throw new NahravaniObrazkuException(sprintf(
                 'Soubor %s už existuje. Zvol jiný název, nebo nahraď předchozí.',
@@ -646,6 +647,55 @@ final class NahravaniObrazku
         $this->ulozPresDocasny($obrazek, $adresar, $cil);
 
         return $cil;
+    }
+
+    /**
+     * Uloží nový obrázek pod daným názvem, a když je obsazený, pod prvním volným s číslem (`image-2`, `image-3`).
+     * Pro obrázek vložený do editoru textu, kde název nikdo nevolí: ze schránky má obrázek pokaždé název `image.png`.
+     *
+     * @return string absolutní cesta k uloženému souboru
+     */
+    public function ulozNovyPodVolnymNazvem(NahranyObrazek $obrazek, string $relativniAdresar, string $nazevBezPripony): string
+    {
+        $this->overNazevSouboru($nazevBezPripony);
+        $adresar = $this->adresarUvnitrKorene($relativniAdresar, true);
+        for ($cislo = 1; $cislo <= self::MAX_CISLO_VOLNEHO_NAZVU; ++$cislo) {
+            $nazev = self::nazevSCislem($nazevBezPripony, $cislo);
+            if ($this->souborStejnehoNazvu($obrazek, $adresar, $nazev) === null) {
+                return $this->ulozNovy($obrazek, $relativniAdresar, $nazev);
+            }
+        }
+
+        throw new NahravaniObrazkuException(sprintf(
+            'Obrázků s názvem %s je tu už moc. Přejmenuj soubor a nahraj ho znovu.',
+            $nazevBezPripony,
+        ));
+    }
+
+    private static function nazevSCislem(string $nazevBezPripony, int $cislo): string
+    {
+        if ($cislo === 1) {
+            return $nazevBezPripony;
+        }
+        $pripona = '-' . $cislo;
+        $zaklad = rtrim(
+            mb_strcut($nazevBezPripony, 0, self::MAX_DELKA_NAZVU_BAJTU - strlen($pripona), 'UTF-8'),
+            ' -_',
+        );
+
+        return $zaklad . $pripona;
+    }
+
+    /**
+     * @return string|null absolutní cesta k souboru, kvůli kterému nový obrázek pod tímto názvem uložit nejde
+     */
+    private function souborStejnehoNazvu(NahranyObrazek $obrazek, string $adresar, string $nazevBezPripony): ?string
+    {
+        $cil = $adresar . '/' . $nazevBezPripony . '.' . $obrazek->pripona;
+
+        return file_exists($cil)
+            ? $cil
+            : $this->obrazekStejnehoNazvu($adresar, $nazevBezPripony, $obrazek->mime);
     }
 
     /**

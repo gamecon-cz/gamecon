@@ -11,8 +11,12 @@
 use Gamecon\Uzivatel\Medailonek;
 use Gamecon\Uzivatel\MedailonekKeSchvaleni;
 use Gamecon\Uzivatel\SchvaleniMedailonku;
+use Gamecon\Web\EditorTextuPozadavek;
 use Gamecon\Web\FotkaUzivatele;
 use Gamecon\XTemplate\XTemplate;
+
+// náhled textu v editoru; obrázky se do medailonku nevkládají, pod editorem nemá blok Obrázky
+EditorTextuPozadavek::obslouzPokudJe();
 
 if (post('noveId')) {
     dbInsertIgnore('medailonky', ['id_uzivatele' => post('noveId'), 'o_sobe' => '', 'drd' => '']);

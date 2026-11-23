@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Web\EditorTextuPozadavek;
+use Gamecon\Web\KontextTextu;
 use Gamecon\Web\NahravaniPoCastech;
 use Gamecon\Web\NahravaniPoCastechPozadavek;
 use Gamecon\Web\NahravaniPodEditorem;
@@ -19,6 +21,11 @@ use Gamecon\XTemplate\XTemplate;
 
 $nahravaniPoCastech = NahravaniPoCastech::proUzivatele($u->id());
 NahravaniPoCastechPozadavek::obslouzPokudJe($nahravaniPoCastech);
+EditorTextuPozadavek::obslouzPokudJe(static function (): ?KontextTextu {
+    $upravovanaStranka = get('id') ? Stranka::zId(get('id')) : null;
+
+    return $upravovanaStranka ? KontextTextu::proStranku($upravovanaStranka) : null;
+});
 
 if (get('id') || get('akce') === 'nova') {
     // režim editace

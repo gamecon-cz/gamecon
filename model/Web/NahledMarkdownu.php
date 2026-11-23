@@ -10,9 +10,16 @@ namespace Gamecon\Web;
 final class NahledMarkdownu
 {
     /**
+     * Náhled, který editor průběžně načítá při psaní. Bez cache (@see \markdown()): každá rozepsaná verze textu by v ní
+     * zůstala.
+     */
+    public static function zTextu(string $text): string
+    {
+        return self::obrazkyNaWebu(markdownNoCache($text));
+    }
+
+    /**
      * Administrace má `<base>` na svůj adresář, takže by se obrázek `soubory/…` z textu v náhledu hledal tam, ne na webu.
-     *
-     * @see dbff-markdown-direct.xtpl stejná úprava živého náhledu
      */
     public static function obrazkyNaWebu(string $html): string
     {
