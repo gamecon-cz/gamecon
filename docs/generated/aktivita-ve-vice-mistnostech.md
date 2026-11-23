@@ -34,6 +34,7 @@ TL;DR: aktivita může být ve více místnostech a jedna z nich je hlavní. Hla
 - `Aktivita::seznamLokaci()`: hlavní první, zbytek v pořadí místností. Z toho export (`admin/scripts/modules/aktivity/_Export/ActivitiesExporter.php`), API (`web/moduly/api/aktivityUzivatel.php`, `mistnosti[0]` je v UI programu hlavní), popisy místností.
 - `Aktivita::hlavniLokace()` / `Aktivita::idHlavniLokace()`: první z `seznamLokaci()`, u aktivity s místnostmi nikdy null. API `web/moduly/api/aktivitaAkce.php`.
 - Reporty `admin/scripts/zvlastni/reporty/zazemi-a-program-casy-a-umisteni-aktivit.php` a `zazemi-a-program-zarizeni-mistnosti.php` vkládají `HlavniLokace::getSqlId()`.
+- Stránka Přihlášení (`admin/scripts/modules/aktivity/prihlaseni.php`) skládá místnosti v SQL (`GROUP_CONCAT`) se stejným pořadím jako `Aktivita::seznamLokaci()`: `ORDER BY lokace.id_lokace <=> akce_seznam.id_hlavni_lokace DESC` dá zvolenou hlavní místnost první, jinak platí pořadí místností a první je ta automatická.
 - Doctrine entita `symfony/src/Entity/Activity.php` (`Activity::$mainLocation`) mapuje surový sloupec, tedy jen zvolenou místnost. Dnes ji nikdo nečte.
 
 ## Editor

@@ -113,7 +113,8 @@ SELECT  akce_seznam.nazev_akce AS nazevAktivity, akce_seznam.id_akce AS id,
         (SELECT GROUP_CONCAT(
                 lokace.nazev,
                 IF (TRIM(lokace.dvere) != '', CONCAT(', ', lokace.dvere), '')
-                ORDER BY lokace.poradi, lokace.id_lokace
+                -- hlavní místnost první jako v Aktivita::seznamLokaci(), zvolená mimo místnosti dá všude 0 a platí pořadí
+                ORDER BY lokace.id_lokace <=> akce_seznam.id_hlavni_lokace DESC, lokace.poradi, lokace.id_lokace
                 SEPARATOR '; '
             )
             FROM akce_lokace
