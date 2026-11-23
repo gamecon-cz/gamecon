@@ -9,13 +9,14 @@
 </style>
 
 <input type="hidden" name="{pnOldId}" value="{oldId}">
-<table style="width:100%">
+<table style="width:100%"{bezpecnyNahled}>
   <tr>
     <td style="width: 50%; vertical-align: top"><textarea style="width: 100%" name="{pnText}">{text}</textarea></td>
     <td style="vertical-align: top" class="dbffMdtext">{mdText}</td>
   </tr>
 </table>
 <script src="files/showdown.js"></script>
+<script src="files/bezpecny-nahled-markdownu.js"></script>
 <script src="files/jquery.autosize-1.18.13.js"></script>
 <script>
   var $text = $('textarea[name="{pnText}"]').last();
@@ -27,7 +28,15 @@
     html = html.replace(/(<img\b[^>]*\ssrc=["']?)soubory\//gi, function (shoda, zacatek) {
       return zacatek + {urlWebu} + '/soubory/';
     });
-    $(this).closest('table').find('.dbffMdtext').html(html);
+    var $tabulka = $(this).closest('table');
+    // text, který si píše uživatel sám (medailonek), jen přes stejná pravidla jako na webu, jinak by se skript z něj
+    // spustil organizátorovi v adminu
+    var pravidla = $tabulka.data('bezpecny-nahled');
+    if (pravidla) {
+      $tabulka.find('.dbffMdtext').empty().append(window.gcBezpecneHtml(html, pravidla));
+    } else {
+      $tabulka.find('.dbffMdtext').html(html);
+    }
   });
   $('table').last().parent().css('padding', 0);
 </script>

@@ -122,7 +122,7 @@ Postup: vyber programovou linii (a případně rok) → **Exportovat aktivity** 
 
 - **Program po místnostech** — tisková sestava programu členěná po místnostech (otevírá se v novém okně); hodí se na vylepení na dveře a pro orgy na místě. Aktivita ve více místnostech se ukáže v každé z nich.
 - **Neubytovaní vypravěči** — přesměruje na report nepřihlášených a neubytovaných vypravěčů; rychlá kontrola, kdo z vypravěčů si ještě nevyřešil přihlášku nebo ubytování.
-- **Medailonky** — správa medailonků vypravěčů zobrazovaných na webu. Horní část medailonku je obecná („o sobě"), dolní je pro DrD. V přehledu vidíš fajfkou/křížkem, kdo má kterou část vyplněnou; nový medailonek založíš zadáním ID uživatele.
+- **Medailonky** — správa medailonků vypravěčů zobrazovaných na webu. Horní část medailonku je obecná („o sobě"), dolní je pro DrD. V přehledu vidíš fajfkou/křížkem, kdo má kterou část vyplněnou; nový medailonek založíš zadáním ID uživatele. Text i fotku si vypravěči, organizátoři a vedoucí aktivit upraví i sami na webu v Nastavení.
 
 ## Typické postupy
 
