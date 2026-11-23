@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Web\EditorTextuPozadavek;
+use Gamecon\Web\KontextTextu;
 use Gamecon\Web\NahravaniPoCastech;
 use Gamecon\Web\NahravaniPoCastechPozadavek;
 use Gamecon\Web\NahravaniPodEditorem;
@@ -20,6 +22,11 @@ use Gamecon\Web\QrOdkaz;
 
 $nahravaniPoCastech = NahravaniPoCastech::proUzivatele($u->id());
 NahravaniPoCastechPozadavek::obslouzPokudJe($nahravaniPoCastech);
+EditorTextuPozadavek::obslouzPokudJe(static function (): ?KontextTextu {
+    $novinka = get('id') ? Novinka::zId(get('id')) : null;
+
+    return $novinka ? KontextTextu::proNovinku($novinka) : null;
+});
 
 $novinka = get('id') ? Novinka::zId(get('id')) : null;
 $nahravaniPodEditorem = $novinka
