@@ -31,7 +31,8 @@ Větev z aktuálního `main`, **zatím nemergovat**. Změň `ROCNIK`:
 - [`nastaveni/verejne-nastaveni-produkce.php`](./nastaveni/verejne-nastaveni-produkce.php): `define('ROCNIK', NOVY);`
 - [`nastaveni/verejne-nastaveni-preview.php`](./nastaveni/verejne-nastaveni-preview.php) a
   [`nastaveni/verejne-nastaveni-beta.php`](./nastaveni/verejne-nastaveni-beta.php): výchozí ročník
-  `$rocnikOverride ?: NOVY` (preview se má chovat jako ostrá, betě ho stejně přepíše kopie databáze).
+  `$rocnikOverride ?: NOVY` (preview se má chovat jako ostrá). Kopie databáze z ostré ho na betě i preview
+  ponechá, kopie archivního ročníku ho nahradí ročníkem archivu.
 
 Anonymizovaný dump v repu (`migrace/pomocne/gc_anonymizovana_databaze.sql`) nesmí být starší než z ročníku
 `NOVY - 1`, jinak CI spadne, viz [`docs/generated/anonymizovana-databaze.md`](./docs/generated/anonymizovana-databaze.md).
@@ -92,6 +93,18 @@ vedle `DBM_*`). Ověření na serveru, mají se vypsat oba řádky:
 ```bash
 grep -n 'DB_READONLY' /usr/local/sbin/deploy-year-archive.sh
 ```
+
+Když nevypíše nic, uprav šablonu `roles/year_archive_deployer/templates/deploy-year-archive.sh.j2` v repozitáři
+[Gamecon Ansible](https://github.com/gamecon-cz/ansible) a nasaď ji (`make deploy TAGS=year_archive_deployer`, jen
+z `main`) dřív, než pushneš archivní větev: proměnné se předávají při `docker run`, už běžící archiv by se musel
+nasadit znovu (`gh workflow run deploy-year-archive.yml -f branch=archive/$STARY`).
+
+Deploy skript archivu nepředává ani `APP_ENV` a `APP_DEBUG`, takže archiv běží jako Symfony `dev` se zapnutým
+debugem, ne jako ostrá (`prod`, bez debugu). Úprava `.dockerignore` výše je potřeba i tak, protože commitnutý
+autoloader dev balíčky načítá vždy.
+
+Až archiv poběží, zvedni v ansible `ARCHIVE_LAST_YEAR` v `.github/scripts/check-certificate-expiry.sh`, aby denní
+kontrola certifikátů hlídala i nový archiv (dřív ne, jinak hned hlásí chybějící certifikát).
 
 ---
 
@@ -171,22 +184,20 @@ nový archiv a proklik do něj přihlásí.
 
 ## 4. Uzavření financí (těsně před nasazením nového ročníku)
 
-Od teď do konce kroku 5 bez prodlevy: platba stažená z FIO mezi spuštěním SQL a nasazením nového ročníku dostane
-rok `STARY` a do zůstatku se nezapočte. Volitelně na tu dobu pozastav na console.cron-job.org obecný cron ostré.
+Skript pro uzavření financí zapíše zůstatky spočítané **v okamžiku vygenerování**. Cokoli, co se na ostré změní
+potom (platba stažená z FIO dostane rok `STARY`, objednávka, zásah v adminu), do zůstatku nepřejde a po přepnutí
+ročníku se už nezapočte. Mezi spuštěním skriptu a nasazením nového ročníku zase ostrá počítá zůstatek i položky
+starého ročníku dvakrát. Proto se od vygenerování skriptu do nasazení nového ročníku nesmí na ostré nic měnit:
+crony jsou pozastavené, web i admin v údržbovém režimu ([`dokumentace/nasazeni.md`](./dokumentace/nasazeni.md),
+„Údržbový režim“), a kroky 4 a 5 jdou hned po sobě. Za údržby projde jen nasazení (`admin/deploy`).
 
-### Konečný dump
+### Pozastavit crony
 
-SQL smaže místnosti a vyčistí čísla OP, poznámky a ubytování, archiv proto musí dostat stav **před** ním.
-Na serveru zopakuj dump z kroku 2, zkontroluj ho stejně a nahraj ho do archivu (dump obsahuje
-`DROP TABLE IF EXISTS`, tabulky se přepíšou):
+Na [console.cron-job.org](https://console.cron-job.org) pozastav **všechny úlohy ostré** (obecný cron se
+stahováním plateb z FIO, `aktivity_hromadne` a další). Údržbový režim je sice také zastaví (`503`), ale cron-job.org
+by mohl úlohu po sérii chyb sám vypnout.
 
-```bash
-mysql -u root "gamecon_$STARY" < "$DUMP"
-```
-
-Stáhni ho a nahraj na GDrive do _Záloha {STARY}_. Kdyby se SQL nepovedlo, obnovuje se z něj.
-
-### Vygenerovat SQL
+### Vygenerovat skript
 
 V adminu otevři Dev → **SQL update pro uzavření financí**
 ([https://admin.gamecon.cz/dev/update-zustatku](https://admin.gamecon.cz/dev/update-zustatku)) a vygeneruj SQL.
@@ -207,7 +218,36 @@ a na serveru má vyjít stejné číslo:
 mysql -u root -e "SELECT COUNT(DISTINCT id_uzivatele) FROM d16779_gcostra.uzivatele_hodnoty"
 ```
 
-### Spustit SQL na ostré
+### Zapnout údržbový režim
+
+Hned po vygenerování (admin pak už není dostupný). Spouští se z `main`:
+
+```bash
+gh workflow run maintenance-ostra.yml --ref main -f state=on
+gh run list --workflow maintenance-ostra.yml --limit 1
+gh run watch <id-běhu>
+```
+
+Běh sám ověří, že ostrá odpovídá `503` se stránkou údržby.
+
+### Konečný dump
+
+SQL smaže místnosti a vyčistí čísla OP, poznámky a ubytování, archiv proto musí dostat stav **před** ním. Je to
+zároveň záloha pro návrat, kdyby se nasazení nového ročníku nepovedlo. Na serveru:
+
+```bash
+cd ~ && mysqldump -u root --result-file="gamecon_${STARY}_$(date +'%Y-%m-%d_%H-%M-%S')-dump.sql" --extended-insert --routines --triggers --delayed-insert --no-tablespaces d16779_gcostra
+DUMP=$(ls -t ~/gamecon_"$STARY"_*-dump.sql | head -1); echo "$DUMP"; ls -lh "$DUMP"   # nejnovější, právě vytvořený
+tail -n 1 "$DUMP"                                                                      # -- Dump completed on …
+grep -nE '^(CREATE DATABASE|USE |DROP DATABASE)' "$DUMP" || echo "OK: dump nemá CREATE DATABASE ani USE"
+sha256sum "$DUMP"
+mysql -u root "gamecon_$STARY" < "$DUMP"   # do archivu; dump má DROP TABLE IF EXISTS, tabulky se přepíšou
+```
+
+Stáhni ho (u sebe, `scp -i ~/.ssh/id_ed25519_gamecon 'root@gamecon.cz:<název-dumpu>' ~/gamecon-zalohy/`), ověř hash
+a nahraj ho na GDrive do _Záloha {STARY}_.
+
+### Spustit skript na ostré
 
 ```bash
 scp -i ~/.ssh/id_ed25519_gamecon ~/gamecon-zalohy/uzavreni-financi-"$STARY".sql root@gamecon.cz:
@@ -230,7 +270,8 @@ Namátkou porovnej `zustatek` jednoho uživatele s hodnotou `SET zustatek=` ve s
 
 Pozor ⚠️, nový ročník se smí nasadit až po spuštění skriptu z kroku 4, jinak se zůstatky nepřevedou správně.
 
-Mergni PR s novým ročníkem do `main`, tím se spustí nasazení ostré:
+Mergni PR s novým ročníkem do `main`, tím se spustí nasazení ostré (projde i za údržby). Před nahráním pouští
+testy, trvá několik minut:
 
 ```bash
 gh run list --workflow deploy-ostra.yml --limit 3
@@ -244,8 +285,33 @@ grep -n "define('ROCNIK'" /srv/www/ostra/nastaveni/verejne-nastaveni-produkce.ph
 mysql -u root d16779_gcostra -e "SELECT klic, hodnota FROM systemove_nastaveni WHERE rocnik_nastaveni = $((STARY + 1))"
 ```
 
+Pak vypni údržbový režim a crony na cron-job.org zase zapni:
+
+```bash
+gh workflow run maintenance-ostra.yml --ref main -f state=off
+gh run list --workflow maintenance-ostra.yml --limit 1
+gh run watch <id-běhu>
+```
+
 Otevři [gamecon.cz](https://gamecon.cz/) a [admin.gamecon.cz](https://admin.gamecon.cz/) a zkontroluj, že vše funguje
-a u pár uživatelů je stav financí roven zůstatku ze skriptu. Pozastavený cron zase zapni.
+a u pár uživatelů je stav financí roven zůstatku ze skriptu.
+
+### Když se nasazení nepovede
+
+Údržbový režim nech zapnutý (návštěvníci by viděli zdvojené zůstatky) a skript **znovu negeneruj ani nespouštěj**.
+Oprav, co nasazení shodilo, a nasaď znovu (`gh run rerun <id-běhu>`, nebo nový commit přes PR).
+
+Návrat zpět dává smysl, jen když nasazení spadlo dřív, než nahrálo kód, tedy když je na serveru pořád starý ročník
+(`grep -n "define('ROCNIK'" /srv/www/ostra/nastaveni/verejne-nastaveni-produkce.php` ukazuje `STARY`). Pak vrať
+ostrou do stavu před skriptem z konečného dumpu (vznikl za údržby, nic se od něj nezměnilo), revertni PR s novým
+ročníkem, vypni údržbu, zapni crony a překlopení zopakuj od kroku 4 jindy:
+
+```bash
+mysql -u root d16779_gcostra < "$DUMP"
+```
+
+Když je na serveru už nový ročník, obnova dumpu by nechala nový kód nad neuzavřenými financemi. Nasazení pak
+dotáhni dopředu.
 
 ---
 
