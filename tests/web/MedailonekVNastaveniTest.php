@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
+use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\MedailonekVNastaveni;
@@ -24,8 +25,12 @@ class MedailonekVNastaveniTest extends AbstractTestWeb
     private const int ID_PANA_JESKYNE = 9862;
     private const int ID_ORGANIZATORA = 9863;
     private const int ID_UCASTNIKA = 9864;
+    private const int ID_BRIGADNIKA = 9865;
+    private const int ID_VYPRAVECE_V_PRIPRAVE = 9866;
     private const int ID_AKTIVITY = 9861;
     private const int ID_AKTIVITY_DRD = 9862;
+    private const int ID_TECHNICKE_AKTIVITY = 9863;
+    private const int ID_AKTIVITY_V_PRIPRAVE = 9864;
 
     protected static bool $disableStrictTransTables = true;
 
@@ -52,12 +57,16 @@ VALUES
     (%1$d, 'test-medailonek-vedouci', 'Test', 'Vedoucí', 'test-medailonek-vedouci@example.invalid'),
     (%2$d, 'test-medailonek-pj', 'Test', 'Pán jeskyně', 'test-medailonek-pj@example.invalid'),
     (%3$d, 'test-medailonek-org', 'Test', 'Organizátor', 'test-medailonek-org@example.invalid'),
-    (%4$d, 'test-medailonek-ucastnik', 'Test', 'Účastník', 'test-medailonek-ucastnik@example.invalid')
+    (%4$d, 'test-medailonek-ucastnik', 'Test', 'Účastník', 'test-medailonek-ucastnik@example.invalid'),
+    (%5$d, 'test-medailonek-brigadnik', 'Test', 'Brigádník', 'test-medailonek-brigadnik@example.invalid'),
+    (%6$d, 'test-medailonek-priprava', 'Test', 'V přípravě', 'test-medailonek-priprava@example.invalid')
 SQL,
                 self::ID_VEDOUCIHO,
                 self::ID_PANA_JESKYNE,
                 self::ID_ORGANIZATORA,
                 self::ID_UCASTNIKA,
+                self::ID_BRIGADNIKA,
+                self::ID_VYPRAVECE_V_PRIPRAVE,
             ),
             sprintf(
                 <<<'SQL'
@@ -71,22 +80,32 @@ SQL,
 INSERT INTO akce_seznam(id_akce, nazev_akce, url_akce, typ, rok, stav, popis, cena, kapacita, kapacita_f, kapacita_m)
 VALUES
     (%1$d, 'Test medailonku', 'test-medailonku-v-nastaveni', %3$d, %5$d, 2, 'Popis', 0, 5, 0, 0),
-    (%2$d, 'Test medailonku DrD', 'test-medailonku-v-nastaveni-drd', %4$d, %5$d, 2, 'Popis', 100, 5, 0, 0)
+    (%2$d, 'Test medailonku DrD', 'test-medailonku-v-nastaveni-drd', %4$d, %5$d, 2, 'Popis', 100, 5, 0, 0),
+    (%6$d, 'Test medailonku technická', 'test-medailonku-v-nastaveni-technicka', %7$d, %5$d, 2, 'Popis', 0, 5, 0, 0),
+    (%8$d, 'Test medailonku v přípravě', 'test-medailonku-v-nastaveni-priprava', %3$d, %5$d, %9$d, 'Popis', 0, 5, 0, 0)
 SQL,
                 self::ID_AKTIVITY,
                 self::ID_AKTIVITY_DRD,
                 TypAktivity::RPG,
                 TypAktivity::DRD,
                 ROCNIK,
+                self::ID_TECHNICKE_AKTIVITY,
+                TypAktivity::TECHNICKA,
+                self::ID_AKTIVITY_V_PRIPRAVE,
+                StavAktivity::NOVA,
             ),
             sprintf(
                 <<<'SQL'
-INSERT INTO akce_organizatori(id_akce, id_uzivatele) VALUES (%1$d, %2$d), (%3$d, %4$d)
+INSERT INTO akce_organizatori(id_akce, id_uzivatele) VALUES (%1$d, %2$d), (%3$d, %4$d), (%5$d, %6$d), (%7$d, %8$d)
 SQL,
                 self::ID_AKTIVITY,
                 self::ID_VEDOUCIHO,
                 self::ID_AKTIVITY_DRD,
                 self::ID_PANA_JESKYNE,
+                self::ID_TECHNICKE_AKTIVITY,
+                self::ID_BRIGADNIKA,
+                self::ID_AKTIVITY_V_PRIPRAVE,
+                self::ID_VYPRAVECE_V_PRIPRAVE,
             ),
         ];
     }
@@ -97,7 +116,7 @@ SQL,
         $this->zdroje = sys_get_temp_dir() . '/gamecon-medailonek-v-nastaveni-' . bin2hex(random_bytes(6));
         (new Filesystem())->mkdir($this->zdroje);
         $this->kUklidu[] = $this->zdroje;
-        foreach ([self::ID_VEDOUCIHO, self::ID_PANA_JESKYNE, self::ID_ORGANIZATORA, self::ID_UCASTNIKA] as $id) {
+        foreach ([self::ID_VEDOUCIHO, self::ID_PANA_JESKYNE, self::ID_ORGANIZATORA, self::ID_UCASTNIKA, self::ID_BRIGADNIKA] as $id) {
             $fotka = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . $id;
             $this->kUklidu = [...$this->kUklidu, $fotka . '.png', $fotka . '.avif', $fotka . '.webp'];
         }
@@ -277,6 +296,38 @@ SQL, [
         self::assertStringContainsString('Medailonek si může upravit jen vypravěč nebo organizátor.', $this->nastaveni($relace));
         // stránka /<id> pořád jen pro vypravěče
         self::assertSame(404, $this->stahniVerejnouStranku('web/' . self::ID_UCASTNIKA)['status']);
+    }
+
+    /**
+     * Vypravěč není, kdo vede jen technickou nebo brigádnickou aktivitu, stejně jako v přehledu vypravěčů; uložením
+     * by si založil veřejnou stránku vypravěče.
+     *
+     * @test
+     */
+    public function vedouciJenTechnickeAktivitySekciNevidi(): void
+    {
+        $relace = $this->prihlas('test-medailonek-brigadnik');
+        self::assertStringNotContainsString('id="medailonek"', $this->nastaveni($relace));
+
+        $odpoved = $this->odesliZNastaveni($relace, [
+            MedailonekVNastaveni::POST_ULOZIT => 1,
+            MedailonekVNastaveni::POST_O_SOBE => 'Stavím stany',
+        ]);
+        self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
+        self::assertNull($this->medailonek(self::ID_BRIGADNIKA));
+    }
+
+    /**
+     * Medailonek si vypravěč napíše dřív, než se jeho aktivita zveřejní.
+     *
+     * @test
+     */
+    public function vedouciAktivityVPripraveSekciVidi(): void
+    {
+        self::assertStringContainsString(
+            'id="medailonek"',
+            $this->nastaveni($this->prihlas('test-medailonek-priprava')),
+        );
     }
 
     private function nastaveni(string $relace): string

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Role\Role;
 use Gamecon\Web\FotkaUzivatele;
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\XTemplate\XTemplate;
@@ -38,15 +39,17 @@ final class MedailonekVNastaveni
     }
 
     /**
-     * Smí si uživatel medailonek upravit? Organizátor, vypravěč (letos role, nebo vede aktivitu) a kdo už medailonek
-     * nebo stránku vypravěče má (vedl aktivitu dřív), ať si ji může opravit. Ostatním by sekce jen překážela a uložením
-     * by si navíc založili veřejnou stránku /<id>.
+     * Smí si uživatel medailonek upravit? Organizátor, vypravěč (letos role, nebo letos či dřív vedl netechnickou
+     * aktivitu, ať si stránku může opravit) a kdo už medailonek má. Ostatním by sekce jen překážela a uložením by si
+     * navíc založili veřejnou stránku /<id>. Ne podle @see Medailonek::maStrankuVypravece(): stránku má i ten, kdo vede
+     * jen technickou aktivitu, která ještě neproběhla, vypravěč ale není.
      */
     public function isDostupny(): bool
     {
         return $this->dostupny ??= $this->uzivatel->jeOrganizator()
-            || \Uzivatel::isVedouciAktivityVRocniku((int) $this->uzivatel->id(), $this->rocnik)
-            || $this->maStrankuVypravece();
+            || $this->uzivatel->maRoli(Role::LETOSNI_VYPRAVEC($this->rocnik))
+            || $this->getMedailonek() !== null
+            || $this->vedlNetechnickouAktivitu();
     }
 
     /**
@@ -189,6 +192,30 @@ SQL,
                     2 => TypAktivity::DRD,
                 ],
             ) !== null;
+    }
+
+    /**
+     * Jen netechnickou, stejně jako přehled vypravěčů (@see PrehledVypravecu): kdo vede jen technickou nebo brigádnickou
+     * aktivitu, vypravěč není. V jakémkoli stavu, i v přípravě, ať si vypravěč medailonek napíše dřív, než se aktivita
+     * zveřejní, a v kterémkoli ročníku, ať si loňský vypravěč opraví svou stránku.
+     */
+    private function vedlNetechnickouAktivitu(): bool
+    {
+        return dbOneCol(<<<'SQL'
+SELECT 1
+FROM akce_organizatori
+JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
+WHERE akce_organizatori.id_uzivatele = $0
+  AND akce_seznam.rok <= $1
+  AND akce_seznam.typ NOT IN ($2)
+LIMIT 1
+SQL,
+            [
+                0 => $this->uzivatel->id(),
+                1 => $this->rocnik,
+                2 => TypAktivity::interniTypy(),
+            ],
+        ) !== null;
     }
 
     /**
