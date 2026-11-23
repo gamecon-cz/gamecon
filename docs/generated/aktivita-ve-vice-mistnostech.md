@@ -11,7 +11,8 @@ TL;DR: aktivita může být ve více místnostech a jedna z nich je hlavní. Hla
 ## Datový model
 
 - `akce_lokace(id_akce, id_lokace)` je vazební tabulka (PK na obou sloupcích), `lokace` je číselník místností s `poradi` a `poznamka`.
-- `akce_seznam.id_hlavni_lokace` (FK na `lokace`, `ON DELETE SET NULL`) je výslovně zvolená hlavní místnost, NULL = „automaticky“. Dřív to byl sloupec `akce_lokace.je_hlavni`, přesunula ho migrace `migrace/2026-03-07-191044-presun-je-hlavni-do-akce-seznam.php`.
+- `akce_seznam.id_hlavni_lokace` je výslovně zvolená hlavní místnost, NULL = „automaticky“. Dřív to byl sloupec `akce_lokace.je_hlavni`, přesunula ho migrace `migrace/2026-03-07-191044-presun-je-hlavni-do-akce-seznam.php`.
+- Cizí klíč na `lokace` sloupec v DB nemá: migrace `migrace/2026-03-07-191128-clean-up-foreign-key-on-update-cascade.sql` ho zrušila a znovu nepřidala, `ON DELETE SET NULL` je jen v mapování Doctrine (`Activity::$mainLocation`). Smazání místnosti proto smaže kaskádou jen řádek v `akce_lokace` a v `id_hlavni_lokace` může zůstat ID, které mezi místnostmi aktivity není. Vadí to málo: každý čtenář ověřuje, že je zvolená mezi místnostmi (`HlavniLokace`), takže platí „automaticky“, a další uložení aktivity tam dá NULL.
 - Místnosti jsou vlastnost instance (¹ v editoru): `Aktivita::uloz()` je u rodiny instancí nastavuje jen upravované instanci.
 
 ## Pravidla
