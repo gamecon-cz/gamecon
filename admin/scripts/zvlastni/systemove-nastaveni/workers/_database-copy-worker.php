@@ -25,9 +25,12 @@ if (isset($argv)) {
     }
 }
 
-// Před načtením konfigurace můžeme vynutit ročník podle zdrojové DB nebo názvu souboru zálohy
+// Před načtením konfigurace můžeme vynutit ročník podle zdrojové DB nebo názvu souboru zálohy.
+// Kopie ostré a její zálohy bez roku v názvu ročník nevynucují: beta i preview běží s kódem z main, takže jejich výchozí
+// ROCNIK je ten ostré. Rok z kalendáře by se od něj po překlopení ročníku (na podzim) lišil o jedna.
+$rocnikOverrideFile = __DIR__ . '/../../../../../cache/private/rocnik_override';
 if (!defined('ROCNIK')) {
-    $vynucenyRocnik = (int)date('Y'); // default
+    $vynucenyRocnik = null;
     if ($backupFile && preg_match('~export_(\d{4})-~', basename($backupFile), $m)) {
         $vynucenyRocnik = (int)$m[1];
     } elseif ($backupFile && preg_match('~/(\d{4})/backup/db/~', $backupFile, $m)) {
@@ -35,7 +38,12 @@ if (!defined('ROCNIK')) {
     } elseif (preg_match('~gamecon_(\d{4})~', $zdrojovaDb ?? '', $m)) {
         $vynucenyRocnik = (int)$m[1];
     }
-    define('ROCNIK', $vynucenyRocnik);
+    if ($vynucenyRocnik !== null) {
+        define('ROCNIK', $vynucenyRocnik);
+    } elseif (is_file($rocnikOverrideFile)) {
+        // ročník z dřívější kopie archivního ročníku by přebil výchozí ročník kódu
+        unlink($rocnikOverrideFile);
+    }
 }
 
 require_once __DIR__ . '/../../../../../nastaveni/zavadec.php';
@@ -72,7 +80,6 @@ try {
 
     // uložit ročník pro další requesty na betě
     if (isset($vynucenyRocnik)) {
-        $rocnikOverrideFile = __DIR__ . '/../../../../../cache/private/rocnik_override';
         (new Filesystem())->mkdir(dirname($rocnikOverrideFile), 0775);
         file_put_contents($rocnikOverrideFile, (string)$vynucenyRocnik);
     }
