@@ -121,6 +121,9 @@ jobs:
                         2023) base_image="gameconcz/gamecon:8.2" ;;
                         2024) base_image="gameconcz/gamecon:8.2" ;;
                         2025) base_image="gameconcz/gamecon:8.2" ;;
+                        # 2026 is frozen code written for PHP 8.3, pinned for the
+                        # same reason before the default moves on.
+                        2026) base_image="gameconcz/gamecon:8.3-runtime" ;;
                         *)    base_image="gameconcz/gamecon:8.3-runtime" ;;
                     esac
 
