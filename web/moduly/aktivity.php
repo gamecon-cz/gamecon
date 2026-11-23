@@ -9,7 +9,6 @@ use Gamecon\Aktivita\Tag;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\KategorieTagu;
-use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Medailonek;
 
 /** @var Modul $this */
@@ -40,14 +39,8 @@ $rocnikySAktivitami = RocnikyAktivit::getSAktivitami(
         ? $org->id()
         : null,
 );
-// /<id> najde kohokoli (Uzivatel::zUrl()), medailonek ale patří jen vypravěči: kdo nikdy nic viditelného nevedl,
-// letos nemá roli vypravěče (přehled /vypraveci ho vypíše i bez aktivit) a nemá ani medailonek z adminu, má 404,
-// jinak by šli projít všichni registrovaní
-if (!empty($org)
-    && $rocnikySAktivitami === []
-    && !$org->maRoli(Role::LETOSNI_VYPRAVEC($letosniRocnik))
-    && Medailonek::zId((int)$org->id()) === null
-) {
+// /<id> najde kohokoli (Uzivatel::zUrl()), medailonek ale patří jen vypravěči
+if (!empty($org) && !Medailonek::maStrankuVypravece($org, $letosniRocnik, $rocnikySAktivitami)) {
     throw new Nenalezeno();
 }
 // letošní i bez aktivit, ať se jde vrátit

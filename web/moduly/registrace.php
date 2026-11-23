@@ -11,6 +11,7 @@
  * právě sem.
  */
 
+use Gamecon\Uzivatel\MedailonekVNastaveni;
 use Gamecon\Uzivatel\Registrace;
 
 /** @var Uzivatel|null $u */
@@ -21,6 +22,10 @@ $this->bezPaticky(true);
 $this->info()->nazev('Registrace');
 
 $registrace = new Registrace($systemoveNastaveni, $u);
+// vypravěč si tu upraví medailonek, který web ukazuje na jeho stránce /<id>
+$medailonek = $u
+    ? new MedailonekVNastaveni($u, $systemoveNastaveni->rocnik())
+    : null;
 
 if ($u) {
     // čtečka QR kódu pro přihlášení jiného zařízení, Registrace::zobrazHtml()
@@ -30,5 +35,6 @@ if ($u) {
 $registrace->zpracujRegistraci();
 $registrace->zpracujUpravu();
 $registrace->zpracujOdhlaseniOstatnichZarizeni();
+$medailonek?->zpracujPost();
 
-$registrace->zobrazHtml();
+$registrace->zobrazHtml($medailonek?->getHtml() ?? '');

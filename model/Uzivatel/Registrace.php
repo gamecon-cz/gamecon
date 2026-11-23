@@ -210,7 +210,10 @@ HTML;
         return $dataUzivatele;
     }
 
-    public function zobrazHtml()
+    /**
+     * @param string $medailonekHtml sekce medailonku pro vypravěče (@see MedailonekVNastaveni), u ostatních prázdná
+     */
+    public function zobrazHtml(string $medailonekHtml = '')
     {
         ?>
       <div class="formular_stranka">
@@ -376,6 +379,7 @@ HTML
       </form>
 
         <?php
+        echo $medailonekHtml;
         if ($this->u) { ?>
           <!-- vlastní formulář pod tlačítkem Uložit, aby se nastavení neukládalo ani nekontrolovalo -->
           <form method="post">

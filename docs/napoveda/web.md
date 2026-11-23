@@ -143,6 +143,10 @@ V tabulce vidíš u každého vypravěče ✅/❌ podle toho, zda má vyplněný
 **Popis** a část pro **DrD** (najetím myší se text ukáže), a tužku pro
 editaci. Horní část medailonku je obecná, dolní část je pro DrD.
 
+Vypravěč, organizátor a kdo vede aktivitu si medailonek (text i fotku) upraví
+i sám na webu v **Nastavení**, v sekci **Medailonek**. Nemusí tedy texty a
+fotky posílat orgům.
+
 ## Typické postupy
 
 **Přidat novinku:** Web → **Přidat novinku** → vyplň **Typ**, **Vydat**,

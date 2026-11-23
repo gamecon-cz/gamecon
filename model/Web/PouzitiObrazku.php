@@ -30,6 +30,15 @@ class PouzitiObrazku
     ];
 
     /**
+     * @param bool $vcetneMedailonku false pro fotky uživatelů: text medailonku si píše vypravěč sám na webu, takže by
+     *                               odkazem na cizí fotku mohl jejímu majiteli zabránit ji smazat nebo vyměnit, a odkaz
+     *                               by nemohl odstranit nikdo kromě organizátora
+     */
+    public function __construct(private readonly bool $vcetneMedailonku = true)
+    {
+    }
+
+    /**
      * @param list<array{popis: string, url: string}> $pouziti
      */
     public static function popis(array $pouziti, int $max = 3): string
@@ -203,7 +212,7 @@ class PouzitiObrazku
      */
     private function zdrojeTextu(): array
     {
-        return [
+        $zdroje = [
             [
                 'sloupce'      => 'id_stranky, url_stranky',
                 'zdroj'        => 'stranky',
@@ -269,6 +278,13 @@ class PouzitiObrazku
                 ],
             ],
         ];
+
+        return $this->vcetneMedailonku
+            ? $zdroje
+            : array_values(array_filter(
+                $zdroje,
+                static fn (array $zdroj): bool => $zdroj['tabulka'] !== MedailonekSql::MEDAILONKY_TABULKA,
+            ));
     }
 
     /**

@@ -1,0 +1,92 @@
+// Medailonek v Nastavení (model/Uzivatel/medailonek-v-nastaveni.xtpl): fotka a text, které web ukazuje na stránce vypravěče.
+
+.medailonekVNastaveni {
+  // stejně široké jako dva sloupce polí nastavení výš (.formular_sloupce, 2 × 260 px + mezera)
+  max-width: 536px;
+  margin-bottom: 40px;
+  // návrat po uložení na kotvu #medailonek: od 600 px je menu přilepené nahoře a na užší obrazovce se zalomí
+  // do dvou řádků (120 px), nadpis by pod ním zmizel
+  scroll-margin-top: 140px;
+  @media (max-width: 900px) {
+    max-width: none;
+  }
+  @media (max-width: 599px) {
+    scroll-margin-top: 20px;
+  }
+}
+
+.medailonekVNastaveni_adresa {
+  overflow-wrap: anywhere;
+}
+
+.medailonekVNastaveni_nadpis {
+  display: block;
+  margin: 24px 0 12px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.medailonekVNastaveni_fotka {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+
+  p {
+    margin-top: 0;
+  }
+}
+
+.medailonekVNastaveni_nahled {
+  flex: none;
+  object-fit: cover;
+}
+
+.medailonekVNastaveni_fotka > div {
+  flex: 1;
+  min-width: 240px;
+}
+
+.medailonekVNastaveni_soubor {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+
+  &::file-selector-button {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-right: 12px;
+    padding: 0 16px;
+    line-height: 36px;
+    border: solid 2px #84888c;
+    background-color: transparent;
+    color: var(--gc-dark);
+    cursor: pointer;
+  }
+}
+
+.medailonekVNastaveni_napoveda {
+  font-size: 13px;
+  color: #86878b;
+  line-height: 1.5;
+}
+
+.medailonekVNastaveni .formular_sekundarni,
+.medailonekVNastaveni .formular_primarni {
+  margin-left: 0;
+}
+
+.medailonekVNastaveni_smazat.formular_negativni {
+  margin: 8px 0 0;
+}
+
+.medailonekVNastaveni_text.formular_textarea {
+  min-height: 160px;
+  font-weight: normal;
+  resize: vertical;
+}

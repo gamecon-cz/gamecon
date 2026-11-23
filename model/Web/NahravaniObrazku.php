@@ -114,13 +114,36 @@ final class NahravaniObrazku
     /** Tečka na začátku: dočasný soubor nevypíše žádný seznam obrázků */
     private const PREFIX_DOCASNEHO_SOUBORU = '.nahravani-';
 
+    /**
+     * Svou fotku nahrává v Nastavení každý vypravěč a vedoucí aktivity, ne jen organizátor; obrázek se převádí hned při
+     * nahrání a 50 Mpx zabere ImageMagicku stovky MB paměti. Fotka z mobilu (12 až 24 Mpx, pár MB) se vejde.
+     */
+    public const int FOTKA_Z_WEBU_MAX_MB = 10;
+    public const int FOTKA_Z_WEBU_MAX_PIXELU = 30_000_000;
+
     private readonly bool $pracujeSDokumenty;
+
+    /**
+     * Fotka, kterou si vypravěč nahrává sám na webu: totéž co @see proFotkyUzivatelu(), jen s menšími limity
+     */
+    public static function proFotkuZWebu(): self
+    {
+        return new self(
+            ZpracovaneObrazky::adresarFotekUzivatelu(),
+            new PouzitiObrazku(vcetneMedailonku: false),
+            maxVelikostMb: self::FOTKA_Z_WEBU_MAX_MB,
+            formaty: self::getRastroveFormatyProNahledy(),
+            maxPixelu: self::FOTKA_Z_WEBU_MAX_PIXELU,
+            optimalizace: new OptimalizaceObrazku(),
+        );
+    }
 
     public static function proFotkyUzivatelu(): self
     {
         return new self(
             ZpracovaneObrazky::adresarFotekUzivatelu(),
-            new PouzitiObrazku(),
+            // odkaz z medailonku, který si píše vypravěč sám, fotku nezamkne
+            new PouzitiObrazku(vcetneMedailonku: false),
             formaty: self::getRastroveFormatyProNahledy(),
             optimalizace: new OptimalizaceObrazku(),
         );
@@ -212,11 +235,14 @@ final class NahravaniObrazku
 
     /**
      * Pro začátek modulu s uploadem: příliš velký požadavek ohlásí organizátorovi a skončí.
+     *
+     * @param string|null $navrat kam se vrátit, jinak na stránku, odkud formulář přišel
      */
-    public static function hlidejPrilisVelkyPozadavek(): void
+    public static function hlidejPrilisVelkyPozadavek(?string $navrat = null): void
     {
         if (self::bylPozadavekPrilisVelky()) {
-            chyba(self::zpravaOPrilisVelkemPozadavku());
+            \Chyba::nastav(self::zpravaOPrilisVelkemPozadavku(), \Chyba::CHYBA);
+            back($navrat);
         }
     }
 
@@ -226,16 +252,18 @@ final class NahravaniObrazku
      *
      * @template T
      * @param callable(): T $akce
+     * @param string|null $navrat kam se po chybě vrátit, jinak na stránku, odkud formulář přišel
      * @return T
      */
-    public static function sOhlasenimChyby(callable $akce): mixed
+    public static function sOhlasenimChyby(callable $akce, ?string $navrat = null): mixed
     {
         try {
             return $akce();
         } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
-            chyba(htmlspecialchars($nahravaniObrazkuException->getMessage()));
+            \Chyba::nastav(htmlspecialchars($nahravaniObrazkuException->getMessage()), \Chyba::CHYBA);
+            back($navrat);
 
-            throw $nahravaniObrazkuException; // nedosažitelné, chyba() skončí skript
+            throw $nahravaniObrazkuException; // nedosažitelné, back() skončí skript
         }
     }
 
@@ -380,12 +408,20 @@ final class NahravaniObrazku
     /** Například „JPG, PNG, GIF, WebP nebo AVIF, nejvýš 5 MB; JPG a PNG se zmenší na nejvýš 1920 px a uloží jako AVIF“ */
     public function popisLimitu(): string
     {
-        $popis = $this->popisFormatu() . ', nejvýš ' . self::lidskaVelikost($this->maxVelikostBajtu());
+        $popis = $this->popisFormatuAVelikosti();
         $uprava = $this->popisUpravy();
 
         return $uprava === ''
             ? $popis
             : $popis . '; ' . $uprava;
+    }
+
+    /**
+     * Jako @see popisLimitu(), jen bez toho, jak se obrázek zmenší a převede; pro ty, kdo nahrávají jen svou fotku
+     */
+    public function popisFormatuAVelikosti(): string
+    {
+        return $this->popisFormatu() . ', nejvýš ' . self::lidskaVelikost($this->maxVelikostBajtu());
     }
 
     /**

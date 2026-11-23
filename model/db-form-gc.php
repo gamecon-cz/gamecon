@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Uzivatel\SqlStruktura\MedailonekSqlStruktura;
+
 foreach (scandir(__DIR__ . '/knihovny/DbForm') ?: [] as $folder) {
     $folderFullPath = __DIR__ . '/knihovny/DbForm/' . $folder;
     if (is_file($folderFullPath) && str_ends_with($folderFullPath, '.php')) {
@@ -16,7 +18,10 @@ class DbFormGc extends DbForm
             return new DbffSelect($d);
         }
         if (preg_match('@^markdown@', $d['Comment'])) {
-            return new DbffMarkdownDirect($d);
+            // text medailonku si píše vypravěč sám na webu, HTML z něj smí do adminu jen vyčištěné
+            return $this->table() === MedailonekSqlStruktura::MEDAILONKY_TABULKA
+                ? new DbffMarkdownOdUzivatele($d)
+                : new DbffMarkdownDirect($d);
         }
         if (in_array($d['Type'], ['text', 'shorttext', 'mediumtext', 'longtext'])) {
             return new DbffTextAutoresize($d);

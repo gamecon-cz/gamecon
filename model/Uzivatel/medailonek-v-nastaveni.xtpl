@@ -1,0 +1,63 @@
+<!-- begin:medailonek -->
+<section class="medailonekVNastaveni" id="{kotva}">
+  <h2 class="formular_sekceNadpis">Medailonek</h2>
+  <p>
+    Fotka a pár slov o tobě, kterými se představuješ hráčům.
+    <!-- begin:stranka -->
+    Najdou je na tvé stránce <a class="medailonekVNastaveni_adresa" href="{urlStranky}" target="_blank" rel="noopener">{urlStranky}</a>.
+    <!-- end:stranka -->
+    <!-- begin:budouciStranka -->
+    Po prvním uložení je najdou na tvé stránce <span class="medailonekVNastaveni_adresa">{urlStranky}</span>.
+    <!-- end:budouciStranka -->
+  </p>
+  <p>Medailonek se ukládá zvlášť tlačítky níž, neuložené změny nastavení výš se přitom zahodí.</p>
+
+  <h3 class="medailonekVNastaveni_nadpis">Fotka</h3>
+  <div class="medailonekVNastaveni_fotka">
+    <img class="medailonekVNastaveni_nahled" src="{nahled}" alt="{altFotky}" width="180" height="180">
+    <div>
+      <!-- begin:maFotku -->
+      <p>Takhle se fotka ukáže na tvé stránce, ořízne se do čtverce.</p>
+      <!-- end:maFotku -->
+      <!-- begin:nemaFotku -->
+      <p>
+        <b>Fotku zatím nemáš</b>, na webu se místo ní ukazuje výchozí obrázek. Vypravěč bez fotky se navíc nezobrazí
+        v přehledech vypravěčů DrD a DnD.
+      </p>
+      <!-- end:nemaFotku -->
+      <form method="post" enctype="multipart/form-data" action="registrace#{kotva}">
+        <input type="hidden" name="{postAkce}" value="{akceNahrat}">
+        <input class="medailonekVNastaveni_soubor" type="file" name="{postSoubor}" accept="{accept}" required
+               aria-label="Soubor s fotkou">
+        <p class="medailonekVNastaveni_napoveda">
+          {limit}. Nová fotka nahradí tu dosavadní. Nejlépe vypadá čtvercová fotka obličeje.
+        </p>
+        <button type="submit" class="formular_sekundarni">Nahrát fotku</button>
+      </form>
+      <!-- begin:smazatFotku -->
+      <form method="post" action="registrace#{kotva}" onsubmit="return confirm('Opravdu smazat fotku?')">
+        <input type="hidden" name="{postAkce}" value="{akceSmazat}">
+        <button type="submit" class="formular_negativni medailonekVNastaveni_smazat">Smazat fotku</button>
+      </form>
+      <!-- end:smazatFotku -->
+    </div>
+  </div>
+
+  <form method="post" action="registrace#{kotva}">
+    <label class="medailonekVNastaveni_nadpis" for="medailonekOSobe">O sobě</label>
+    <textarea id="medailonekOSobe" class="formular_textarea medailonekVNastaveni_text" name="{postOSobe}" rows="10"
+              maxlength="{maxDelka}" placeholder="Co hraješ, co vedeš, čím tě hráči poznají…">{oSobe}</textarea>
+    <!-- begin:drd -->
+    <label class="medailonekVNastaveni_nadpis" for="medailonekDrd">Profil Pána jeskyně pro Mistrovství v DrD</label>
+    <textarea id="medailonekDrd" class="formular_textarea medailonekVNastaveni_text" name="{postDrd}" rows="6"
+              maxlength="{maxDelka}" placeholder=" ">{drd}</textarea>
+    <!-- end:drd -->
+    <p class="medailonekVNastaveni_napoveda">
+      Text se píše v Markdownu: odstavce odděl prázdným řádkem, <code>**tučně**</code>, <code>*kurzívou*</code>,
+      odkaz jako <code>[text](https://…)</code>.
+    </p>
+    <input type="hidden" name="{postUlozit}" value="1">
+    <button type="submit" class="formular_primarni">Uložit medailonek</button>
+  </form>
+</section>
+<!-- end:medailonek -->
