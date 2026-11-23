@@ -9,10 +9,37 @@ window.gcBezpecneHtml = function (html, pravidla) {
   function rozeber(adresa) {
     // relativní adresa vede na web, stejně jako v PHP
     try {
-      return new URL(adresa, 'https://' + pravidla.hostWebu + '/')
+      return new URL(adresa, pravidla.zakladWebu)
     } catch (e) {
       return null
     }
+  }
+
+  // bez mezer a řídicích znaků, zpětné lomítko jako lomítko, stejně jako BezpecneHtml::rozeberAdresu()
+  function normalizuj(adresa) {
+    return adresa.replace(/[\x00-\x20\x7F]+/g, '').replace(/\\/g, '/')
+  }
+
+  // obrázek jen ze souborů webu, bez parametrů a bez `..`, stejně jako BezpecneHtml::jePovolenyObrazek()
+  function jePovolenyObrazek(hodnota) {
+    var cista = normalizuj(hodnota)
+    if (cista === '' || cista.indexOf('?') !== -1 || /%2e/i.test(cista) || /(^|\/)\.\.?(\/|$)/.test(cista)) {
+      return false
+    }
+    var maSchema = /^[a-z][a-z\d+.\-]*:/i.test(cista)
+    if (!maSchema && cista.charAt(0) === '/' && cista.charAt(1) !== '/') {
+      return false // od kořene by v adminu vedla do adminu
+    }
+    if (!maSchema && cista.charAt(0) !== '/' && cista.indexOf('soubory/') !== 0) {
+      return false
+    }
+    var adresa = rozeber(cista)
+    var zaklad = rozeber(pravidla.zakladWebu)
+    return adresa !== null && zaklad !== null
+      && pravidla.schemataObrazku.indexOf(adresa.protocol.replace(/:$/, '')) !== -1
+      && adresa.host === zaklad.host
+      && adresa.search === ''
+      && adresa.pathname.indexOf(zaklad.pathname.replace(/\/?$/, '/') + 'soubory/') === 0
   }
 
   function jeHostGameconu(host) {
@@ -30,10 +57,7 @@ window.gcBezpecneHtml = function (html, pravidla) {
         return adresa !== null && hodnota.trim() !== ''
           && pravidla.schemataOdkazu.indexOf(adresa.protocol.replace(/:$/, '')) !== -1
       case 'src':
-        adresa = rozeber(hodnota)
-        return adresa !== null && hodnota.trim() !== ''
-          && pravidla.schemataObrazku.indexOf(adresa.protocol.replace(/:$/, '')) !== -1
-          && jeHostGameconu(adresa.hostname)
+        return jePovolenyObrazek(hodnota)
       case 'width':
       case 'height':
       case 'colspan':
@@ -78,7 +102,11 @@ window.gcBezpecneHtml = function (html, pravidla) {
       atributy.forEach(function (atribut) {
         var hodnota = uzel.getAttribute(atribut)
         if (hodnota !== null && jePovolenaHodnota(atribut, hodnota)) {
-          prvek.setAttribute(atribut, hodnota)
+          // adresa tak, jak ji prohlížeč vyhodnotil a ověřil, ne jak je napsaná: relativní by se jinak v adminu
+          // vyhodnotila vůči adminu
+          prvek.setAttribute(atribut, atribut === 'href' || atribut === 'src'
+            ? rozeber(normalizuj(hodnota)).href
+            : hodnota)
         }
       })
       if (znacka === 'a') {

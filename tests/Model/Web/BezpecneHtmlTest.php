@@ -86,7 +86,7 @@ HTML,
     {
         yield 'skript' => ['Ahoj<script>alert(1)</script>', '<p>Ahoj</p>'];
         yield 'skript jako blok' => ["<script>\nalert(1)\n</script>", ''];
-        yield 'obsluha události' => ['<img src="a.png" onerror="alert(1)">', '<p><img src="a.png"></p>'];
+        yield 'obsluha události' => ['<img src="soubory/a.png" onerror="alert(1)">', '<p><img src="soubory/a.png"></p>'];
         yield 'obsluha události velkými' => ['<b OnMouseOver="alert(1)">x</b>', '<p><b>x</b></p>'];
         yield 'javascript v odkazu markdownu' => ['[klik](javascript:alert(1))', '<p>klik</p>'];
         yield 'javascript v odkazu html' => ['<a href="JaVaScRiPt:alert(1)">klik</a>', '<p>klik</p>'];
@@ -133,7 +133,8 @@ HTML,
     }
 
     /**
-     * Cizí server by z obrázku v medailonku viděl IP adresy všech, kdo stránku otevřou.
+     * Cizí server by z obrázku v medailonku viděl IP adresy všech, kdo stránku otevřou, a adresa s parametry by
+     * v adminu jménem organizátora něco udělala.
      */
     #[Test]
     #[DataProvider('provideAdresyObrazku')]
@@ -154,24 +155,35 @@ HTML,
      */
     public static function provideAdresyObrazku(): iterable
     {
-        yield 'relativní' => ['soubory/obsah/mapa.png', true];
-        yield 'od kořene' => ['/soubory/obsah/mapa.png', true];
-        yield 'gamecon.cz' => ['https://gamecon.cz/soubory/obsah/mapa.png', true];
-        yield 'subdoména gameconu' => ['https://2025.gamecon.cz/soubory/obsah/mapa.png', true];
-        yield 'doména webu' => [URL_WEBU . '/soubory/obsah/mapa.png', true];
+        yield 'relativní do souborů' => ['soubory/obsah/mapa.png', true];
+        yield 'adresa webu' => [URL_WEBU . '/soubory/obsah/mapa.png', true];
+        yield 'zakódovaná diakritika' => ['soubory/obsah/m%C3%A1j.png', true];
+        yield 'mimo soubory' => ['obrazek.png', false];
+        yield 'od kořene, v adminu by vedla do adminu' => ['/soubory/obsah/mapa.png', false];
+        yield 'parametry, v adminu by něco udělaly' => ['?pracovni_uzivatel=4242', false];
+        yield 'soubor s parametry' => ['soubory/obsah/mapa.png?pracovni_uzivatel=4242', false];
+        yield 'admin gameconu' => ['https://admin.gamecon.cz/?pracovni_uzivatel=4242', false];
+        yield 'subdoména gameconu' => ['https://2025.gamecon.cz/soubory/obsah/mapa.png', false];
+        yield 'web mimo soubory' => [URL_WEBU . '/odhlasit', false];
+        yield 'web na jiném portu' => [
+            parse_url(URL_WEBU, PHP_URL_SCHEME) . '://' . parse_url(URL_WEBU, PHP_URL_HOST) . ':8081/soubory/p.png',
+            false,
+        ];
+        yield 'ven ze souborů přes ..' => ['soubory/../admin/', false];
+        yield 'ven ze souborů přes zakódované ..' => ['soubory/%2E%2e/admin/', false];
         yield 'cizí server' => ['https://tracker.example/p.gif', false];
         yield 'bez protokolu' => ['//tracker.example/p.gif', false];
-        yield 'zpětné lomítko jako lomítko' => ['/\tracker.example/p.gif', false];
-        yield 'jméno gameconu v cizí doméně' => ['https://gamecon.cz.tracker.example/p.gif', false];
-        yield 'gamecon jako uživatel' => ['https://gamecon.cz@tracker.example/p.gif', false];
+        yield 'zpětné lomítko jako lomítko' => ['/\\tracker.example/p.gif', false];
+        yield 'jméno webu v cizí doméně' => ['https://' . parse_url(URL_WEBU, PHP_URL_HOST) . '.tracker.example/soubory/p.gif', false];
+        yield 'web jako uživatel' => ['https://' . parse_url(URL_WEBU, PHP_URL_HOST) . '@tracker.example/soubory/p.gif', false];
     }
 
     #[Test]
     public function rozmeryObrazkuJenCisla(): void
     {
         self::assertSame(
-            '<img src="a.png" width="100">',
-            BezpecneHtml::vycisti('<img src="a.png" width="100" height="100%;x" class="velky" id="logo">'),
+            '<img src="soubory/a.png" width="100">',
+            BezpecneHtml::vycisti('<img src="soubory/a.png" width="100" height="100%;x" class="velky" id="logo">'),
         );
     }
 

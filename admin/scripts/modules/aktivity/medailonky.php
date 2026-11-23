@@ -9,6 +9,8 @@
  */
 
 use Gamecon\Uzivatel\Medailonek;
+use Gamecon\Uzivatel\MedailonekKeSchvaleni;
+use Gamecon\Uzivatel\SchvaleniMedailonku;
 use Gamecon\Web\FotkaUzivatele;
 use Gamecon\XTemplate\XTemplate;
 
@@ -31,6 +33,11 @@ if (get('id') !== null) {
     $fotka = new FotkaUzivatele($uzivatelMedailonku);
     $fotka->zpracujPost();
 
+    // text, který vypravěč poslal z Nastavení na webu
+    $schvaleniMedailonku = new SchvaleniMedailonku($u);
+    $schvaleniMedailonku->zpracujPost(jenUzivatel: $idUzivatele);
+    $keSchvaleni = MedailonekKeSchvaleni::zUzivatele($idUzivatele);
+
     $medailonek = Medailonek::zId($idUzivatele);
     $medailonekForm = Medailonek::form($idUzivatele);
     if ($medailonek) {
@@ -44,6 +51,14 @@ if (get('id') !== null) {
         'urlNaWebu'    => htmlspecialchars(URL_WEBU . '/' . $idUzivatele),
         'fotkaHtml'    => $fotka->getHtml(),
     ]);
+    if ($keSchvaleni?->isCekajici()) {
+        if ($schvaleniMedailonku->smiSchvalovat()) {
+            $template->assign('schvaleniHtml', $schvaleniMedailonku->getHtml($keSchvaleni, 'aktivity/medailonky?id=' . $idUzivatele));
+            $template->parse('medailonek.schvaleni');
+        } else {
+            $template->parse('medailonek.cekaNaSchvaleni');
+        }
+    }
     if ($medailonek) {
         $template->assign('formular', $medailonekForm->full());
         $template->parse('medailonek.formular');
@@ -57,6 +72,10 @@ if (get('id') !== null) {
 }
 
 $template = new XTemplate(__DIR__ . '/medailonky.xtpl');
+$cekajiciNaSchvaleni = array_map(
+    static fn (MedailonekKeSchvaleni $keSchvaleni): int => $keSchvaleni->idUzivatele,
+    MedailonekKeSchvaleni::cekajici(),
+);
 foreach (Medailonek::zVsech() as $medailonek) {
     assert($medailonek instanceof Medailonek);
     $uzivatelMedailonku = Uzivatel::zId($medailonek->idUzivatele());
@@ -73,6 +92,9 @@ foreach (Medailonek::zVsech() as $medailonek) {
         : '❌'
     );
     $template->assign('drdPopis', $medailonek->drd());
+    $template->assign('keSchvaleni', in_array($medailonek->idUzivatele(), $cekajiciNaSchvaleni, true)
+        ? '⏳'
+        : '');
     $template->assign('maFotku', $uzivatelMedailonku->fotka()
         ? '✅'
         : '❌'

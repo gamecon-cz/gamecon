@@ -135,6 +135,8 @@ final class NahravaniObrazku
             formaty: self::getRastroveFormatyProNahledy(),
             maxPixelu: self::FOTKA_Z_WEBU_MAX_PIXELU,
             optimalizace: new OptimalizaceObrazku(),
+            // fotka z mobilu se při nahrání vždy převádí, a převod je právě to, co stojí paměť
+            maxPixeluPriPrevodu: self::FOTKA_Z_WEBU_MAX_PIXELU,
         );
     }
 
@@ -364,6 +366,8 @@ final class NahravaniObrazku
      *                                               převádějí do AVIF (když ho formáty povolují) a velké obrázky zmenšují
      * @param bool $poCastech formulář posílá soubor po částech (@see NahravaniPoCastech), takže ho nesvazují limity PHP
      *                        pro jeden požadavek; ty pak platí jen pro soubor, který přišel najednou
+     * @param int|null $maxPixeluPriPrevodu strop pixelů obrázku, který se při uložení převádí; null je aspoň
+     *                                      MAX_PIXELU, $maxPixelu pak platí jen pro obrázek uložený, jak přišel
      */
     public function __construct(
         private readonly string $korenovyAdresar,
@@ -374,6 +378,7 @@ final class NahravaniObrazku
         private readonly int|float|null $maxVelikostObrazkuMb = null,
         private readonly ?OptimalizaceObrazku $optimalizace = null,
         private readonly bool $poCastech = false,
+        private readonly ?int $maxPixeluPriPrevodu = null,
     ) {
         $this->pracujeSDokumenty = array_intersect($formaty, self::DOKUMENTY) !== [];
     }
@@ -904,7 +909,7 @@ final class NahravaniObrazku
             }
             $maxPixelu = $cilUpravy === null
                 ? $this->maxPixelu
-                : max($this->maxPixelu, self::MAX_PIXELU);
+                : ($this->maxPixeluPriPrevodu ?? max($this->maxPixelu, self::MAX_PIXELU));
             if ($sirka * $vyska > $maxPixelu) {
                 throw new NahravaniObrazkuException(sprintf(
                     'Obrázek má %d × %d px, to je na web zbytečně moc. Zmenši ho prosím nejvýš na %s Mpx.',

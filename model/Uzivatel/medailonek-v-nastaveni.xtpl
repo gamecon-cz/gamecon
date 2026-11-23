@@ -10,7 +10,10 @@
     Po prvním uložení je najdou na tvé stránce <span class="medailonekVNastaveni_adresa">{urlStranky}</span>.
     <!-- end:budouciStranka -->
   </p>
-  <p>Medailonek se ukládá zvlášť tlačítky níž, neuložené změny nastavení výš se přitom zahodí.</p>
+  <p>
+    Fotka se na webu ukáže hned, text až po schválení organizátorem. Medailonek se ukládá zvlášť tlačítky níž,
+    neuložené změny nastavení výš se přitom zahodí.
+  </p>
 
   <h3 class="medailonekVNastaveni_nadpis">Fotka</h3>
   <div class="medailonekVNastaveni_fotka">
@@ -44,6 +47,17 @@
   </div>
 
   <form method="post" action="registrace#{kotva}">
+    <!-- begin:ceka -->
+    <p class="medailonekVNastaveni_stav medailonekVNastaveni_stav-ceka">
+      <b>⏳ Čeká na schválení.</b> Text jsi poslal{a} {odeslano}, na webu se ukáže, až ho schválí organizátor;
+      do té doby je tam původní. Organizátor ho může před schválením upravit.
+    </p>
+    <!-- end:ceka -->
+    <!-- begin:schvaleno -->
+    <p class="medailonekVNastaveni_stav medailonekVNastaveni_stav-schvaleno">
+      <b>✅ Schváleno{schvaleno}.</b> Text je na webu. Když ho změníš, půjde znovu ke schválení.
+    </p>
+    <!-- end:schvaleno -->
     <label class="medailonekVNastaveni_nadpis" for="medailonekOSobe">O sobě</label>
     <textarea id="medailonekOSobe" class="formular_textarea medailonekVNastaveni_text" name="{postOSobe}" rows="10"
               maxlength="{maxDelka}" placeholder="Co hraješ, co vedeš, čím tě hráči poznají…">{oSobe}</textarea>
@@ -57,7 +71,7 @@
       odkaz jako <code>[text](https://…)</code>.
     </p>
     <input type="hidden" name="{postUlozit}" value="1">
-    <button type="submit" class="formular_primarni">Uložit medailonek</button>
+    <button type="submit" class="formular_primarni">Poslat ke schválení</button>
   </form>
 </section>
 <!-- end:medailonek -->

@@ -45,6 +45,8 @@ final class PristupDoAdminu
             . ' nesmí. Stav si stránka bere sama od sebe (bingo?stav=1), API nepotřebuje.',
         Pravo::PROVADI_KOREKCE => 'Korektury textů aktivit jsou obyčejné formuláře a stažení souboru, API'
             . ' nepotřebují. Korektor má navíc správu aktivit, se kterou smí víc.',
+        Pravo::SCHVALOVANI_MEDAILONKU => 'Schvalování medailonků mají všichni orgové včetně pauzujícího full-orga a mini-orga;'
+            . ' stránka je obyčejný formulář, API nepotřebuje.',
     ];
 
     /**

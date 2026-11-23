@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Gamecon\Web;
 
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * HTML z textu, který si na web píše uživatel sám (medailonek vypravěče). Markdown propouští i HTML zapsané v textu,
  * takže by do stránky šel vložit skript; tady z výsledku zůstanou jen značky a atributy, které Markdown sám vytváří
  * a které nic nespustí. Odkaz jen na http(s), e-mail, telefon nebo relativní adresu (ven s `rel="nofollow ugc"`),
- * obrázek jen z webu GameConu. Totéž pro živý náhled v adminu dělá admin/files/bezpecny-nahled-markdownu.js podle
- *
- * @see getPravidlaProNahled()
+ * obrázek jen ze souborů webu (`soubory/…`, bez parametrů). Totéž pro živý náhled v adminu dělá
+ * admin/files/bezpecny-nahled-markdownu.js podle @see getPravidlaProNahled()
  *
  * Výstup se skládá znovu ze seznamu povolených značek, ne mazáním zakázaných: co seznam nezná, nepropadne, i když na
  * to nikdo nepomyslel.
@@ -84,10 +84,15 @@ final class BezpecneHtml
     private const array SCHEMATA_OBRAZKU = ['http', 'https'];
 
     /**
-     * Obrázek jen z webu GameConu (i jeho subdomén a domény, na které web právě běží): cizí server by z obrázku
-     * v medailonku viděl IP adresy všech, kdo stránku otevřou.
+     * Odkaz na GameCon (i subdomény) není odkaz ven, nedostane `rel` @see REL_ODKAZU_VEN
      */
     private const string DOMENA_GAMECONU = 'gamecon.cz';
+
+    /**
+     * Při změně, která není vidět v seznamech pravidel (logika čištění a ověřování adres), zvýšit: seznamy jsou
+     * v otisku keše samy, logika ne (@see getOtiskPravidel())
+     */
+    private const int VERZE_KODU = 1;
 
     /**
      * Odkaz ven z textu, který píše uživatel: vyhledávače mu nemají věřit jako odkazu od GameConu
@@ -146,7 +151,7 @@ final class BezpecneHtml
     /**
      * Pravidla pro živý náhled v prohlížeči (admin/files/bezpecny-nahled-markdownu.js), ať je jen jedna jejich verze.
      *
-     * @return array{znacky: array<string, list<string>>, prazdne: list<string>, bezObsahu: list<string>, schemataOdkazu: list<string>, schemataObrazku: list<string>, domenaGameconu: string, hostWebu: string, relOdkazuVen: string}
+     * @return array{znacky: array<string, list<string>>, prazdne: list<string>, bezObsahu: list<string>, schemataOdkazu: list<string>, schemataObrazku: list<string>, domenaGameconu: string, hostWebu: string, zakladWebu: string, relOdkazuVen: string}
      */
     public static function getPravidlaProNahled(): array
     {
@@ -158,37 +163,45 @@ final class BezpecneHtml
             'schemataObrazku' => self::SCHEMATA_OBRAZKU,
             'domenaGameconu'  => self::DOMENA_GAMECONU,
             'hostWebu'        => self::getHostWebu(),
+            'zakladWebu'      => URL_WEBU . '/',
             'relOdkazuVen'    => self::REL_ODKAZU_VEN,
         ];
     }
 
     /**
-     * Otisk všeho, na čem výsledek závisí: kódu téhle třídy (pravidla), Markdownu, typografie a domény webu (obrázky
-     * z ní). Po změně kteréhokoli z nich se keš začne plnit znovu a stará se smaže.
+     * Otisk všeho, na čem výsledek závisí: pravidel a verze kódu téhle třídy, Markdownu, typografie, libxml a adresy
+     * webu (obrázky z ní). Po změně kteréhokoli z nich se keš začne plnit znovu a stará se smaže. Ne otisk souboru
+     * třídy: proces se starým kódem v paměti (opcache během nasazení) by pod novým otiskem uložil HTML podle starých
+     * pravidel.
      */
     private static function getOtiskPravidel(): string
     {
         return self::$otiskPravidel ??= hash('sha256', implode("\n", [
-            (string) hash_file('sha256', __FILE__),
+            json_encode(self::getPravidlaProNahled(), JSON_THROW_ON_ERROR),
+            self::VERZE_KODU,
             (string) hash_file('sha256', (string) (new \ReflectionClass(\Smartyp::class))->getFileName()),
             \Michelf\MarkdownExtra::MARKDOWNLIB_VERSION,
-            URL_WEBU,
+            LIBXML_DOTTED_VERSION,
         ]));
     }
 
     private static function ulozDoKese(string $adresarKese, string $soubor, string $html): void
     {
         $filesystem = new Filesystem();
-        if (! is_dir($adresarKese)) {
-            // první zápis podle nových pravidel, keš podle starých už nikdo nepřečte
-            $stare = array_filter(
-                glob(dirname($adresarKese) . '/*', GLOB_ONLYDIR) ?: [],
-                static fn (string $adresar): bool => $adresar !== $adresarKese,
-            );
-            $filesystem->remove($stare);
+        try {
+            if (! is_dir($adresarKese)) {
+                // první zápis podle nových pravidel, keš podle starých už nikdo nepřečte
+                $stare = array_filter(
+                    glob(dirname($adresarKese) . '/*', GLOB_ONLYDIR) ?: [],
+                    static fn (string $adresar): bool => $adresar !== $adresarKese,
+                );
+                $filesystem->remove($stare);
+            }
+            // zapisuje dočasný soubor a přejmenuje ho, souběžný požadavek tak nepřečte napůl zapsaný
+            $filesystem->dumpFile($soubor, $html);
+        } catch (IOExceptionInterface) {
+            // keš jen zrychluje, kvůli ní nesmí spadnout stránka (třeba složka po příkazu spuštěném jako root)
         }
-        // zapisuje dočasný soubor a přejmenuje ho, souběžný požadavek tak nepřečte napůl zapsaný
-        $filesystem->dumpFile($soubor, $html);
     }
 
     private static function vypisPotomky(\DOMNode $rodic): string
@@ -266,17 +279,38 @@ final class BezpecneHtml
             && ($rozbor['schema'] === null || in_array($rozbor['schema'], self::SCHEMATA_ODKAZU, true));
     }
 
+    /**
+     * Obrázek jen ze souborů webu: relativně `soubory/…`, nebo z adresy webu. Cizí server by z obrázku viděl IP adresy
+     * všech, kdo stránku otevřou. A obrázek je požadavek GET s přihlášením toho, kdo stránku otevře; medailonek se
+     * ukazuje i organizátorovi v adminu, takže adresa s parametry by mohla něco udělat jeho jménem
+     * (`admin.gamecon.cz/?pracovni_uzivatel=…` přepne pracovního uživatele). Proto žádná subdoména, žádné parametry
+     * a žádné `..` (ani `%2e`, prohlížeč ho bere jako tečku).
+     */
     private static function jePovolenyObrazek(string $adresa): bool
     {
         $rozbor = self::rozeberAdresu($adresa);
         if ($rozbor === null
-            || ($rozbor['schema'] !== null && ! in_array($rozbor['schema'], self::SCHEMATA_OBRAZKU, true))
+            || str_contains($rozbor['adresa'], '?')
+            || stripos($rozbor['adresa'], '%2e') !== false
+            || preg_match('~(^|/)\.\.?(/|$)~', $rozbor['adresa']) === 1
         ) {
             return false;
         }
+        if ($rozbor['host'] === null) {
+            // relativní adresa míří na web (v adminu ji náhled přepíše na adresu webu, NahledMarkdownu); od kořene ne,
+            // ta by v adminu vedla do adminu
+            return $rozbor['schema'] === null && str_starts_with($rozbor['adresa'], 'soubory/');
+        }
+        $castiAdresy = parse_url(($rozbor['schema'] === null ? 'https:' : '') . $rozbor['adresa']);
 
-        // bez hostu je adresa relativní, tedy z webu GameConu
-        return $rozbor['host'] === null || self::jeHostGameconu($rozbor['host']);
+        return ($rozbor['schema'] === null || in_array($rozbor['schema'], self::SCHEMATA_OBRAZKU, true))
+            && $rozbor['host'] === self::getHostWebu()
+            // jiný port téhož serveru je jiná služba
+            && ($castiAdresy['port'] ?? null) === parse_url(URL_WEBU, PHP_URL_PORT)
+            && str_starts_with(
+                (string) ($castiAdresy['path'] ?? ''),
+                rtrim((string) parse_url(URL_WEBU, PHP_URL_PATH), '/') . '/soubory/',
+            );
     }
 
     private static function jeOdkazVen(string $adresa): bool
@@ -291,8 +325,10 @@ final class BezpecneHtml
      * tady se zahodí všude, takže schéma nikdo neschová. Zpětné lomítko bere prohlížeč v adrese webu jako lomítko
      * (`/\example.com` je `//example.com`).
      *
-     * @return array{schema: string|null, host: string|null}|null host jen u http(s) a adresy začínající `//`, null pro
-     *                                                            adresu, kterou nejde použít
+     * @return array{schema: string|null, host: string|null, adresa: string}|null host jen u http(s) a adresy začínající
+     *                                                                            `//`, adresa je bez mezer a řídicích
+     *                                                                            znaků; null pro adresu, kterou nejde
+     *                                                                            použít
      */
     private static function rozeberAdresu(string $adresa): ?array
     {
@@ -308,18 +344,21 @@ final class BezpecneHtml
                 'host'   => in_array($schema, ['http', 'https'], true)
                     ? strtolower((string) parse_url($adresa, PHP_URL_HOST))
                     : null,
+                'adresa' => $adresa,
             ];
         }
         if (str_starts_with($adresa, '//')) {
             return [
                 'schema' => null,
                 'host'   => strtolower((string) parse_url('https:' . $adresa, PHP_URL_HOST)),
+                'adresa' => $adresa,
             ];
         }
 
         return [
             'schema' => null,
             'host'   => null,
+            'adresa' => $adresa,
         ];
     }
 

@@ -11,8 +11,8 @@ use Gamecon\Web\NahravaniObrazku;
 use Gamecon\XTemplate\XTemplate;
 
 /**
- * Medailonek v Nastavení na webu: vypravěč, organizátor nebo vedoucí aktivity si v něm sám upraví text o sobě a fotku,
- * které web ukazuje na jeho stránce /<id>. Organizátor totéž dělá za kohokoli v adminu (Aktivity → Medailonky).
+ * Medailonek v Nastavení na webu: vypravěč, organizátor nebo vedoucí netechnické aktivity si v něm sám upraví text
+ * o sobě a fotku, které web ukazuje na jeho stránce /<id>. Organizátor totéž dělá za kohokoli v adminu (Aktivity → Medailonky).
  * Uživatel je vždy ten přihlášený, formuláře žádné ID neposílají.
  */
 final class MedailonekVNastaveni
@@ -30,6 +30,7 @@ final class MedailonekVNastaveni
     private ?bool $dostupny = null;
     private ?bool $maStrankuVypravece = null;
     private Medailonek|false|null $medailonek = null;
+    private MedailonekKeSchvaleni|false|null $keSchvaleni = null;
     private ?FotkaUzivatele $fotka = null;
 
     public function __construct(
@@ -82,6 +83,10 @@ final class MedailonekVNastaveni
             return '';
         }
         $medailonek = $this->getMedailonek();
+        $keSchvaleni = $this->getKeSchvaleni();
+        $cekajici = $keSchvaleni?->isCekajici()
+            ? $keSchvaleni
+            : null;
         $fotka = $this->getFotka();
         $template = new XTemplate(__DIR__ . '/medailonek-v-nastaveni.xtpl');
         $template->assign([
@@ -101,9 +106,11 @@ final class MedailonekVNastaveni
             'postOSobe'  => self::POST_O_SOBE,
             'postDrd'    => self::POST_DRD,
             'maxDelka'   => self::MAX_DELKA_TEXTU,
-            'oSobe'      => htmlspecialchars($medailonek?->getOSobeMarkdown() ?? ''),
-            'drd'        => htmlspecialchars($medailonek?->getDrdMarkdown() ?? ''),
+            // co čeká na schválení, jinak co je na webu
+            'oSobe' => htmlspecialchars($cekajici?->oSobe ?? $medailonek?->getOSobeMarkdown() ?? ''),
+            'drd'   => htmlspecialchars($cekajici?->drd ?? $medailonek?->getDrdMarkdown() ?? ''),
         ]);
+        $this->parsujStav($template, $keSchvaleni, $medailonek);
         $template->parse($this->maStrankuVypravece()
             ? 'medailonek.stranka'
             : 'medailonek.budouciStranka');
@@ -121,34 +128,74 @@ final class MedailonekVNastaveni
         return $template->text('medailonek');
     }
 
+    /**
+     * Stav textu: čeká na schválení, nebo schválený (i text, který napsal organizátor v adminu). Bez textu žádný.
+     */
+    private function parsujStav(XTemplate $template, ?MedailonekKeSchvaleni $keSchvaleni, ?Medailonek $medailonek): void
+    {
+        if ($keSchvaleni?->isCekajici()) {
+            $template->assign([
+                'odeslano' => $keSchvaleni->odeslano->format('j. n. Y'),
+                'a'        => $this->uzivatel->koncovkaDlePohlavi(),
+            ]);
+            $template->parse('medailonek.ceka');
+
+            return;
+        }
+        if ($keSchvaleni !== null || trim(($medailonek?->getOSobeMarkdown() ?? '') . ($medailonek?->getDrdMarkdown() ?? '')) !== '') {
+            $template->assign('schvaleno', $keSchvaleni?->schvaleno !== null
+                ? ' ' . $keSchvaleni->schvaleno->format('j. n. Y')
+                : '');
+            $template->parse('medailonek.schvaleno');
+        }
+    }
+
+    private function getKeSchvaleni(): ?MedailonekKeSchvaleni
+    {
+        if ($this->keSchvaleni === null) {
+            $this->keSchvaleni = MedailonekKeSchvaleni::zUzivatele((int) $this->uzivatel->id()) ?? false;
+        }
+
+        return $this->keSchvaleni ?: null;
+    }
+
     private function ulozText(): void
     {
         // ukládá jen pole, která formulář poslal: pole DrD ukazuje jen tomu, pro koho je (@see isDrdRelevantni()), a kdo
         // ho neviděl, nesmí uložením smazat profil, který mu mezitím napsal organizátor v adminu
         $oSobe = $this->textZFormulare(self::POST_O_SOBE);
         $drd = $this->textZFormulare(self::POST_DRD);
-        if (mb_strlen($oSobe ?? '') > self::MAX_DELKA_TEXTU || mb_strlen($drd ?? '') > self::MAX_DELKA_TEXTU) {
-            // prohlížeč delší text nedovolí napsat (maxlength), sem se dostane jen ručně poskládaný požadavek
+        $cekajici = $this->getKeSchvaleni()?->isCekajici()
+            ? $this->getKeSchvaleni()
+            : null;
+        // limit jen pro text, který vypravěč změnil: organizátor v adminu limit nemá a delší text, který formulář jen
+        // poslal zpátky, prohlížeč nehlídá (maxlength platí jen pro psaní)
+        if ($this->isDelsiNezSmi($oSobe, $cekajici?->oSobe ?? $this->getMedailonek()?->getOSobeMarkdown())
+            || $this->isDelsiNezSmi($drd, $cekajici?->drd ?? $this->getMedailonek()?->getDrdMarkdown())
+        ) {
             \Chyba::nastav(sprintf('Text medailonku může mít nejvýš %d znaků.', self::MAX_DELKA_TEXTU), \Chyba::CHYBA);
             back($this->getNavrat());
         }
-        $this->zalozMedailonek();
-        dbQuery(<<<'SQL'
-UPDATE medailonky SET o_sobe = COALESCE($1, o_sobe), drd = COALESCE($2, drd) WHERE id_uzivatele = $0
-SQL,
-            [
-                0 => $this->uzivatel->id(),
-                1 => $oSobe,
-                2 => $drd,
-            ],
-        );
-        \Chyba::nastav('Medailonek je uložený.', \Chyba::OZNAMENI);
+        // na web text pustí až organizátor, @see MedailonekKeSchvaleni
+        if (MedailonekKeSchvaleni::odesli((int) $this->uzivatel->id(), $oSobe, $drd)) {
+            \Chyba::nastav(
+                'Text medailonku je odeslaný ke schválení. Na webu se ukáže, až ho schválí organizátor.',
+                \Chyba::OZNAMENI,
+            );
+        } else {
+            \Chyba::nastav('Text je stejný jako na webu, nic nečeká na schválení.', \Chyba::OZNAMENI);
+        }
         back($this->getNavrat());
     }
 
     /**
      * @return string|null null, když formulář pole neposlal
      */
+    private function isDelsiNezSmi(?string $text, ?string $puvodni): bool
+    {
+        return $text !== null && $text !== $puvodni && mb_strlen($text) > self::MAX_DELKA_TEXTU;
+    }
+
     private function textZFormulare(string $pole): ?string
     {
         $text = post($pole);
@@ -176,7 +223,7 @@ SQL,
      */
     private function isDrdRelevantni(): bool
     {
-        return ($this->getMedailonek()?->getDrdMarkdown() ?? '') !== ''
+        return ($this->getKeSchvaleni()?->drd ?? $this->getMedailonek()?->getDrdMarkdown() ?? '') !== ''
             || dbOneCol(<<<'SQL'
 SELECT 1
 FROM akce_organizatori

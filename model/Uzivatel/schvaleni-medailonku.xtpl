@@ -1,0 +1,57 @@
+<!-- begin:schvaleni -->
+<form method="post" action="{action}" class="schvaleni-medailonku">
+  <input type="hidden" name="{postSchvalit}" value="{idUzivatele}">
+  <input type="hidden" name="{postOdeslano}" value="{odeslano}">
+  <p class="schvaleni-medailonku--odeslano">Vypravěč poslal text {odeslanoCitelne}. Před schválením ho můžeš upravit.</p>
+  <!-- begin:text -->
+  <h4>{nazev}</h4>
+  <div class="schvaleni-medailonku--sloupce">
+    <div>
+      <div class="schvaleni-medailonku--popisek">Na webu teď</div>
+      <!-- begin:zverejneny -->
+      <div class="schvaleni-medailonku--html">{zverejnenyHtml}</div>
+      <!-- end:zverejneny -->
+      <!-- begin:nezverejneny -->
+      <p><em>zatím nic</em></p>
+      <!-- end:nezverejneny -->
+    </div>
+    <div>
+      <div class="schvaleni-medailonku--popisek">Ke schválení</div>
+      <textarea name="{postText}" rows="8" maxlength="{maxDelka}" style="width: 100%; box-sizing: border-box">{text}</textarea>
+      <!-- begin:nahled -->
+      <div class="schvaleni-medailonku--popisek">Takhle se ukáže</div>
+      <div class="schvaleni-medailonku--html">{nahled}</div>
+      <!-- end:nahled -->
+      <!-- begin:prazdny -->
+      <p><em>Vypravěč text smazal, po schválení na webu nebude.</em></p>
+      <!-- end:prazdny -->
+    </div>
+  </div>
+  <!-- end:text -->
+  <button type="submit">Schválit a zveřejnit</button>
+</form>
+<!-- end:schvaleni -->
+
+<!-- begin:styl -->
+<style>
+    .schvaleni-medailonku--sloupce {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(16em, 1fr));
+        gap: 1em;
+        margin-bottom: 1em;
+    }
+
+    .schvaleni-medailonku--popisek {
+        font-weight: bold;
+        margin: 0.5em 0 0.25em;
+    }
+
+    .schvaleni-medailonku--html {
+        overflow-wrap: anywhere;
+    }
+
+    .schvaleni-medailonku--html img {
+        max-width: 100%;
+    }
+</style>
+<!-- end:styl -->

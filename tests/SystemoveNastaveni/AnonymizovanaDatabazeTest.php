@@ -175,6 +175,10 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             'ai_pripojeni' => <<<'SQL'
                 INSERT INTO ai_pripojeni SET poskytovatel = 'anthropic', zasifrovany_token = 'x', prostredi = 'test'
                 SQL,
+            // medailonek uživatele 100 vkládá setUp
+            'medailonky_ke_schvaleni' => <<<'SQL'
+                INSERT INTO medailonky_ke_schvaleni SET id_uzivatele = 100, o_sobe = 'Text ke schválení'
+                SQL,
         ];
 
         self::assertEqualsCanonicalizing(
