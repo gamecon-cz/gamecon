@@ -13,7 +13,7 @@ use Gamecon\Tests\Db\AbstractTestDb;
  */
 class AktivitaLokaceTransakceTest extends AbstractTestDb
 {
-    private const ID_AKTIVITY_SE_SELHANIM = 2199;
+    private const int ID_AKTIVITY_SE_SELHANIM = 2199;
 
     protected static bool $disableStrictTransTables = true;
 
