@@ -1,0 +1,90 @@
+<!-- begin:schvalovani -->
+
+<style>
+  .schvalovani-medailonku--filtr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin: 1em 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .schvalovani-medailonku--filtr a {
+    display: inline-block;
+    padding: 0.25em 0.75em;
+    border: 1px solid var(--m-okraj-pole, #bbb);
+    border-radius: 1em;
+    text-decoration: none;
+  }
+
+  .schvalovani-medailonku--filtr a.aktivni {
+    background: var(--m-tmava, #333);
+    border-color: var(--m-tmava, #333);
+    color: var(--m-na-tmave, #fff);
+  }
+
+  .schvalovani-medailonku--vypravec {
+    border-top: 1px solid var(--m-okraj, #ddd);
+    padding: 1em 0;
+  }
+
+  .schvalovani-medailonku--vypravec h2 {
+    margin: 0 0 0.5em;
+  }
+
+  .schvalovani-medailonku--linie {
+    display: inline-block;
+    margin: 0 0.25em 0.25em 0;
+    padding: 0.1em 0.6em;
+    border: 1px solid var(--m-okraj-pole, #bbb);
+    border-radius: 1em;
+    font-size: 0.9em;
+  }
+
+  .schvalovani-medailonku--tlumene {
+    color: var(--m-text-tlumeny, #666);
+  }
+</style>
+
+<h1>Schvalování medailonků</h1>
+
+<!-- begin:bezPrava -->
+<p>Texty medailonků schvalují organizátoři, ty k tomu právo nemáš.</p>
+<!-- end:bezPrava -->
+
+<!-- begin:uvod -->
+<p>
+  Texty, které vypravěči napsali na webu v Nastavení. Na web se dostanou, až je schválíš; před schválením je můžeš
+  upravit, ať drží jednotnou formu. Fotky schválení nepotřebují.
+</p>
+<!-- end:uvod -->
+
+<!-- begin:filtr -->
+<ul class="schvalovani-medailonku--filtr" aria-label="Sekce">
+  <!-- begin:volba -->
+  <li><a href="{url}"{aktivni}>{nazev} ({pocet})</a></li>
+  <!-- end:volba -->
+</ul>
+<!-- end:filtr -->
+
+<!-- begin:vypravec -->
+<section class="schvalovani-medailonku--vypravec" id="medailonek-ke-schvaleni-{idUzivatele}">
+  <h2>{jmeno}</h2>
+  <div>
+    <!-- begin:linie --><span class="schvalovani-medailonku--linie">{nazevLinie}</span><!-- end:linie -->
+    <!-- begin:bezLinie --><span class="schvalovani-medailonku--linie schvalovani-medailonku--tlumene">letos nic nevede</span><!-- end:bezLinie -->
+  </div>
+  <p>
+    <a href="{urlNaWebu}" target="_blank">stránka na webu</a>
+    <!-- begin:detail -->· <a href="aktivity/medailonky?id={idUzivatele}">medailonek v adminu</a><!-- end:detail -->
+  </p>
+  {formular}
+</section>
+<!-- end:vypravec -->
+
+<!-- begin:prazdno -->
+<p><em>{prazdno}</em></p>
+<!-- end:prazdno -->
+
+<!-- end:schvalovani -->

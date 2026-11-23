@@ -383,6 +383,13 @@
     </div>
     <!-- end:historieUcasti -->
 
+    <!-- begin:schvaleniMedailonku -->
+    <div class="uzivatel-grid--item aBox">
+      <h3>Medailonek ke schválení</h3>
+      {schvaleniMedailonkuHtml}
+    </div>
+    <!-- end:schvaleniMedailonku -->
+
     <!-- begin:fotka -->
     <div class="uzivatel-grid--item aBox">
       <h3>Fotka</h3>

@@ -14,6 +14,8 @@ use Gamecon\Dev\DeploymentsReader;
 use Gamecon\Dev\OdkazDoArchivnihoAdmina;
 use Gamecon\Dev\SsoParovaciCookie;
 use Gamecon\Shop\Shop;
+use Gamecon\Uzivatel\MedailonekKeSchvaleni;
+use Gamecon\Uzivatel\SchvaleniMedailonku;
 use Gamecon\Web\FotkaUzivatele;
 use Gamecon\XTemplate\XTemplate;
 
@@ -74,6 +76,16 @@ if ($fotka !== null) {
     chyba($uPracovni
         ? 'Fotka se nezměnila, na fotku vypravěče už nemáš práva (Aktivity → Medailonky).'
         : 'Fotka se nezměnila, nepracuješ teď s žádným uživatelem.');
+}
+
+// Text medailonku, který pracovní uživatel poslal z Nastavení na webu, tu jde schválit (stejně jako ve Web →
+// Schvalování medailonků); jen jeho, formulář mohl zůstat otevřený z doby, kdy se pracovalo s jiným.
+$schvaleniMedailonku = new SchvaleniMedailonku($u);
+if (SchvaleniMedailonku::isOdeslanyFormular()) {
+    if (! $uPracovni) {
+        chyba('Text medailonku se neschválil, nepracuješ teď s žádným uživatelem.');
+    }
+    $schvaleniMedailonku->zpracujPost(jenUzivatel: (int) $uPracovni->id());
 }
 
 $x = new XTemplate(__DIR__ . '/uzivatel.xtpl');
@@ -223,6 +235,14 @@ if ($uPracovni) {
         $x->assign('historieUcastiHtml', '(žádná)');
     }
     $x->parse('uzivatel.historieUcasti');
+}
+
+$medailonekKeSchvaleni = $uPracovni && $schvaleniMedailonku->smiSchvalovat()
+    ? MedailonekKeSchvaleni::zUzivatele((int) $uPracovni->id())
+    : null;
+if ($medailonekKeSchvaleni?->isCekajici()) {
+    $x->assign('schvaleniMedailonkuHtml', $schvaleniMedailonku->getHtml($medailonekKeSchvaleni, 'uzivatel'));
+    $x->parse('uzivatel.schvaleniMedailonku');
 }
 
 if ($fotka !== null && $fotka->isRelevantniVRocniku($systemoveNastaveni->rocnik())) {

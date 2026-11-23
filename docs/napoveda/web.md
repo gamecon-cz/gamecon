@@ -143,9 +143,36 @@ V tabulce vidíš u každého vypravěče ✅/❌ podle toho, zda má vyplněný
 **Popis** a část pro **DrD** (najetím myší se text ukáže), a tužku pro
 editaci. Horní část medailonku je obecná, dolní část je pro DrD.
 
-Vypravěč, organizátor a kdo vede aktivitu si medailonek (text i fotku) upraví
+Vypravěč, organizátor a kdo vede netechnickou aktivitu si medailonek (text i fotku) upraví
 i sám na webu v **Nastavení**, v sekci **Medailonek**. Nemusí tedy texty a
-fotky posílat orgům.
+fotky posílat orgům. Fotka je na webu hned, text až po schválení.
+
+### Schvalování medailonků
+
+Texty, které vypravěči napíšou v Nastavení, čekají na podstránce
+**Web → Schvalování medailonků**, dokud je někdo z orgů nepustí na web — ať
+medailonky drží jednotnou formu. Schvalovat smí kterýkoli org (právo
+**Administrace - schvalování medailonků** dostaly všechny role s titulem
+organizátora, dalším rolím ho jde přidat v Právech). Texty jsou seřazené od
+toho, který čeká nejdéle.
+
+U každého vypravěče vidíš štítky sekcí, ve kterých letos vede aktivitu, odkaz
+na jeho stránku na webu (a na jeho medailonek v **Aktivity → Medailonky**,
+pokud tam smíš), text, který je na webu teď, a nový text s náhledem. Nový
+text můžeš před schválením upravit (překlep, délka, jednotná forma) a pak
+klikni **Schválit a zveřejnit**; na web jde už upravená podoba.
+
+Nahoře jsou filtry podle sekcí s počtem čekajících textů. Kdo vede aktivitu
+ve dvou sekcích, je v obou. Pod **Bez letošní aktivity** jsou orgové
+a vypravěči z minulých ročníků, kteří letos nic nevedou. Po schválení
+zůstaneš ve stejném filtru.
+
+Když vypravěč pošle nový text ve chvíli, kdy máš stránku otevřenou,
+schválení se odmítne s hláškou „Vypravěč mezitím poslal nový text,
+zkontroluj ho prosím znovu." Stránka pak ukazuje novou verzi, přečti si ji
+a schval znovu. Text čekající na schválení najdeš i u vypravěče na záložce
+**Uživatel** a v detailu jeho medailonku; organizátor, který medailonek
+upraví přímo v **Aktivity → Medailonky**, ho zveřejní rovnou.
 
 ## Typické postupy
 

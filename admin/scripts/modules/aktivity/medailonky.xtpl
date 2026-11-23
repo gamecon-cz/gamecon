@@ -15,6 +15,7 @@
     <th>Popis</th>
     <th>DrD</th>
     <th>Fotka</th>
+    <th>Ke schválení</th>
     <th>Upravit</th>
   </tr>
   <!-- begin:radek -->
@@ -32,6 +33,7 @@
       </div>
     </td>
     <td style="text-align: center">{maFotku}</td>
+    <td style="text-align: center">{keSchvaleni}</td>
     <td style="text-align: center">
       <a href="aktivity/medailonky?id={medailonek.id}" class="tlacitko"
          style="display: inline">
@@ -55,7 +57,16 @@
 <h2>Fotka</h2>
 {fotkaHtml}
 
+<!-- begin:schvaleni -->
+<h2>Text ke schválení</h2>
+{schvaleniHtml}
+<!-- end:schvaleni -->
+<!-- begin:cekaNaSchvaleni -->
+<p><b>⏳ Vypravěč poslal z Nastavení na webu nový text, čeká na schválení.</b> Schvalovat medailonky nesmíš.</p>
+<!-- end:cekaNaSchvaleni -->
+
 <h2>Text</h2>
+<p>Tady upravený text jde na web hned, text ke schválení tím nezmizí.</p>
 <!-- begin:formular -->
 {formular}
 <!-- end:formular -->

@@ -1,0 +1,229 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Gamecon\Uzivatel;
+
+use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Uzivatel\SqlStruktura\MedailonekSqlStruktura as MedailonekSql;
+
+/**
+ * Text medailonku, který vypravěč napsal v Nastavení na webu a který na web pustí až organizátor (záměr: texty mají
+ * držet jednotnou formu). Fotka schválení nepotřebuje. Organizátor, který medailonek upraví v adminu (Aktivity →
+ * Medailonky), ho zveřejní rovnou.
+ *
+ * Řádek je jeden na uživatele a po schválení zůstane, ať vypravěč v Nastavení vidí, že je text schválený. Nový text
+ * ho přepíše a čeká znovu. Sloupec s NULL se proti zveřejněnému textu nemění.
+ */
+final class MedailonekKeSchvaleni
+{
+    public const string TABULKA = 'medailonky_ke_schvaleni';
+
+    private function __construct(
+        public readonly int $idUzivatele,
+        public readonly ?string $oSobe,
+        public readonly ?string $drd,
+        public readonly \DateTimeImmutable $odeslano,
+        public readonly ?\DateTimeImmutable $schvaleno,
+    ) {
+    }
+
+    public static function zUzivatele(int $idUzivatele): ?self
+    {
+        $radek = dbOneLine(<<<'SQL'
+SELECT id_uzivatele, o_sobe, drd, odeslano, schvaleno FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
+SQL,
+            [
+                0 => $idUzivatele,
+            ],
+        );
+
+        return $radek
+            ? self::zRadku($radek)
+            : null;
+    }
+
+    /**
+     * @return list<self> texty, které čekají na schválení, od nejdéle čekajícího
+     */
+    public static function cekajici(): array
+    {
+        $radky = dbFetchAll(<<<'SQL'
+SELECT id_uzivatele, o_sobe, drd, odeslano, schvaleno
+FROM medailonky_ke_schvaleni
+WHERE schvaleno IS NULL
+ORDER BY odeslano, id_uzivatele
+SQL,
+        );
+
+        return array_map(self::zRadku(...), $radky);
+    }
+
+    /**
+     * Linie (typy aktivit), ve kterých vypravěči letos vedou netechnickou aktivitu, v jakémkoli stavu, i v přípravě:
+     * podle nich se ve schvalování filtruje. Kdo vede ve dvou liniích, je v obou.
+     *
+     * @param list<int> $idUzivatelu
+     *
+     * @return array<int, list<int>> id uživatele => id typů aktivit, jen ti, kdo nějakou vedou
+     */
+    public static function linieVypravecu(array $idUzivatelu, int $rocnik): array
+    {
+        $linie = [];
+        foreach (dbFetchAll(<<<'SQL'
+SELECT DISTINCT akce_organizatori.id_uzivatele, akce_seznam.typ
+FROM akce_organizatori
+JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
+WHERE akce_organizatori.id_uzivatele IN ($0)
+  AND akce_seznam.rok = $1
+  AND akce_seznam.typ NOT IN ($2)
+ORDER BY akce_organizatori.id_uzivatele, akce_seznam.typ
+SQL,
+            [
+                0 => $idUzivatelu,
+                1 => $rocnik,
+                2 => TypAktivity::interniTypy(),
+            ],
+        ) as $radek) {
+            $linie[(int) $radek['id_uzivatele']][] = (int) $radek['typ'];
+        }
+
+        return $linie;
+    }
+
+    /**
+     * Pošle texty z Nastavení ke schválení. Text, který formulář neposlal nebo který je stejný jako zveřejněný, se
+     * neschvaluje; když se neliší žádný, čekání se zruší (vypravěč se vrátil ke zveřejněnému textu).
+     *
+     * @return bool jestli teď něco čeká na schválení
+     */
+    public static function odesli(int $idUzivatele, ?string $oSobe, ?string $drd): bool
+    {
+        dbInsertIgnore(MedailonekSql::MEDAILONKY_TABULKA, [
+            MedailonekSql::ID_UZIVATELE => $idUzivatele,
+            MedailonekSql::O_SOBE       => '',
+            MedailonekSql::DRD          => '',
+        ]);
+        $zverejneny = dbOneLine(<<<'SQL'
+SELECT o_sobe, drd FROM medailonky WHERE id_uzivatele = $0
+SQL,
+            [
+                0 => $idUzivatele,
+            ],
+        );
+        $oSobe = $oSobe === (string) $zverejneny[MedailonekSql::O_SOBE]
+            ? null
+            : $oSobe;
+        $drd = $drd === (string) $zverejneny[MedailonekSql::DRD]
+            ? null
+            : $drd;
+        if ($oSobe === null && $drd === null) {
+            dbQuery(<<<'SQL'
+DELETE FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0 AND schvaleno IS NULL
+SQL,
+                [
+                    0 => $idUzivatele,
+                ],
+            );
+
+            return false;
+        }
+        dbQuery(<<<'SQL'
+INSERT INTO medailonky_ke_schvaleni (id_uzivatele, o_sobe, drd, odeslano, schvaleno, id_schvalil)
+VALUES ($0, $1, $2, NOW(6), NULL, NULL)
+ON DUPLICATE KEY UPDATE
+    o_sobe = VALUES(o_sobe),
+    drd = VALUES(drd),
+    odeslano = VALUES(odeslano),
+    schvaleno = NULL,
+    id_schvalil = NULL
+SQL,
+            [
+                0 => $idUzivatele,
+                1 => $oSobe,
+                2 => $drd,
+            ],
+        );
+
+        return true;
+    }
+
+    /**
+     * Zveřejní texty, které čekají na schválení, případně v podobě upravené organizátorem.
+     *
+     * @param string|null $oSobe    text k zveřejnění, null nechá zveřejněný text beze změny
+     * @param string      $odeslano kdy vypravěč poslal text, který organizátor viděl (@see getOdeslanoProFormular()):
+     *                              kdyby mezitím poslal nový, schválil by se text, který nikdo nečetl
+     *
+     * @throws MedailonekKeSchvaleniException když text už není ke schválení nebo vypravěč mezitím poslal nový
+     */
+    public static function schval(
+        int $idUzivatele,
+        ?string $oSobe,
+        ?string $drd,
+        string $odeslano,
+        int $idSchvalil,
+    ): void {
+        dbBegin();
+        try {
+            $schvaleno = dbAffectedOrNumRows(dbQuery(<<<'SQL'
+UPDATE medailonky_ke_schvaleni
+SET schvaleno = NOW(), id_schvalil = $1
+WHERE id_uzivatele = $0
+  AND schvaleno IS NULL
+  AND odeslano = $2
+SQL,
+                [
+                    0 => $idUzivatele,
+                    1 => $idSchvalil,
+                    2 => $odeslano,
+                ],
+            ));
+            if ($schvaleno !== 1) {
+                throw new MedailonekKeSchvaleniException(self::zUzivatele($idUzivatele)?->isCekajici() ? 'Vypravěč mezitím poslal nový text, zkontroluj ho prosím znovu.' : 'Text už je schválený, nebo ho vypravěč stáhl.');
+            }
+            dbQuery(<<<'SQL'
+UPDATE medailonky SET o_sobe = COALESCE($1, o_sobe), drd = COALESCE($2, drd) WHERE id_uzivatele = $0
+SQL,
+                [
+                    0 => $idUzivatele,
+                    1 => $oSobe,
+                    2 => $drd,
+                ],
+            );
+            dbCommit();
+        } catch (\Throwable $chyba) {
+            dbRollback();
+            throw $chyba;
+        }
+    }
+
+    public function isCekajici(): bool
+    {
+        return $this->schvaleno === null;
+    }
+
+    /**
+     * Čas odeslání tak, jak ho formulář schválení pošle zpět, @see schval()
+     */
+    public function getOdeslanoProFormular(): string
+    {
+        return $this->odeslano->format('Y-m-d H:i:s.u');
+    }
+
+    /**
+     * @param array<string, string|null> $radek
+     */
+    private static function zRadku(array $radek): self
+    {
+        return new self(
+            (int) $radek['id_uzivatele'],
+            $radek['o_sobe'],
+            $radek['drd'],
+            new \DateTimeImmutable((string) $radek['odeslano']),
+            $radek['schvaleno'] !== null
+                ? new \DateTimeImmutable($radek['schvaleno'])
+                : null,
+        );
+    }
+}

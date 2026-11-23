@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
+use Gamecon\Admin\FormularPracovnihoUzivatele;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Role\Role;
+use Gamecon\Tests\Model\Web\TestovaciObrazky;
 use Gamecon\Uzivatel\MedailonekVNastaveni;
+use Gamecon\Uzivatel\SchvaleniMedailonku;
 use Gamecon\Web\FotkaUzivatele;
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\Web\ZpracovaneObrazky;
@@ -19,6 +22,7 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class MedailonekVNastaveniTest extends AbstractTestWeb
 {
+    use TestovaciObrazky;
     use ZadostiDoAdmina;
 
     private const int ID_VEDOUCIHO = 9861;
@@ -125,7 +129,7 @@ SQL,
     /**
      * @test
      */
-    public function vedouciAktivitySiUloziTextANaStrankuJdeJenBezpecneHtml(): void
+    public function vedouciAktivityPosleTextKeSchvaleniANaWebJdeJenBezpecneHtml(): void
     {
         $relace = $this->prihlas('test-medailonek-vedouci');
 
@@ -134,32 +138,69 @@ SQL,
         self::assertStringContainsString('name="' . MedailonekVNastaveni::POST_O_SOBE . '"', $nastaveni);
         // druhý text je jen pro Pány jeskyně DrD
         self::assertStringNotContainsString('name="' . MedailonekVNastaveni::POST_DRD . '"', $nastaveni);
+        self::assertStringNotContainsString('Čeká na schválení', $nastaveni);
 
-        // mezitím mu organizátor v adminu napsal profil DrD, formulář bez pole DrD ho uložením nesmaže
+        // mezitím mu organizátor v adminu napsal profil DrD, formulář bez pole DrD ho nesmaže
         dbQuery(<<<'SQL'
 INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, '', 'Profil od organizátora')
 ON DUPLICATE KEY UPDATE drd = 'Profil od organizátora'
 SQL, [
             0 => self::ID_VEDOUCIHO,
         ]);
+        $text = "Hraju **RPG**.\n\n<script>alert('medailonek')</script>[klik](javascript:alert(1))";
         $odpoved = $this->odesliZNastaveni($relace, [
             MedailonekVNastaveni::POST_ULOZIT => 1,
-            MedailonekVNastaveni::POST_O_SOBE => "Hraju **RPG**.\r\n\r\n<script>alert('medailonek')</script>[klik](javascript:alert(1))",
+            MedailonekVNastaveni::POST_O_SOBE => str_replace("\n", "\r\n", $text),
         ]);
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertStringEndsWith('/registrace#medailonek', $odpoved['kam']);
+
+        // na web až po schválení
         self::assertSame(
             [
-                'o_sobe' => "Hraju **RPG**.\n\n<script>alert('medailonek')</script>[klik](javascript:alert(1))",
+                'o_sobe' => '',
                 'drd'    => 'Profil od organizátora',
             ],
             $this->medailonek(self::ID_VEDOUCIHO),
         );
-
+        self::assertSame(
+            [
+                'o_sobe'    => $text,
+                'drd'       => null,
+                'schvaleno' => null,
+            ],
+            $this->keSchvaleni(self::ID_VEDOUCIHO),
+        );
         $nastaveni = $this->nastaveni($relace);
-        self::assertStringContainsString('Medailonek je uložený.', $nastaveni);
+        self::assertStringContainsString('Text medailonku je odeslaný ke schválení.', $nastaveni);
+        self::assertStringContainsString('Čeká na schválení', $nastaveni);
         // v textovém poli jako text, ne jako značka
         self::assertStringContainsString('&lt;script&gt;alert(&#039;medailonek&#039;)&lt;/script&gt;', $nastaveni);
+        self::assertStringNotContainsString('<strong>RPG</strong>', $this->stahniVerejnouStranku('web/' . self::ID_VEDOUCIHO)['telo']);
+
+        // organizátor ho schválí na záložce Uživatel, kde s vypravěčem pracuje
+        $organizator = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $this->vyberPracovnihoUzivatele($organizator, self::ID_VEDOUCIHO);
+        $zalozka = $this->stahni($organizator, 'uzivatel');
+        self::assertStringContainsString('Medailonek ke schválení', $zalozka);
+        self::assertStringContainsString('<strong>RPG</strong>', $zalozka);
+        self::assertStringNotContainsString("alert('medailonek')", $zalozka);
+        self::assertStringNotContainsString('href="javascript:', $zalozka);
+        self::assertSame(303, $this->odesli($organizator, 'uzivatel', [
+            SchvaleniMedailonku::POST_SCHVALIT   => self::ID_VEDOUCIHO,
+            SchvaleniMedailonku::POST_ODESLANO   => $this->odeslano(self::ID_VEDOUCIHO),
+            SchvaleniMedailonku::POST_O_SOBE     => $text,
+            FormularPracovnihoUzivatele::POST_ID => self::ID_VEDOUCIHO,
+        ]));
+        self::assertStringContainsString('Medailonek je schválený', $this->stahni($organizator, 'uzivatel'));
+        self::assertSame(
+            [
+                'o_sobe' => $text,
+                'drd'    => 'Profil od organizátora',
+            ],
+            $this->medailonek(self::ID_VEDOUCIHO),
+        );
+        self::assertStringContainsString('Schváleno', $this->nastaveni($relace));
 
         $stranka = $this->stahniVerejnouStranku('web/' . self::ID_VEDOUCIHO);
         self::assertSame(200, $stranka['status']);
@@ -168,7 +209,7 @@ SQL, [
         self::assertStringNotContainsString('javascript:alert', $stranka['telo']);
 
         // a ani organizátorovi, který medailonek otevře v adminu
-        $admin = $this->stahni($this->prihlas(\Uzivatel::SYSTEM_LOGIN), 'aktivity/medailonky?id=' . self::ID_VEDOUCIHO);
+        $admin = $this->stahni($organizator, 'aktivity/medailonky?id=' . self::ID_VEDOUCIHO);
         self::assertStringContainsString('<strong>RPG</strong>', $admin);
         self::assertStringNotContainsString("alert('medailonek')", $admin);
         // v textovém poli zůstane, jak ho vypravěč napsal, odkaz z něj ale v náhledu není
@@ -181,7 +222,7 @@ SQL, [
     /**
      * @test
      */
-    public function panJeskyneUpraviIProfilProDrd(): void
+    public function panJeskynePosleIProfilProDrdAVratitSeKeZverejnenemuJdeBezSchvaleni(): void
     {
         $relace = $this->prihlas('test-medailonek-pj');
         self::assertStringContainsString('name="' . MedailonekVNastaveni::POST_DRD . '"', $this->nastaveni($relace));
@@ -194,11 +235,32 @@ SQL, [
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertSame(
             [
-                'o_sobe' => 'O mně',
-                'drd'    => 'Vedu družiny od roku 2010.',
+                'o_sobe'    => 'O mně',
+                'drd'       => 'Vedu družiny od roku 2010.',
+                'schvaleno' => null,
             ],
-            $this->medailonek(self::ID_PANA_JESKYNE),
+            $this->keSchvaleni(self::ID_PANA_JESKYNE),
         );
+        // formulář ukazuje text, který čeká
+        self::assertStringContainsString('Vedu družiny od roku 2010.</textarea>', $this->nastaveni($relace));
+        // organizátor ho najde i v detailu medailonku, a v seznamu medailonků je vidět, že čeká
+        $organizator = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
+        $detail = $this->stahni($organizator, 'aktivity/medailonky?id=' . self::ID_PANA_JESKYNE);
+        self::assertStringContainsString('Text ke schválení', $detail);
+        self::assertStringContainsString('name="' . SchvaleniMedailonku::POST_DRD . '"', $detail);
+        self::assertStringContainsString('⏳', $this->stahni($organizator, 'aktivity/medailonky'));
+
+        // zpátky ke zveřejněnému (prázdnému) textu: není co schvalovat
+        $odpoved = $this->odesliZNastaveni($relace, [
+            MedailonekVNastaveni::POST_ULOZIT => 1,
+            MedailonekVNastaveni::POST_O_SOBE => '',
+            MedailonekVNastaveni::POST_DRD    => '',
+        ]);
+        self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
+        self::assertNull($this->keSchvaleni(self::ID_PANA_JESKYNE));
+        $nastaveni = $this->nastaveni($relace);
+        self::assertStringContainsString('Text je stejný jako na webu', $nastaveni);
+        self::assertStringNotContainsString('Čeká na schválení', $nastaveni);
     }
 
     /**
@@ -239,6 +301,31 @@ SQL, [
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertSame([], glob($fotky . '.*'));
         self::assertStringContainsString('Fotka je smazaná', $this->nastaveni($relace));
+    }
+
+    /**
+     * JPEG z mobilu se při nahrání vždy převádí, a právě převod stojí paměť: limit pixelů z webu platí i pro něj.
+     * Hlavička hlásí obří rozměry, obsah je malý, nic se tedy nedekóduje.
+     *
+     * @test
+     */
+    public function fotkaZWebuPresLimitPixeluNeprojde(): void
+    {
+        $fotky = ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . self::ID_VEDOUCIHO;
+        $obri = $this->zdroje . '/obri.jpg';
+        file_put_contents($obri, self::jpgSRozmeryVHlavicce(6000, 6000));
+        $relace = $this->prihlas('test-medailonek-vedouci');
+
+        $odpoved = $this->odesliZNastaveni($relace, [
+            FotkaUzivatele::POST_AKCE   => FotkaUzivatele::AKCE_NAHRAT,
+            FotkaUzivatele::POST_SOUBOR => new \CURLFile($obri, 'image/jpeg', 'IMG_0001.JPG'),
+        ]);
+        self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
+        self::assertSame([], glob($fotky . '.*'));
+        self::assertStringContainsString(
+            'nejvýš na ' . NahravaniObrazku::FOTKA_Z_WEBU_MAX_PIXELU / 1_000_000 . ' Mpx',
+            $this->nastaveni($relace),
+        );
     }
 
     /**
@@ -350,6 +437,36 @@ SQL, [
         curl_setopt($curl, CURLOPT_POSTFIELDS, $pole);
 
         return $this->proved($curl);
+    }
+
+    /**
+     * @return array{o_sobe: string|null, drd: string|null, schvaleno: string|null}|null
+     */
+    private function keSchvaleni(int $idUzivatele): ?array
+    {
+        $radek = dbOneLine(<<<'SQL'
+SELECT o_sobe, drd, schvaleno FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
+SQL,
+            [
+                0 => $idUzivatele,
+            ],
+        );
+
+        return $radek ?: null;
+    }
+
+    /**
+     * Čas odeslání, jak ho formulář schválení posílá zpět
+     */
+    private function odeslano(int $idUzivatele): string
+    {
+        return (string) dbOneCol(<<<'SQL'
+SELECT DATE_FORMAT(odeslano, '%Y-%m-%d %H:%i:%s.%f') FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
+SQL,
+            [
+                0 => $idUzivatele,
+            ],
+        );
     }
 
     private function cestaWebu(): string

@@ -49,7 +49,8 @@ foreach ($organizatori as $o) {
     $oSobe = trim((string)$o->oSobe());
     $t->assign([
         'fotka'       => $fotka->kvalita(85)->pokryjOrez(240, 240),
-        'jmenoNaWebu' => $o->jmenoNaWebu(),
+        // jméno si vypravěč píše sám a XTemplate neescapuje
+        'jmenoNaWebu' => htmlspecialchars((string)$o->jmenoNaWebu()),
         'oSobe'       => $oSobe,
     ]);
     // prázdný popis by se rozbalil do ničeho

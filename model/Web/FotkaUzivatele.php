@@ -80,6 +80,14 @@ final class FotkaUzivatele
             back($navrat);
         }
         if ($akce === self::AKCE_SMAZAT) {
+            if ($this->zWebu && $this->isPouzitaVTextech()) {
+                // hláška služby je pro organizátora (odkaz odstraň, kde je), vypravěč odkaz z textů webu odstranit nemůže
+                \Chyba::nastav(
+                    'Fotku používá text na webu GameConu, smazat ji proto můžou jen organizátoři. Napiš jim prosím.',
+                    \Chyba::CHYBA,
+                );
+                back($navrat);
+            }
             $smazana = NahravaniObrazku::sOhlasenimChyby(
                 fn () => $this->getNahravani()->smazVsechnyVarianty('', $idUzivatele),
                 $navrat,
@@ -152,6 +160,17 @@ final class FotkaUzivatele
     public function getPopisFormatuAVelikosti(): string
     {
         return $this->getNahravani()->popisFormatuAVelikosti();
+    }
+
+    private function isPouzitaVTextech(): bool
+    {
+        foreach (glob(ZpracovaneObrazky::adresarFotekUzivatelu() . '/' . $this->uzivatel->id() . '.*') ?: [] as $soubor) {
+            if ($this->getNahravani()->kdeJePouzity($soubor) !== []) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

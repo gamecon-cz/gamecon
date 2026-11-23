@@ -50,7 +50,8 @@ foreach ($organizatori as $o) {
     $profil = trim((string)$o->drdProfil());
     $t->assign([
         'fotka'       => $fotka->kvalita(85)->pokryjOrez(240, 240),
-        'jmenoNaWebu' => $o->jmenoNaWebu(),
+        // jméno si vypravěč píše sám a XTemplate neescapuje
+        'jmenoNaWebu' => htmlspecialchars((string)$o->jmenoNaWebu()),
         'tituly'      => mb_ucfirst(implode(', ', $o->drdTituly())),
         'oSobe'       => $oSobe,
         'profil'      => $profil,
