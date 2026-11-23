@@ -1,88 +1,263 @@
-**ZÁLOHOVÁNÍ DATABÁZE**
+# Překlopení ročníku
 
-Přihlaš se přes SSH na gamecon.cz server
+Starý ročník (`STARY`, například 2026) se zazálohuje a odejde do archivu na `https://STARY.gamecon.cz`, ostrá
+přejde na nový ročník (`NOVY`). Kroky jdou v tomto pořadí. Příprava v kroku 1 nic nenasazuje, uzavření financí
+(krok 4) a nasazení nového ročníku (krok 5) musí jít **hned po sobě**.
 
-```bash
-ssh gamecon.cz
-```
+Předpoklad: zázemí má hotovou účetní uzávěrku a nedodělky z infopultu jsou zpracované, zůstatky tedy sedí.
 
-Zkopíruj ostrou do zálohy. Kontejner archivu z ní čte nahraný obsah `web/soubory/obsah` a `web/soubory/systemove`, který v gitu není
-
-```bash
-cp -r -L /srv/www/ostra /srv/www/STARY_ROCNIK
-chown -R www-data:www-data /srv/www/STARY_ROCNIK
-```
-
-Vytvoř zálohu databáze
+Na server se přihlašuje jako root, příkazy na serveru jsou proto bez `sudo`:
 
 ```bash
-mysqldump -u root --result-file="gamecon_STARY_ROCNIK_`date +'%Y-%m-%d_%H-%M-%S'`-dump.sql" --extended-insert --routines --triggers --delayed-insert --no-tablespaces "d16779_gcostra"
+ssh -i ~/.ssh/id_ed25519_gamecon root@gamecon.cz
 ```
 
-Na své PC si zkopíruj zálohu databáze
+Na serveru i u sebe si nejdřív nastav ročník, ostatní příkazy s ním počítají:
 
 ```bash
-scp 'gamecon.cz:gamecon_*.sql' .
+STARY=2026
 ```
 
-Nahraj zálohu databáze
-na [Gamecon Gdrive](https://drive.google.com/drive/folders/1QZIzXCrOQ2JMYi0EjI5EMbri0KHTJ9Nv?usp=drive_link) do složky
-_Záloha {STARY_ROCNIK}_
+Dumpy stahuj **mimo repozitář**, obsahují osobní údaje (níže `~/gamecon-zalohy`).
 
 ---
 
-**ARCHIVACE STARÉHO ROČNÍKU**
+## 1. Příprava (nic nenasazuje)
 
-Kód starého ročníku neběží z té kopie, ale jako Docker kontejner na adrese
-`https://STARY_ROCNIK.gamecon.cz/`, postavený z větve `archive/STARY_ROCNIK`
-(viz [`Dockerfile.archive`](./Dockerfile.archive) a workflow [`deploy-year-archive.yml`](./.github/workflows/deploy-year-archive.yml)).
-Admin je pod cestou `/admin` a css, js a obrázky pod cestou `/cache/public` téhož jména, takže `admin.STARY_ROCNIK.gamecon.cz`
-ani `cache.STARY_ROCNIK.gamecon.cz` (a jejich certifikáty) se nezakládají.
+### PR s novým ročníkem
 
-Větev `archive/STARY_ROCNIK` vytvoř z posledního commitu `main`, který má ještě starý ROCNIK, tedy před zmergováním
-PR s novým ROCNIKem (viz níže). Jak ji upravit, ukazují předchozí archivní větve
-(`git log origin/main..origin/archive/POSLEDNI_ARCHIVOVANY_ROCNIK`) a v repozitáři
-[Gamecon Ansible](https://github.com/gamecon-cz/ansible) `docs/year-archive-plan.md` a role `year_archive_deployer`.
-Databázi `gamecon_STARY_ROCNIK` s uživatelem založí při nasazení deploy skript.
+Větev z aktuálního `main`, **zatím nemergovat**. Změň `ROCNIK`:
 
-Nahraj do té databáze zálohu
+- [`nastaveni/verejne-nastaveni-produkce.php`](./nastaveni/verejne-nastaveni-produkce.php): `define('ROCNIK', NOVY);`
+- [`nastaveni/verejne-nastaveni-preview.php`](./nastaveni/verejne-nastaveni-preview.php) a
+  [`nastaveni/verejne-nastaveni-beta.php`](./nastaveni/verejne-nastaveni-beta.php): výchozí ročník
+  `$rocnikOverride ?: NOVY` (preview se má chovat jako ostrá, betě ho stejně přepíše kopie databáze).
+
+Anonymizovaný dump v repu (`migrace/pomocne/gc_anonymizovana_databaze.sql`) nesmí být starší než z ročníku
+`NOVY - 1`, jinak CI spadne, viz [`docs/generated/anonymizovana-databaze.md`](./docs/generated/anonymizovana-databaze.md).
+
+### Archivní větev `archive/STARY`
+
+Kód starého ročníku běží jako Docker kontejner na `https://STARY.gamecon.cz/`, postavený z větve
+`archive/STARY` (viz [`Dockerfile.archive`](./Dockerfile.archive) a workflow
+[`deploy-year-archive.yml`](./.github/workflows/deploy-year-archive.yml)). Admin je pod `/admin` a css, js a
+obrázky pod `/cache/public` téhož jména, `admin.STARY.gamecon.cz` ani `cache.STARY.gamecon.cz` se nezakládají.
+
+Větev vytvoř z posledního commitu `main`, který má ještě starý `ROCNIK`, tedy před mergem PR s novým ročníkem.
+**Pushnout ji až v kroku 3**, push na `archive/**` rovnou nasazuje.
 
 ```bash
-mysql -u root "gamecon_STARY_ROCNIK" < "gamecon_STARY_ROCNIK_YYYY-DD-MM-HH-ii-ss-dump.sql"
+git fetch origin main
+git switch -c "archive/$STARY" origin/main
 ```
 
-Ověř, že archiv funguje na adrese [https://{STARY\_ROCNIK}.gamecon.cz/](https://stary_rocnik.gamecon.cz/)
-a [https://{STARY\_ROCNIK}.gamecon.cz/admin](https://stary_rocnik.gamecon.cz/admin)
+1. Adresy archivu v [`nastaveni/verejne-nastaveni-produkce.php`](./nastaveni/verejne-nastaveni-produkce.php)
+   (`URL_CACHE` se z `URL_WEBU` odvodí sám):
 
-**PŘÍPRAVA NOVÉHO ROČNÍKU**
+   ```bash
+   sed -i -e "s|define('URL_WEBU', 'https://gamecon.cz');|define('URL_WEBU', 'https://$STARY.gamecon.cz');|" -e "s|define('URL_ADMIN', 'https://admin.gamecon.cz');|define('URL_ADMIN', 'https://$STARY.gamecon.cz/admin');|" nastaveni/verejne-nastaveni-produkce.php
+   grep -n "URL_\|ROCNIK" nastaveni/verejne-nastaveni-produkce.php
+   git commit -am "Archive $STARY: serve the year from $STARY.gamecon.cz with /admin and /cache/public"
+   ```
 
-- Znovu si zkontroluj, že máš aktuální zálohu databáze s ostré a případně si stáhni novou, viz začátek tohoto README.
+2. Dev balíčky z `vendor/` musí zůstat v obrazu. Commitnutý autoloader (`vendor/composer/autoload_files.php`)
+   natvrdo načítá soubory z `phpstan`, `rector`, `symplify`, `phpunit`, `myclabs` a `zenstruck`, `.dockerignore`
+   je ale do obrazu nepustí a `Dockerfile.archive` autoloader nepřegeneruje. Archiv navíc nedostává `APP_ENV`,
+   Symfony v něm tedy běží jako `dev` a potřebuje Foundry i MakerBundle. Bez toho archiv padá na každém požadavku.
 
-    - A pak jdi na stránku [https://admin.gamecon.cz/nastaveni](https://admin.gamecon.cz/nastaveni), dole najdi sekci
-      „SQL update pro uzavření financí" a klikni na tlačítko pro vygenerování SQL příkazů
-        - _Tato stránka pouze vygeneruje kód, kterým později upravíš zůstatky peněz u všech lidí. Tento kód je potřeba
-          si zkopírovat a uložit. V posledním kroku po nasazení webu tento skript pustíme na ostré databázi._
-    - Skript zkopíruj a ručně spusť na ostré databázi
-      - Pozor ⚠️, poté už negeneruj a hlavně nespouštěj nový skript, do zůstatků by se znovu započetly už započtené změny!
+   ```bash
+   sed -i '/^vendor\//d' .dockerignore
+   grep -c '^vendor/' .dockerignore   # má vyjít 0
+   git commit -am "Archive $STARY: keep the dev vendor packages the committed autoloader requires"
+   ```
 
-- Z gitu si stáhni aktuální repozitář projektu Gamecon a vytvoř novou větev, do které budeš commitovat změny.
+3. Volitelně obraz vyzkoušej lokálně, oba `class_exists` mají vrátit `true`:
 
-- V souboru [`./nastaveni/verejne-nastaveni-produkce.php`](./nastaveni/verejne-nastaveni-produkce.php) změň konstanty dle požadavků, hlavně nastav
-  konstantu `define('ROCNIK', {NOVY_ROCNIK});`
-    - Pozor ⚠️, nový ročník musí být změněn až po spuštění skriptu na ostré databázi, viz výše, jinak se zůstatky
-      nepřevedou správně.
+   ```bash
+   docker build -f Dockerfile.archive -t "gc-archive-$STARY-test" .
+   docker run --rm "gc-archive-$STARY-test" php -r 'require "/var/www/html/gamecon/vendor/autoload.php"; var_dump(class_exists("Zenstruck\\Foundry\\ZenstruckFoundryBundle"), class_exists("Symfony\\Bundle\\MakerBundle\\MakerBundle"));'
+   ```
 
-- Commitni veškeré změny do vytvořené branch v GITu a vytvoř Pull Request.
+V `main` přidej do `deploy-year-archive.yml` řádek, který archivu zamkne základní obraz (PHP) jeho doby, ať ho
+pozdější změna výchozího obrazu nepřestaví na novějším PHP. Jak se archivní větve upravovaly dřív, ukazuje
+`git log origin/main..origin/archive/<rok>` a v repozitáři [Gamecon Ansible](https://github.com/gamecon-cz/ansible)
+`docs/year-archive-plan.md` a role `year_archive_deployer`.
 
-**NASAZENÍ ZMĚN NA WEB**
+### Ansible předává archivu `DB_READONLY_*`
 
-- Na Githubu potvrď Pull Request a zmerguj do aktuální „main“ větve
-  *💡 Tím se spustí automatický deploy na ostrou*
-    1. Pozor ⚠️, tím přestaly platit netrvalé (ročníkové) role, například “letošní vypravěč” a tím se změní zůstatky
-       uživatelů, negeneruj už nový skript
-       z [https://admin.gamecon.cz/nastaveni](https://admin.gamecon.cz/nastaveni), musíš
-       použít ten z předchozího ročníku, viz některý z předchozích kroků
+Od archivu 2026 čte kód `DB_READONLY_USER` a `DB_READONLY_PASS` (reporty přes `dbConnectReadOnly()`), bez nich
+v archivu spadnou reporty. Deploy skript archivu je musí předávat (role `year_archive_deployer`, v `docker run`
+vedle `DBM_*`). Ověření na serveru, mají se vypsat oba řádky:
 
-- Otevři si oficiální stránku [gamecon.cz](https://gamecon.cz/) a zkontroluj, zda vše funguje jak má.
+```bash
+grep -n 'DB_READONLY' /usr/local/sbin/deploy-year-archive.sh
+```
 
-- Všichni jsou happy!
+---
+
+## 2. Záloha
+
+### Soubory ostré (na serveru)
+
+Archiv z kopie mountuje nahraný obsah `web/soubory/obsah` a `web/soubory/systemove`, který v gitu není.
+
+```bash
+ls -ld "/srv/www/$STARY"                      # cíl nesmí existovat
+du -sh /srv/www/ostra /srv/www/ostra/backup   # backup/ jsou zálohy DB ostré, do kopie nepatří
+df -h /srv/www
+cp -r -L /srv/www/ostra "/srv/www/$STARY"
+# nebo bez backup/, když je velký: rsync -aL --exclude=/backup/ /srv/www/ostra/ "/srv/www/$STARY/"
+chown -R www-data:www-data "/srv/www/$STARY"
+du -sh /srv/www/ostra/web/soubory/obsah "/srv/www/$STARY/web/soubory/obsah"   # velikosti se mají shodovat
+```
+
+### Databáze (na serveru)
+
+```bash
+cd ~ && mysqldump -u root --result-file="gamecon_${STARY}_$(date +'%Y-%m-%d_%H-%M-%S')-dump.sql" --extended-insert --routines --triggers --delayed-insert --no-tablespaces d16779_gcostra
+DUMP=$(ls -t ~/gamecon_"$STARY"_*-dump.sql | head -1); echo "$DUMP"; ls -lh "$DUMP"
+tail -n 1 "$DUMP"                                                   # -- Dump completed on …
+grep -nE '^(CREATE DATABASE|USE |DROP DATABASE)' "$DUMP" || echo "OK: dump nemá CREATE DATABASE ani USE"
+sha256sum "$DUMP"
+```
+
+### Na GDrive (u sebe)
+
+```bash
+mkdir -p ~/gamecon-zalohy && cd ~/gamecon-zalohy
+scp -i ~/.ssh/id_ed25519_gamecon "root@gamecon.cz:gamecon_${STARY}_*-dump.sql" .
+sha256sum gamecon_"$STARY"_*-dump.sql                               # stejný hash jako na serveru
+```
+
+Nahraj dump na [Gamecon GDrive](https://drive.google.com/drive/folders/1QZIzXCrOQ2JMYi0EjI5EMbri0KHTJ9Nv?usp=drive_link)
+do složky _Záloha {STARY}_.
+
+---
+
+## 3. Archiv starého ročníku
+
+Push spustí workflow, které postaví obraz, založí databázi `gamecon_STARY` s uživatelem a spustí kontejner
+`gamecon-archive-STARY`. U sebe:
+
+```bash
+git push -u origin "archive/$STARY"
+gh run list --workflow deploy-year-archive.yml --branch "archive/$STARY" --limit 1
+gh run watch <id-běhu>
+```
+
+Na serveru ověř kontejner, jeho proměnné (`ENV=archive`, `DB_NAME`, `DB_READONLY_USER`) a databázi:
+
+```bash
+docker ps --filter "name=gamecon-archive-$STARY"
+docker inspect "gamecon-archive-$STARY" --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -E '^(ENV|DB_NAME|DB_READONLY_USER)='
+mysql -u root -e "SHOW DATABASES LIKE 'gamecon_$STARY'"
+```
+
+Nahraj dump. Cílová databáze je napsaná výslovně, **nikdy ne `d16779_*`**:
+
+```bash
+DUMP=$(ls -t ~/gamecon_"$STARY"_*-dump.sql | head -1); echo "$DUMP"
+grep -nE '^(CREATE DATABASE|USE |DROP DATABASE)' "$DUMP" || echo "OK: dump nemá CREATE DATABASE ani USE"
+mysql -u root "gamecon_$STARY" < "$DUMP"
+mysql -u root -e "SELECT (SELECT COUNT(*) FROM gamecon_$STARY.uzivatele_hodnoty) AS archiv, (SELECT COUNT(*) FROM d16779_gcostra.uzivatele_hodnoty) AS ostra"
+```
+
+Ověř archiv: `curl -s -o /dev/null -w '%{http_code}\n' "https://$STARY.gamecon.cz/"` vrací `401` (brána s heslem,
+heslo je v ostrém adminu v Dev rozcestníku). V prohlížeči `https://STARY.gamecon.cz/` ukazuje program, na
+`https://STARY.gamecon.cz/admin` projde přihlášení a otevře se report, v ostrém adminu Dev → Staré ročníky je
+nový archiv a proklik do něj přihlásí.
+
+---
+
+## 4. Uzavření financí (těsně před nasazením nového ročníku)
+
+Od teď do konce kroku 5 bez prodlevy: platba stažená z FIO mezi spuštěním SQL a nasazením nového ročníku dostane
+rok `STARY` a do zůstatku se nezapočte. Volitelně na tu dobu pozastav na console.cron-job.org obecný cron ostré.
+
+### Konečný dump
+
+SQL smaže místnosti a vyčistí čísla OP, poznámky a ubytování, archiv proto musí dostat stav **před** ním.
+Na serveru zopakuj dump z kroku 2, zkontroluj ho stejně a nahraj ho do archivu (dump obsahuje
+`DROP TABLE IF EXISTS`, tabulky se přepíšou):
+
+```bash
+mysql -u root "gamecon_$STARY" < "$DUMP"
+```
+
+Stáhni ho a nahraj na GDrive do _Záloha {STARY}_. Kdyby se SQL nepovedlo, obnovuje se z něj.
+
+### Vygenerovat SQL
+
+V adminu otevři Dev → **SQL update pro uzavření financí**
+([https://admin.gamecon.cz/dev/update-zustatku](https://admin.gamecon.cz/dev/update-zustatku)) a vygeneruj SQL.
+Obsah pole ulož do `~/gamecon-zalohy/uzavreni-financi-STARY.sql`.
+
+- Pozor ⚠️, **znovu už negeneruj**. Po spuštění skriptu, a hlavně po nasazení nového ročníku (přestanou platit
+  ročníkové role, například „letošní vypravěč“), by nový skript započítal do zůstatků už započtené změny.
+
+Ověř, že má jeden `UPDATE` na uživatele:
+
+```bash
+grep -c '^UPDATE uzivatele_hodnoty' ~/gamecon-zalohy/uzavreni-financi-"$STARY".sql
+```
+
+a na serveru má vyjít stejné číslo:
+
+```bash
+mysql -u root -e "SELECT COUNT(DISTINCT id_uzivatele) FROM d16779_gcostra.uzivatele_hodnoty"
+```
+
+### Spustit SQL na ostré
+
+```bash
+scp -i ~/.ssh/id_ed25519_gamecon ~/gamecon-zalohy/uzavreni-financi-"$STARY".sql root@gamecon.cz:
+```
+
+Na serveru, **jen jednou**. Celé v jedné transakci: když cokoli selže, `mysql` skončí, `COMMIT` se nespustí a
+nezmění se nic.
+
+```bash
+{ echo 'START TRANSACTION;'; cat ~/uzavreni-financi-"$STARY".sql; echo 'COMMIT;'; } | mysql -u root d16779_gcostra && echo "SQL PROVEDENO"
+mysql -u root d16779_gcostra -e "SELECT (SELECT COUNT(*) FROM lokace) AS lokace, (SELECT COUNT(*) FROM akce_lokace) AS akce_lokace"   # 0 a 0
+```
+
+Namátkou porovnej `zustatek` jednoho uživatele s hodnotou `SET zustatek=` ve skriptu
+(`grep -m1 -B9 'WHERE id_uzivatele=' ~/uzavreni-financi-"$STARY".sql`).
+
+---
+
+## 5. Nasazení nového ročníku
+
+Pozor ⚠️, nový ročník se smí nasadit až po spuštění skriptu z kroku 4, jinak se zůstatky nepřevedou správně.
+
+Mergni PR s novým ročníkem do `main`, tím se spustí nasazení ostré:
+
+```bash
+gh run list --workflow deploy-ostra.yml --limit 3
+gh run watch <id-běhu>
+```
+
+Na serveru:
+
+```bash
+grep -n "define('ROCNIK'" /srv/www/ostra/nastaveni/verejne-nastaveni-produkce.php      # NOVY
+mysql -u root d16779_gcostra -e "SELECT klic, hodnota FROM systemove_nastaveni WHERE rocnik_nastaveni = $((STARY + 1))"
+```
+
+Otevři [gamecon.cz](https://gamecon.cz/) a [admin.gamecon.cz](https://admin.gamecon.cz/) a zkontroluj, že vše funguje
+a u pár uživatelů je stav financí roven zůstatku ze skriptu. Pozastavený cron zase zapni.
+
+---
+
+## 6. Po překlopení
+
+- V [adminu → Nastavení](https://admin.gamecon.cz/nastaveni) nastav data nového GameConu (začátek, konec,
+  registrace, vlny). Na ostré jsou to vlastní hodnoty platné pro všechny ročníky, do změny tedy zůstávají ze
+  starého ročníku. Stihnout před prosincovým PF.
+- Místnosti jsou smazané, nahrají se pro nový ročník, až budou známé.
+- Hodinový cron doplní přednášky starého ročníku do [archivu přednášek](https://gamecon.cz/prednasky/archiv),
+  viz [`docs/generated/archiv-prednasek.md`](./docs/generated/archiv-prednasek.md).
+- Až je vše na GDrive, smaž dumpy s osobními údaji ze serveru (`rm ~/gamecon_"$STARY"_*-dump.sql`). Skript
+  uzavření financí si nech, kdyby se musely dohledávat zůstatky.
+
+Všichni jsou happy!
