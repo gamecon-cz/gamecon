@@ -3,8 +3,6 @@
   <input type="hidden" name="{postSchvalit}" value="{idUzivatele}">
   <input type="hidden" name="{postOdeslano}" value="{odeslano}">
   <p class="schvaleni-medailonku--odeslano">Vypravěč poslal text {odeslanoCitelne}. Před schválením ho můžeš upravit.</p>
-  <!-- begin:text -->
-  <h4>{nazev}</h4>
   <div class="schvaleni-medailonku--sloupce">
     <div>
       <div class="schvaleni-medailonku--popisek">Na webu teď</div>
@@ -27,7 +25,6 @@
       <!-- end:prazdny -->
     </div>
   </div>
-  <!-- end:text -->
   <button type="submit">Schválit a zveřejnit</button>
 </form>
 <!-- end:schvaleni -->

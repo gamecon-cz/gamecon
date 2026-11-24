@@ -68,10 +68,6 @@ window.gcBezpecneHtml = function (html, pravidla) {
         return /^\d{1,4}$/.test(hodnota)
       case 'align':
         return ['left', 'right', 'center'].indexOf(hodnota) !== -1
-      case 'class':
-        return hodnota.trim() !== '' && hodnota.trim().split(/\s+/).every(function (trida) {
-          return pravidla.tridy.indexOf(trida) !== -1
-        })
       default:
         return true // title, alt: nastaví se jako text
     }

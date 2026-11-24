@@ -13,7 +13,8 @@ use Gamecon\Uzivatel\SqlStruktura\MedailonekSqlStruktura as MedailonekSql;
  * Medailonky), ho zveřejní rovnou.
  *
  * Řádek je jeden na uživatele a po schválení zůstane, ať vypravěč v Nastavení vidí, že je text schválený. Nový text
- * ho přepíše a čeká znovu. Sloupec s NULL se proti zveřejněnému textu nemění.
+ * ho přepíše a čeká znovu. Jen text „o sobě“; profil Pána jeskyně (`medailonky.drd`) je z Mistrovství v DrD, které
+ * skončilo v roce 2025, a upravuje ho jen organizátor v adminu.
  */
 final class MedailonekKeSchvaleni
 {
@@ -21,8 +22,7 @@ final class MedailonekKeSchvaleni
 
     private function __construct(
         public readonly int $idUzivatele,
-        public readonly ?string $oSobe,
-        public readonly ?string $drd,
+        public readonly string $oSobe,
         public readonly \DateTimeImmutable $odeslano,
         public readonly ?\DateTimeImmutable $schvaleno,
     ) {
@@ -31,7 +31,7 @@ final class MedailonekKeSchvaleni
     public static function zUzivatele(int $idUzivatele): ?self
     {
         $radek = dbOneLine(<<<'SQL'
-SELECT id_uzivatele, o_sobe, drd, odeslano, schvaleno FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
+SELECT id_uzivatele, o_sobe, odeslano, schvaleno FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
 SQL,
             [
                 0 => $idUzivatele,
@@ -49,7 +49,7 @@ SQL,
     public static function cekajici(): array
     {
         $radky = dbFetchAll(<<<'SQL'
-SELECT id_uzivatele, o_sobe, drd, odeslano, schvaleno
+SELECT id_uzivatele, o_sobe, odeslano, schvaleno
 FROM medailonky_ke_schvaleni
 WHERE schvaleno IS NULL
 ORDER BY odeslano, id_uzivatele
@@ -92,33 +92,27 @@ SQL,
     }
 
     /**
-     * Pošle texty z Nastavení ke schválení. Text, který formulář neposlal nebo který je stejný jako zveřejněný, se
-     * neschvaluje; když se neliší žádný, čekání se zruší (vypravěč se vrátil ke zveřejněnému textu).
+     * Pošle text z Nastavení ke schválení. Text stejný jako zveřejněný se neschvaluje a čekání se zruší (vypravěč se
+     * vrátil ke zveřejněnému textu).
      *
      * @return bool jestli teď něco čeká na schválení
      */
-    public static function odesli(int $idUzivatele, ?string $oSobe, ?string $drd): bool
+    public static function odesli(int $idUzivatele, string $oSobe): bool
     {
         dbInsertIgnore(MedailonekSql::MEDAILONKY_TABULKA, [
             MedailonekSql::ID_UZIVATELE => $idUzivatele,
             MedailonekSql::O_SOBE       => '',
             MedailonekSql::DRD          => '',
         ]);
-        $zverejneny = dbOneLine(<<<'SQL'
-SELECT o_sobe, drd FROM medailonky WHERE id_uzivatele = $0
+        $zverejneny = (string) dbOneCol(<<<'SQL'
+SELECT o_sobe FROM medailonky WHERE id_uzivatele = $0
 SQL,
             [
                 0 => $idUzivatele,
             ],
         );
         // zveřejněný text z adminu má konce řádků \r\n, z Nastavení přijde sjednocený
-        $oSobe = $oSobe === null || self::normalizujText((string) $zverejneny[MedailonekSql::O_SOBE]) === self::normalizujText($oSobe)
-            ? null
-            : $oSobe;
-        $drd = $drd === null || self::normalizujText((string) $zverejneny[MedailonekSql::DRD]) === self::normalizujText($drd)
-            ? null
-            : $drd;
-        if ($oSobe === null && $drd === null) {
+        if (self::normalizujText($zverejneny) === self::normalizujText($oSobe)) {
             dbQuery(<<<'SQL'
 DELETE FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0 AND schvaleno IS NULL
 SQL,
@@ -130,11 +124,10 @@ SQL,
             return false;
         }
         dbQuery(<<<'SQL'
-INSERT INTO medailonky_ke_schvaleni (id_uzivatele, o_sobe, drd, odeslano, schvaleno, id_schvalil)
-VALUES ($0, $1, $2, NOW(6), NULL, NULL)
+INSERT INTO medailonky_ke_schvaleni (id_uzivatele, o_sobe, odeslano, schvaleno, id_schvalil)
+VALUES ($0, $1, NOW(6), NULL, NULL)
 ON DUPLICATE KEY UPDATE
     o_sobe = VALUES(o_sobe),
-    drd = VALUES(drd),
     odeslano = VALUES(odeslano),
     schvaleno = NULL,
     id_schvalil = NULL
@@ -142,7 +135,6 @@ SQL,
             [
                 0 => $idUzivatele,
                 1 => $oSobe,
-                2 => $drd,
             ],
         );
 
@@ -150,21 +142,15 @@ SQL,
     }
 
     /**
-     * Zveřejní texty, které čekají na schválení, případně v podobě upravené organizátorem.
+     * Zveřejní text, který čeká na schválení, případně v podobě upravené organizátorem.
      *
-     * @param string|null $oSobe    text k zveřejnění, null nechá zveřejněný text beze změny
-     * @param string      $odeslano kdy vypravěč poslal text, který organizátor viděl (@see getOdeslanoProFormular()):
-     *                              kdyby mezitím poslal nový, schválil by se text, který nikdo nečetl
+     * @param string $odeslano kdy vypravěč poslal text, který organizátor viděl (@see getOdeslanoProFormular()):
+     *                         kdyby mezitím poslal nový, schválil by se text, který nikdo nečetl
      *
      * @throws MedailonekKeSchvaleniException když text už není ke schválení nebo vypravěč mezitím poslal nový
      */
-    public static function schval(
-        int $idUzivatele,
-        ?string $oSobe,
-        ?string $drd,
-        string $odeslano,
-        int $idSchvalil,
-    ): void {
+    public static function schval(int $idUzivatele, string $oSobe, string $odeslano, int $idSchvalil): void
+    {
         dbBegin();
         try {
             $schvaleno = dbAffectedOrNumRows(dbQuery(<<<'SQL'
@@ -181,15 +167,18 @@ SQL,
                 ],
             ));
             if ($schvaleno !== 1) {
-                throw new MedailonekKeSchvaleniException(self::zUzivatele($idUzivatele)?->isCekajici() ? 'Vypravěč mezitím poslal nový text, zkontroluj ho prosím znovu.' : 'Text už je schválený, nebo ho vypravěč stáhl.');
+                throw new MedailonekKeSchvaleniException(
+                    self::zUzivatele($idUzivatele)?->isCekajici()
+                        ? 'Vypravěč mezitím poslal nový text, zkontroluj ho prosím znovu.'
+                        : 'Text už je schválený, nebo ho vypravěč stáhl.',
+                );
             }
             dbQuery(<<<'SQL'
-UPDATE medailonky SET o_sobe = COALESCE($1, o_sobe), drd = COALESCE($2, drd) WHERE id_uzivatele = $0
+UPDATE medailonky SET o_sobe = $1 WHERE id_uzivatele = $0
 SQL,
                 [
                     0 => $idUzivatele,
                     1 => $oSobe,
-                    2 => $drd,
                 ],
             );
             dbCommit();
@@ -228,8 +217,7 @@ SQL,
     {
         return new self(
             (int) $radek['id_uzivatele'],
-            $radek['o_sobe'],
-            $radek['drd'],
+            (string) $radek['o_sobe'],
             new \DateTimeImmutable((string) $radek['odeslano']),
             $radek['schvaleno'] !== null
                 ? new \DateTimeImmutable($radek['schvaleno'])

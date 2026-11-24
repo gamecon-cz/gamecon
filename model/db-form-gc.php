@@ -18,8 +18,8 @@ class DbFormGc extends DbForm
             return new DbffSelect($d);
         }
         if (preg_match('@^markdown@', $d['Comment'])) {
-            // text medailonku si píše vypravěč sám na webu, HTML z něj smí do adminu jen vyčištěné
-            return $this->table() === MedailonekSqlStruktura::MEDAILONKY_TABULKA
+            // text o sobě si píše vypravěč sám na webu, HTML z něj smí do adminu jen vyčištěné
+            return $this->table() === MedailonekSqlStruktura::MEDAILONKY_TABULKA && $d['Field'] === MedailonekSqlStruktura::O_SOBE
                 ? new DbffMarkdownOdUzivatele($d)
                 : new DbffMarkdownDirect($d);
         }

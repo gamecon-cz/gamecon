@@ -137,11 +137,11 @@ SQL,
         $nastaveni = $this->nastaveni($relace);
         self::assertStringContainsString('id="medailonek"', $nastaveni);
         self::assertStringContainsString('name="' . MedailonekVNastaveni::POST_O_SOBE . '"', $nastaveni);
-        // druhý text je jen pro Pány jeskyně DrD
-        self::assertStringNotContainsString('name="' . MedailonekVNastaveni::POST_DRD . '"', $nastaveni);
+        // profil Pána jeskyně z Mistrovství v DrD (skončilo v roce 2025) se na webu neupravuje
+        self::assertStringNotContainsString('Profil Pána jeskyně', $nastaveni);
         self::assertStringNotContainsString('Čeká na schválení', $nastaveni);
 
-        // mezitím mu organizátor v adminu napsal profil DrD, formulář bez pole DrD ho nesmaže
+        // profil DrD, který mu dřív napsal organizátor v adminu, web nemění
         dbQuery(<<<'SQL'
 INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, '', 'Profil od organizátora')
 ON DUPLICATE KEY UPDATE drd = 'Profil od organizátora'
@@ -167,7 +167,6 @@ SQL, [
         self::assertSame(
             [
                 'o_sobe'    => $text,
-                'drd'       => null,
                 'schvaleno' => null,
             ],
             $this->keSchvaleni(self::ID_VEDOUCIHO),
@@ -223,41 +222,39 @@ SQL, [
     /**
      * @test
      */
-    public function panJeskynePosleIProfilProDrdAVratitSeKeZverejnenemuJdeBezSchvaleni(): void
+    public function vypravecPosleTextAVratitSeKeZverejnenemuJdeBezSchvaleni(): void
     {
         $relace = $this->prihlas('test-medailonek-pj');
-        self::assertStringContainsString('name="' . MedailonekVNastaveni::POST_DRD . '"', $this->nastaveni($relace));
+        // ani kdo vede aktivitu DrD, profil Pána jeskyně na webu neupravuje
+        self::assertStringNotContainsString('Profil Pána jeskyně', $this->nastaveni($relace));
 
         $odpoved = $this->odesliZNastaveni($relace, [
             MedailonekVNastaveni::POST_ULOZIT => 1,
             MedailonekVNastaveni::POST_O_SOBE => 'O mně ![](soubory/obsah/mapa.png)',
-            MedailonekVNastaveni::POST_DRD    => 'Vedu družiny od roku 2010.',
         ]);
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertSame(
             [
                 'o_sobe'    => 'O mně ![](soubory/obsah/mapa.png)',
-                'drd'       => 'Vedu družiny od roku 2010.',
                 'schvaleno' => null,
             ],
             $this->keSchvaleni(self::ID_PANA_JESKYNE),
         );
         // formulář ukazuje text, který čeká
-        self::assertStringContainsString('Vedu družiny od roku 2010.</textarea>', $this->nastaveni($relace));
+        self::assertStringContainsString('O mně ![](soubory/obsah/mapa.png)</textarea>', $this->nastaveni($relace));
         // organizátor ho najde i v detailu medailonku, a v seznamu medailonků je vidět, že čeká
         $organizator = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $detail = $this->stahni($organizator, 'aktivity/medailonky?id=' . self::ID_PANA_JESKYNE);
         self::assertStringContainsString('Text ke schválení', $detail);
+        self::assertStringContainsString('name="' . SchvaleniMedailonku::POST_O_SOBE . '"', $detail);
         // obrázek z textu v náhledu z webu, ne z adminu (<base href> adminu)
         self::assertStringContainsString('src="' . URL_WEBU . '/soubory/obsah/mapa.png"', $detail);
-        self::assertStringContainsString('name="' . SchvaleniMedailonku::POST_DRD . '"', $detail);
         self::assertStringContainsString('⏳', $this->stahni($organizator, 'aktivity/medailonky'));
 
         // zpátky ke zveřejněnému (prázdnému) textu: není co schvalovat
         $odpoved = $this->odesliZNastaveni($relace, [
             MedailonekVNastaveni::POST_ULOZIT => 1,
             MedailonekVNastaveni::POST_O_SOBE => '',
-            MedailonekVNastaveni::POST_DRD    => '',
         ]);
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertNull($this->keSchvaleni(self::ID_PANA_JESKYNE));
@@ -408,62 +405,35 @@ SQL, [
     }
 
     /**
-     * Text z adminu má konce řádků \r\n, z formuláře přijde sjednocený: beze změny nic nečeká na schválení. Smazaný
-     * profil DrD, který čeká, nechá pole DrD vidět, jinak by další uložení smazání zahodilo. Příliš vnořený text
-     * se neodešle, Markdown by na něm spotřeboval stovky MB.
+     * Text z adminu má konce řádků \r\n, z formuláře přijde sjednocený: beze změny nic nečeká na schválení. Příliš
+     * vnořený text se neodešle, Markdown by na něm spotřeboval stovky MB.
      *
      * @test
      */
-    public function konceRadkuSmazanyProfilAVnoreni(): void
+    public function konceRadkuAVnoreni(): void
     {
         dbQuery(<<<'SQL'
-INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, $1, 'Profil')
-ON DUPLICATE KEY UPDATE o_sobe = $1, drd = 'Profil'
+INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, $1, '')
+ON DUPLICATE KEY UPDATE o_sobe = $1
 SQL, [
             0 => self::ID_VYPRAVECE_V_PRIPRAVE,
             1 => "Řádek jedna\r\n\r\nŘádek dva",
         ]);
         $relace = $this->prihlas('test-medailonek-priprava');
-        // vede jen RPG, pole DrD vidí kvůli profilu
-        self::assertStringContainsString('name="' . MedailonekVNastaveni::POST_DRD . '"', $this->nastaveni($relace));
 
         self::assertSame(303, $this->odesliZNastaveni($relace, [
             MedailonekVNastaveni::POST_ULOZIT => 1,
             MedailonekVNastaveni::POST_O_SOBE => "Řádek jedna\r\n\r\nŘádek dva\r\n",
-            MedailonekVNastaveni::POST_DRD    => 'Profil',
         ])['kod']);
         self::assertNull($this->keSchvaleni(self::ID_VYPRAVECE_V_PRIPRAVE));
         self::assertStringContainsString('Text je stejný jako na webu', $this->nastaveni($relace));
 
         self::assertSame(303, $this->odesliZNastaveni($relace, [
             MedailonekVNastaveni::POST_ULOZIT => 1,
-            MedailonekVNastaveni::POST_O_SOBE => "Řádek jedna\r\n\r\nŘádek dva",
-            MedailonekVNastaveni::POST_DRD    => '',
-        ])['kod']);
-        self::assertSame(
-            [
-                'o_sobe'    => null,
-                'drd'       => '',
-                'schvaleno' => null,
-            ],
-            $this->keSchvaleni(self::ID_VYPRAVECE_V_PRIPRAVE),
-        );
-        self::assertStringContainsString('name="' . MedailonekVNastaveni::POST_DRD . '"', $this->nastaveni($relace));
-
-        self::assertSame(303, $this->odesliZNastaveni($relace, [
-            MedailonekVNastaveni::POST_ULOZIT => 1,
             MedailonekVNastaveni::POST_O_SOBE => str_repeat('>', 30) . ' citát',
-            MedailonekVNastaveni::POST_DRD    => '',
         ])['kod']);
         self::assertStringContainsString('víc než ' . BezpecneHtml::MAX_VNORENI . ' úrovní', $this->nastaveni($relace));
-        self::assertSame(
-            [
-                'o_sobe'    => null,
-                'drd'       => '',
-                'schvaleno' => null,
-            ],
-            $this->keSchvaleni(self::ID_VYPRAVECE_V_PRIPRAVE),
-        );
+        self::assertNull($this->keSchvaleni(self::ID_VYPRAVECE_V_PRIPRAVE));
     }
 
     /**
@@ -502,12 +472,12 @@ SQL, [
     }
 
     /**
-     * @return array{o_sobe: string|null, drd: string|null, schvaleno: string|null}|null
+     * @return array{o_sobe: string, schvaleno: string|null}|null
      */
     private function keSchvaleni(int $idUzivatele): ?array
     {
         $radek = dbOneLine(<<<'SQL'
-SELECT o_sobe, drd, schvaleno FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
+SELECT o_sobe, schvaleno FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
 SQL,
             [
                 0 => $idUzivatele,

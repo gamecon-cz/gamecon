@@ -20,7 +20,6 @@ final class SchvaleniMedailonku
     public const string POST_SCHVALIT = 'schvalitMedailonek';
     public const string POST_ODESLANO = 'schvalitMedailonekOdeslano';
     public const string POST_O_SOBE = 'schvalitMedailonekOSobe';
-    public const string POST_DRD = 'schvalitMedailonekDrd';
 
     private static bool $stylVypsany = false;
 
@@ -62,16 +61,8 @@ final class SchvaleniMedailonku
         if ($keSchvaleni === null || ! $keSchvaleni->isCekajici()) {
             $this->skonci('Text už je schválený, nebo ho vypravěč stáhl.', \Chyba::VAROVANI, $navrat);
         }
-        // upravit jde jen to, co čeká; ostatní text zůstane, jak je na webu
-        $oSobe = $keSchvaleni->oSobe !== null
-            ? $this->textZFormulare(self::POST_O_SOBE)
-            : null;
-        $drd = $keSchvaleni->drd !== null
-            ? $this->textZFormulare(self::POST_DRD)
-            : null;
-        if (mb_strlen($oSobe ?? '') > MedailonekVNastaveni::MAX_DELKA_TEXTU
-            || mb_strlen($drd ?? '') > MedailonekVNastaveni::MAX_DELKA_TEXTU
-        ) {
+        $oSobe = $this->textZFormulare(self::POST_O_SOBE);
+        if (mb_strlen($oSobe) > MedailonekVNastaveni::MAX_DELKA_TEXTU) {
             $this->skonci(
                 sprintf('Text medailonku může mít nejvýš %d znaků.', MedailonekVNastaveni::MAX_DELKA_TEXTU),
                 \Chyba::CHYBA,
@@ -82,7 +73,6 @@ final class SchvaleniMedailonku
             MedailonekKeSchvaleni::schval(
                 $idUzivatele,
                 $oSobe,
-                $drd,
                 (string) post(self::POST_ODESLANO),
                 (int) $this->schvalujici->id(),
             );
@@ -110,31 +100,20 @@ final class SchvaleniMedailonku
             'odeslanoCitelne' => $keSchvaleni->odeslano->format('j. n. Y H:i'),
             'maxDelka'        => MedailonekVNastaveni::MAX_DELKA_TEXTU,
         ]);
-        foreach (
-            [
-                [$keSchvaleni->oSobe, $zverejneny?->oSobe(), 'O sobě', self::POST_O_SOBE],
-                [$keSchvaleni->drd, $zverejneny?->drd(), 'Profil Pána jeskyně pro Mistrovství v DrD', self::POST_DRD],
-            ] as [$novyText, $zverejnenyHtml, $nazev, $postNazev]
-        ) {
-            if ($novyText === null) {
-                continue;
-            }
-            $template->assign([
-                'nazev'          => $nazev,
-                'postText'       => $postNazev,
-                'text'           => htmlspecialchars($novyText),
-                // relativní obrázky `soubory/…` by se v adminu (<base href> adminu) načítaly z adminu
-                'nahled'         => NahledMarkdownu::obrazkyNaWebu(BezpecneHtml::zMarkdownu($novyText)),
-                'zverejnenyHtml' => NahledMarkdownu::obrazkyNaWebu((string) $zverejnenyHtml),
-            ]);
-            $template->parse(trim((string) $zverejnenyHtml) !== ''
-                ? 'schvaleni.text.zverejneny'
-                : 'schvaleni.text.nezverejneny');
-            $template->parse(trim($novyText) !== ''
-                ? 'schvaleni.text.nahled'
-                : 'schvaleni.text.prazdny');
-            $template->parse('schvaleni.text');
-        }
+        $zverejnenyHtml = (string) $zverejneny?->oSobe();
+        $template->assign([
+            'postText'       => self::POST_O_SOBE,
+            'text'           => htmlspecialchars($keSchvaleni->oSobe),
+            // relativní obrázky `soubory/…` by se v adminu (<base href> adminu) načítaly z adminu
+            'nahled'         => NahledMarkdownu::obrazkyNaWebu(BezpecneHtml::zMarkdownu($keSchvaleni->oSobe)),
+            'zverejnenyHtml' => NahledMarkdownu::obrazkyNaWebu($zverejnenyHtml),
+        ]);
+        $template->parse(trim($zverejnenyHtml) !== ''
+            ? 'schvaleni.zverejneny'
+            : 'schvaleni.nezverejneny');
+        $template->parse(trim($keSchvaleni->oSobe) !== ''
+            ? 'schvaleni.nahled'
+            : 'schvaleni.prazdny');
         $template->parse('schvaleni');
         $html = $template->text('schvaleni');
         if (! self::$stylVypsany) {

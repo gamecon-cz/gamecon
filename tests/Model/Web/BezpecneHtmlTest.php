@@ -57,21 +57,6 @@ HTML,
         );
     }
 
-    /**
-     * Profily Pánů jeskyně DrD mají hodnocení jako `<div class="drdStaty">` s pruhy z `<hr>`, web na ně má styl.
-     */
-    #[Test]
-    public function hodnoceniPanaJeskyneSiTriduNecha(): void
-    {
-        self::assertSame(
-            '<div class="drdStaty"><div>Akce:</div><div><hr><hr></div></div><div>jiná</div><div>dvě</div>',
-            BezpecneHtml::vycisti(
-                '<div class="drdStaty"><div>Akce:</div><div><hr><hr></div></div><div class="menu">jiná</div>'
-                . '<div class="drdStaty menu">dvě</div>',
-            ),
-        );
-    }
-
     #[Test]
     public function typografickeUvozovkyAEntityZustanouCitelne(): void
     {
