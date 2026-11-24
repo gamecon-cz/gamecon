@@ -180,6 +180,13 @@ RUN a2enconf archive-mpm
 # `docker run -e`).
 ENV ENV=archive
 
+# Symfony as on ostra and the previews: prod, without debug. Without APP_ENV
+# the app falls back to dev with debug, whose container compile together with
+# opcache needs more than the archive's 256 MiB, so the kernel killed every
+# request that booted Symfony (archive 2026 on 2026-11-24).
+ENV APP_ENV=prod \
+    APP_DEBUG=0
+
 # Basic-auth credentials + gate-token signing secrets for the Caddy gate
 # in front of preview / archive environments. The admin's dev rozcestník
 # renders the gate login as copyable text and signs a ?gate= token onto
