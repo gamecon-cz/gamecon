@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/nastaveni-produkce.php';
 
-define('URL_WEBU', 'https://gamecon.cz');        // absolutní url uživatelského webu
-define('URL_ADMIN', 'https://admin.gamecon.cz'); // absolutní url adminu
+define('URL_WEBU', 'https://2026.gamecon.cz');        // absolutní url uživatelského webu
+define('URL_ADMIN', 'https://2026.gamecon.cz/admin'); // absolutní url adminu
 define('URL_CACHE', URL_WEBU . '/cache/public'); // url sdílených cachí
 
 define('ANALYTICS', true);
