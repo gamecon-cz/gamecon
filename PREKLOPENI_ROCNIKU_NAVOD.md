@@ -6,10 +6,10 @@ přejde na nový ročník (`NOVY`). Kroky jdou v tomto pořadí. Příprava v kr
 
 Předpoklad: zázemí má hotovou účetní uzávěrku a nedodělky z infopultu jsou zpracované, zůstatky tedy sedí.
 
-Na server se přihlašuje jako root, příkazy na serveru jsou proto bez `sudo`:
+Na server se přihlašuje jako root, příkazy na serveru jsou proto bez `sudo`. Příkazy počítají se záznamem `Host gamecon.cz` (`User root`, `IdentityFile` s tvým klíčem) v `~/.ssh/config`; klíč s heslem drží ssh-agent:
 
 ```bash
-ssh -i ~/.ssh/id_ed25519_gamecon root@gamecon.cz
+ssh root@gamecon.cz
 ```
 
 Na serveru i u sebe si nejdřív nastav ročník, ostatní příkazy s ním počítají:
@@ -138,7 +138,7 @@ sha256sum "$DUMP"
 
 ```bash
 mkdir -p ~/gamecon-zalohy && cd ~/gamecon-zalohy
-scp -i ~/.ssh/id_ed25519_gamecon "root@gamecon.cz:gamecon_${STARY}_*-dump.sql" .
+scp "root@gamecon.cz:gamecon_${STARY}_*-dump.sql" .
 sha256sum gamecon_"$STARY"_*-dump.sql                               # stejný hash jako na serveru
 ```
 
@@ -176,9 +176,20 @@ mysql -u root -e "SELECT (SELECT COUNT(*) FROM gamecon_$STARY.uzivatele_hodnoty)
 ```
 
 Ověř archiv: `curl -s -o /dev/null -w '%{http_code}\n' "https://$STARY.gamecon.cz/"` vrací `401` (brána s heslem,
-heslo je v ostrém adminu v Dev rozcestníku). V prohlížeči `https://STARY.gamecon.cz/` ukazuje program, na
-`https://STARY.gamecon.cz/admin` projde přihlášení a otevře se report, v ostrém adminu Dev → Staré ročníky je
+heslo je v ostrém adminu na stránce Web → Staré ročníky). V prohlížeči `https://STARY.gamecon.cz/` ukazuje program, na
+`https://STARY.gamecon.cz/admin` projde přihlášení a otevře se report, v ostrém adminu Web → Staré ročníky je
 nový archiv a proklik do něj přihlásí.
+
+Archiv 2026 při spuštění (2026-11-24) narazil na tři chyby, opravené ve větvi `archive/2026` a přes #1543 v `main`.
+Před archivem z novější `main` ověř, že tam opravy jsou:
+
+- **TLS „internal error" na `STARY.gamecon.cz`:** push do archivní větve založil i preview se slugem
+  `archive-STARY`, které přepsalo Caddy blok archivu. Oprava: `deploy-preview.yml` vynechává `archive/**`. Kdyby se
+  to stalo, nejdřív `gh workflow run teardown-preview.yml -f branch=archive/$STARY`, po doběhnutí
+  `gh workflow run deploy-year-archive.yml -f branch=archive/$STARY`.
+- **Všechno 403:** `Dockerfile.archive` zdvojil web root na `/var/www/html/gamecon/gamecon`.
+- **Úvodní stránka zabitá pro paměť, prázdný program:** archiv převáděl obrázky do AVIF v plné velikosti (#1542).
+  Oprava: v archivu se vydá originál, a Symfony běží jako `prod`.
 
 ---
 
@@ -244,13 +255,13 @@ sha256sum "$DUMP"
 mysql -u root "gamecon_$STARY" < "$DUMP"   # do archivu; dump má DROP TABLE IF EXISTS, tabulky se přepíšou
 ```
 
-Stáhni ho (u sebe, `scp -i ~/.ssh/id_ed25519_gamecon 'root@gamecon.cz:<název-dumpu>' ~/gamecon-zalohy/`), ověř hash
+Stáhni ho (u sebe, `scp 'root@gamecon.cz:<název-dumpu>' ~/gamecon-zalohy/`), ověř hash
 a nahraj ho na GDrive do _Záloha {STARY}_.
 
 ### Spustit skript na ostré
 
 ```bash
-scp -i ~/.ssh/id_ed25519_gamecon ~/gamecon-zalohy/uzavreni-financi-"$STARY".sql root@gamecon.cz:
+scp ~/gamecon-zalohy/uzavreni-financi-"$STARY".sql root@gamecon.cz:
 ```
 
 Na serveru, **jen jednou**. Celé v jedné transakci: když cokoli selže, `mysql` skončí, `COMMIT` se nespustí a
