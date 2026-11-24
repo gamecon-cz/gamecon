@@ -54,7 +54,10 @@ ARG PHP_EXTS="mysqli pdo_mysql intl exif bcmath gd"
 # PHP extensions, Apache modules, and gamecon DocumentRoot that the gameconcz
 # base bakes in; install/enable them here. All steps are safe no-ops when the
 # base already provides them (docker-php-ext-install is skipped per-ext if the
-# .so exists; a2enmod/sed are idempotent).
+# .so exists; a2enmod/sed are idempotent). The sed leaves an existing
+# /var/www/html/gamecon alone: gameconcz/gamecon:8.3-runtime already has it,
+# and appending /gamecon again pointed Apache at /var/www/html/gamecon/gamecon,
+# which answered every request with 403 (archive 2026 on 2026-11-24).
 RUN set -eux; \
     need_ext=""; \
     for ext in $PHP_EXTS; do \
@@ -80,7 +83,7 @@ RUN set -eux; \
         docker-php-ext-install $need_ext; \
     fi; \
     a2enmod rewrite expires headers; \
-    sed -ri 's!/var/www/html!/var/www/html/gamecon!g' \
+    sed -ri 's!/var/www/html(/gamecon)?!/var/www/html/gamecon!g' \
         /etc/apache2/sites-available/*.conf \
         /etc/apache2/apache2.conf \
         /etc/apache2/conf-available/docker-php.conf 2>/dev/null || true
