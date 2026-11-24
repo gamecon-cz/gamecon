@@ -12,9 +12,7 @@ $this->q(<<<'SQL'
 CREATE TABLE IF NOT EXISTS medailonky_ke_schvaleni
 (
     id_uzivatele BIGINT(20) UNSIGNED NOT NULL,
-    -- NULL: text se proti zveřejněnému nemění
-    o_sobe       LONGTEXT                     DEFAULT NULL,
-    drd          LONGTEXT                     DEFAULT NULL,
+    o_sobe       LONGTEXT            NOT NULL,
     -- s mikrosekundami: schválení ověřuje, že vypravěč mezitím neposlal nový text, i ve stejné sekundě
     odeslano     DATETIME(6)         NOT NULL DEFAULT current_timestamp(6),
     -- NULL: čeká na schválení

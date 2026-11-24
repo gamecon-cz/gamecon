@@ -52,8 +52,8 @@ VALUES (9901, '', 'Profil ![]({$obrazek})')
 SQL,
             // text, který čeká na schválení, obrázek taky drží; schválený ne, ten už je v medailonkách
             <<<SQL
-INSERT INTO medailonky_ke_schvaleni(id_uzivatele, o_sobe, drd)
-VALUES (9901, 'Nový text ![]({$obrazek})', NULL)
+INSERT INTO medailonky_ke_schvaleni(id_uzivatele, o_sobe)
+VALUES (9901, 'Nový text ![]({$obrazek})')
 SQL,
         ];
     }

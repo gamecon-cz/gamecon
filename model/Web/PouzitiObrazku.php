@@ -300,7 +300,6 @@ class PouzitiObrazku
                 'klic'         => MedailonekSql::ID_UZIVATELE,
                 'sloupceTextu' => [
                     MedailonekKeSchvaleni::TABULKA . '.' . MedailonekSql::O_SOBE,
-                    MedailonekKeSchvaleni::TABULKA . '.' . MedailonekSql::DRD,
                 ],
                 'razeni'       => MedailonekKeSchvaleni::TABULKA . '.' . MedailonekSql::ID_UZIVATELE,
                 'popisMista'   => static fn (array $medailonek): array => [

@@ -20,7 +20,6 @@ final class MedailonekVNastaveni
 {
     public const string POST_ULOZIT = 'ulozitMedailonek';
     public const string POST_O_SOBE = 'medailonekOSobe';
-    public const string POST_DRD = 'medailonekDrd';
     /**
      * Medailonek je krátké představení; delší text by na stránce vypravěče a v přehledu nikdo nečetl a limit brání
      * i zneužití jako úložiště (sloupce jsou LONGTEXT, samy nic neomezí)
@@ -105,11 +104,9 @@ final class MedailonekVNastaveni
                 : 'Výchozí obrázek místo fotky',
             'postUlozit' => self::POST_ULOZIT,
             'postOSobe'  => self::POST_O_SOBE,
-            'postDrd'    => self::POST_DRD,
             'maxDelka'   => self::MAX_DELKA_TEXTU,
             // co čeká na schválení, jinak co je na webu
             'oSobe' => htmlspecialchars($cekajici?->oSobe ?? $medailonek?->getOSobeMarkdown() ?? ''),
-            'drd'   => htmlspecialchars($cekajici?->drd ?? $medailonek?->getDrdMarkdown() ?? ''),
         ]);
         $this->parsujStav($template, $keSchvaleni, $medailonek);
         $template->parse($this->maStrankuVypravece()
@@ -120,9 +117,6 @@ final class MedailonekVNastaveni
             $template->parse('medailonek.smazatFotku');
         } else {
             $template->parse('medailonek.nemaFotku');
-        }
-        if ($this->isDrdRelevantni()) {
-            $template->parse('medailonek.drd');
         }
         $template->parse('medailonek');
 
@@ -143,7 +137,7 @@ final class MedailonekVNastaveni
 
             return;
         }
-        if ($keSchvaleni !== null || trim(($medailonek?->getOSobeMarkdown() ?? '') . ($medailonek?->getDrdMarkdown() ?? '')) !== '') {
+        if ($keSchvaleni !== null || trim($medailonek?->getOSobeMarkdown() ?? '') !== '') {
             $template->assign('schvaleno', $keSchvaleni?->schvaleno !== null
                 ? ' ' . $keSchvaleni->schvaleno->format('j. n. Y')
                 : '');
@@ -162,22 +156,21 @@ final class MedailonekVNastaveni
 
     private function ulozText(): void
     {
-        // ukládá jen pole, která formulář poslal: pole DrD ukazuje jen tomu, pro koho je (@see isDrdRelevantni()), a kdo
-        // ho neviděl, nesmí uložením smazat profil, který mu mezitím napsal organizátor v adminu
         $oSobe = $this->textZFormulare(self::POST_O_SOBE);
-        $drd = $this->textZFormulare(self::POST_DRD);
+        if ($oSobe === null) {
+            back($this->getNavrat());
+        }
         $cekajici = $this->getKeSchvaleni()?->isCekajici()
             ? $this->getKeSchvaleni()
             : null;
         // kontroly jen pro text, který vypravěč změnil: organizátor v adminu limity nemá a text, který formulář jen
         // poslal zpátky, prohlížeč nehlídá (maxlength platí jen pro psaní)
-        $zmenenyOSobe = $this->zmenenyText($oSobe, $cekajici?->oSobe ?? $this->getMedailonek()?->getOSobeMarkdown());
-        $zmenenyDrd = $this->zmenenyText($drd, $cekajici?->drd ?? $this->getMedailonek()?->getDrdMarkdown());
-        if (mb_strlen($zmenenyOSobe ?? '') > self::MAX_DELKA_TEXTU || mb_strlen($zmenenyDrd ?? '') > self::MAX_DELKA_TEXTU) {
+        $zmeneny = $this->zmenenyText($oSobe, $cekajici?->oSobe ?? $this->getMedailonek()?->getOSobeMarkdown());
+        if (mb_strlen($zmeneny ?? '') > self::MAX_DELKA_TEXTU) {
             \Chyba::nastav(sprintf('Text medailonku může mít nejvýš %d znaků.', self::MAX_DELKA_TEXTU), \Chyba::CHYBA);
             back($this->getNavrat());
         }
-        if (BezpecneHtml::isPrilisVnoreny($zmenenyOSobe ?? '') || BezpecneHtml::isPrilisVnoreny($zmenenyDrd ?? '')) {
+        if (BezpecneHtml::isPrilisVnoreny($zmeneny ?? '')) {
             \Chyba::nastav(
                 sprintf('Text má citace nebo seznamy v sobě víc než %d úrovní, zjednoduš ho prosím.', BezpecneHtml::MAX_VNORENI),
                 \Chyba::CHYBA,
@@ -185,7 +178,7 @@ final class MedailonekVNastaveni
             back($this->getNavrat());
         }
         // na web text pustí až organizátor, @see MedailonekKeSchvaleni
-        if (MedailonekKeSchvaleni::odesli((int) $this->uzivatel->id(), $oSobe, $drd)) {
+        if (MedailonekKeSchvaleni::odesli((int) $this->uzivatel->id(), $oSobe)) {
             \Chyba::nastav(
                 'Text medailonku je odeslaný ke schválení. Na webu se ukáže, až ho schválí organizátor.',
                 \Chyba::OZNAMENI,
@@ -227,31 +220,6 @@ SQL,
                 0 => $this->uzivatel->id(),
             ],
         );
-    }
-
-    /**
-     * Druhý text medailonku je profil Pána jeskyně pro stránku DrD (widget drd-pj). Ostatním by pole nic neříkalo.
-     */
-    private function isDrdRelevantni(): bool
-    {
-        // i čekající prázdný profil: vypravěč ho smazal a pole musí zůstat, jinak by další uložení smazání zahodilo
-        return ($this->getKeSchvaleni()?->isCekajici() && $this->getKeSchvaleni()->drd !== null)
-            || ($this->getMedailonek()?->getDrdMarkdown() ?? '') !== ''
-            || dbOneCol(<<<'SQL'
-SELECT 1
-FROM akce_organizatori
-JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
-WHERE akce_organizatori.id_uzivatele = $0
-  AND akce_seznam.rok = $1
-  AND akce_seznam.typ = $2
-LIMIT 1
-SQL,
-                [
-                    0 => $this->uzivatel->id(),
-                    1 => $this->rocnik,
-                    2 => TypAktivity::DRD,
-                ],
-            ) !== null;
     }
 
     /**

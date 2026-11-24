@@ -61,11 +61,6 @@
     <label class="medailonekVNastaveni_nadpis" for="medailonekOSobe">O sobě</label>
     <textarea id="medailonekOSobe" class="formular_textarea medailonekVNastaveni_text" name="{postOSobe}" rows="10"
               maxlength="{maxDelka}" placeholder="Co hraješ, co vedeš, čím tě hráči poznají…">{oSobe}</textarea>
-    <!-- begin:drd -->
-    <label class="medailonekVNastaveni_nadpis" for="medailonekDrd">Profil Pána jeskyně pro Mistrovství v DrD</label>
-    <textarea id="medailonekDrd" class="formular_textarea medailonekVNastaveni_text" name="{postDrd}" rows="6"
-              maxlength="{maxDelka}" placeholder=" ">{drd}</textarea>
-    <!-- end:drd -->
     <p class="medailonekVNastaveni_napoveda">
       Text se píše v Markdownu: odstavce odděl prázdným řádkem, <code>**tučně**</code>, <code>*kurzívou*</code>,
       odkaz jako <code>[text](https://…)</code>.

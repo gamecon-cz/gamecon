@@ -32,7 +32,7 @@ final class BezpecneHtml
         'code'       => [],
         'dd'         => [],
         'del'        => [],
-        'div'        => ['class'],
+        'div'        => [],
         'dl'         => [],
         'dt'         => [],
         'em'         => [],
@@ -71,12 +71,6 @@ final class BezpecneHtml
     ];
 
     private const array PRAZDNE_ZNACKY = ['br', 'hr', 'img'];
-
-    /**
-     * Třídy, které texty medailonků používají a web na ně má styl: hodnocení Pána jeskyně v profilu DrD (pruhy z `<hr>`,
-     * web/soubory/blackarrow/_spolecne/medailonek.less). Jiné třídy zmizí, mohly by napodobit prvky stránky.
-     */
-    private const array POVOLENE_TRIDY = ['drdStaty'];
 
     /**
      * Neznámá značka zmizí a její obsah zůstane jako text. U těchhle by zbyl kód nebo obsah formuláře, proto zmizí celé.
@@ -229,14 +223,13 @@ final class BezpecneHtml
     /**
      * Pravidla pro živý náhled v prohlížeči (admin/files/bezpecny-nahled-markdownu.js), ať je jen jedna jejich verze.
      *
-     * @return array{znacky: array<string, list<string>>, prazdne: list<string>, tridy: list<string>, bezObsahu: list<string>, schemataOdkazu: list<string>, schemataObrazku: list<string>, domenaGameconu: string, hostWebu: string, zakladWebu: string, relOdkazuVen: string}
+     * @return array{znacky: array<string, list<string>>, prazdne: list<string>, bezObsahu: list<string>, schemataOdkazu: list<string>, schemataObrazku: list<string>, domenaGameconu: string, hostWebu: string, zakladWebu: string, relOdkazuVen: string}
      */
     public static function getPravidlaProNahled(): array
     {
         return [
             'znacky'          => self::POVOLENE_ZNACKY,
             'prazdne'         => self::PRAZDNE_ZNACKY,
-            'tridy'           => self::POVOLENE_TRIDY,
             'bezObsahu'       => self::ZNACKY_BEZ_OBSAHU,
             'schemataOdkazu'  => self::SCHEMATA_ODKAZU,
             'schemataObrazku' => self::SCHEMATA_OBRAZKU,
@@ -346,8 +339,6 @@ final class BezpecneHtml
             'src'  => self::jePovolenyObrazek($hodnota),
             'width', 'height', 'colspan', 'rowspan', 'start' => preg_match('~^\d{1,4}$~', $hodnota) === 1,
             'align' => in_array($hodnota, ['left', 'right', 'center'], true),
-            'class' => preg_split('~\s+~', trim($hodnota)) !== ['']
-                && array_diff(preg_split('~\s+~', trim($hodnota)) ?: [], self::POVOLENE_TRIDY) === [],
             default => true, // title, alt: text se při výpisu escapuje
         };
     }

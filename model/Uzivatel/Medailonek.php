@@ -11,8 +11,9 @@ use Gamecon\Web\BezpecneHtml;
 /**
  * For Doctrine entity equivalent @see \App\Entity\UserBadge
  *
- * Text medailonku píše organizátor v adminu i vypravěč sám v Nastavení na webu, HTML z něj proto jde jen přes
- * @see BezpecneHtml
+ * Text „o sobě“ píše organizátor v adminu i vypravěč sám v Nastavení na webu, HTML z něj proto jde jen přes
+ * @see BezpecneHtml. Profil Pána jeskyně (`drd`, Mistrovství v DrD skončilo v roce 2025) píše jen organizátor
+ * v adminu, jde přes markdown() jako dřív (hodnocení PJ v něm má `<div class="drdStaty">`, které by čištění zahodilo).
  *
  * @method static array<Medailonek> zVsech()
  */
@@ -42,20 +43,12 @@ class Medailonek extends DbObject
 
     public function drd(): string
     {
-        return BezpecneHtml::zMarkdownu($this->r[MedailonekSqlStruktura::DRD]);
+        return markdown($this->r[MedailonekSqlStruktura::DRD]);
     }
 
     public function oSobe(): string
     {
         return BezpecneHtml::zMarkdownu($this->r[MedailonekSqlStruktura::O_SOBE]);
-    }
-
-    /**
-     * Markdown, jak ho autor napsal
-     */
-    public function getDrdMarkdown(): string
-    {
-        return (string) $this->r[MedailonekSqlStruktura::DRD];
     }
 
     /**

@@ -143,12 +143,12 @@ SQL,
             ),
             sprintf(
                 <<<'SQL'
-INSERT INTO medailonky_ke_schvaleni(id_uzivatele, o_sobe, drd, odeslano)
+INSERT INTO medailonky_ke_schvaleni(id_uzivatele, o_sobe, odeslano)
 VALUES
-    (%1$d, 'Nový text dvou sekcí', NULL, '%2$s'),
-    (%3$d, 'Vedu turnaje v deskovkach!!!', NULL, '%4$s'),
-    (%5$d, 'Nový loňský text', NULL, '%6$s'),
-    (%7$d, 'Nový text workshopů', NULL, '%8$s')
+    (%1$d, 'Nový text dvou sekcí', '%2$s'),
+    (%3$d, 'Vedu turnaje v deskovkach!!!', '%4$s'),
+    (%5$d, 'Nový loňský text', '%6$s'),
+    (%7$d, 'Nový text workshopů', '%8$s')
 SQL,
                 self::ID_VYPRAVECE_DVOU_SEKCI,
                 self::ODESLANO_DVOU_SEKCI,
