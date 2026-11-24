@@ -54,18 +54,6 @@ ui/node_modules
 # is what actually shrinks the image; the resulting vendor/ tree is
 # identical either way. Sorted by size; regenerate by diffing the repo's
 # vendor/ against a built image's.
-vendor/symplify
-vendor/rector
-vendor/phpstan
-vendor/phpunit
-vendor/fakerphp
-vendor/nikic
-vendor/zenstruck
-vendor/sebastian
-vendor/phar-io
-vendor/myclabs
-vendor/cweagans
-vendor/theseer
 
 # Symfony runtime artefacts (rebuilt on first request)
 symfony/var
