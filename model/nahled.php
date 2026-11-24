@@ -110,6 +110,17 @@ class Nahled
     /** Vrátí url obrázku, je možné ji cacheovat navždy */
     public function url(): string
     {
+        // Archiv ročníku (ENV=archive z Dockerfile.archive): náhled, který obrázek nezmenšuje (pasuj() dnes nezmenší nic),
+        // by jen převedl formát. Ostrá to udělá jednou, když obrázek přibude, archiv začíná s prázdnou cache: AVIF
+        // v plné velikosti (linie 12 Mpx, logo 8000 px) se nevejde do 256 MiB kontejneru a stovky obrázků programu
+        // ani do 30 s jednoho požadavku. Obrázek ve webu se proto vydá tak, jak je.
+        if ($this->mod === null && !$this->jpeg && getenv('ENV') === 'archive') {
+            $original = \Gamecon\Web\ZpracovaneObrazky::urlNaWebu($this->soubor);
+            if ($original !== null) {
+                return $original . '?m=' . $this->datum;
+            }
+        }
+
         $format    = $this->getFormat();
         $pripona   = $format === 'JPEG'
             ? 'jpg'
