@@ -111,10 +111,11 @@ SQL,
                 0 => $idUzivatele,
             ],
         );
-        $oSobe = $oSobe === (string) $zverejneny[MedailonekSql::O_SOBE]
+        // zveřejněný text z adminu má konce řádků \r\n, z Nastavení přijde sjednocený
+        $oSobe = $oSobe === null || self::normalizujText((string) $zverejneny[MedailonekSql::O_SOBE]) === self::normalizujText($oSobe)
             ? null
             : $oSobe;
-        $drd = $drd === (string) $zverejneny[MedailonekSql::DRD]
+        $drd = $drd === null || self::normalizujText((string) $zverejneny[MedailonekSql::DRD]) === self::normalizujText($drd)
             ? null
             : $drd;
         if ($oSobe === null && $drd === null) {
@@ -196,6 +197,15 @@ SQL,
             dbRollback();
             throw $chyba;
         }
+    }
+
+    /**
+     * Text tak, jak se porovnává a ukládá: konce řádků \n (textarea posílá \r\n, admin ho tak i ukládá), bez mezer
+     * na okrajích a bez neplatného UTF-8
+     */
+    public static function normalizujText(string $text): string
+    {
+        return trim(str_replace(["\r\n", "\r"], "\n", mb_scrub($text, 'UTF-8')));
     }
 
     public function isCekajici(): bool

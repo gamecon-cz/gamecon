@@ -53,8 +53,10 @@ window.gcBezpecneHtml = function (html, pravidla) {
     var adresa
     switch (atribut) {
       case 'href':
-        adresa = rozeber(hodnota)
-        return adresa !== null && hodnota.trim() !== ''
+        // ověřuje se přesně ta adresa, která se zapíše: `java script:` je bez úpravy relativní cesta, po odstranění
+        // mezer `javascript:`
+        adresa = normalizuj(hodnota) === '' ? null : rozeber(normalizuj(hodnota))
+        return adresa !== null
           && pravidla.schemataOdkazu.indexOf(adresa.protocol.replace(/:$/, '')) !== -1
       case 'src':
         return jePovolenyObrazek(hodnota)
@@ -66,6 +68,10 @@ window.gcBezpecneHtml = function (html, pravidla) {
         return /^\d{1,4}$/.test(hodnota)
       case 'align':
         return ['left', 'right', 'center'].indexOf(hodnota) !== -1
+      case 'class':
+        return hodnota.trim() !== '' && hodnota.trim().split(/\s+/).every(function (trida) {
+          return pravidla.tridy.indexOf(trida) !== -1
+        })
       default:
         return true // title, alt: nastaví se jako text
     }
@@ -110,8 +116,8 @@ window.gcBezpecneHtml = function (html, pravidla) {
         }
       })
       if (znacka === 'a') {
-        var odkaz = rozeber(uzel.getAttribute('href'))
-        if (/^https?:$/.test(odkaz.protocol) && !jeHostGameconu(odkaz.hostname)) {
+        var odkaz = rozeber(normalizuj(uzel.getAttribute('href')))
+        if (odkaz !== null && /^https?:$/.test(odkaz.protocol) && !jeHostGameconu(odkaz.hostname)) {
           prvek.setAttribute('rel', pravidla.relOdkazuVen)
         }
       }

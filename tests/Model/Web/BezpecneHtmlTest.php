@@ -57,6 +57,21 @@ HTML,
         );
     }
 
+    /**
+     * Profily Pánů jeskyně DrD mají hodnocení jako `<div class="drdStaty">` s pruhy z `<hr>`, web na ně má styl.
+     */
+    #[Test]
+    public function hodnoceniPanaJeskyneSiTriduNecha(): void
+    {
+        self::assertSame(
+            '<div class="drdStaty"><div>Akce:</div><div><hr><hr></div></div><div>jiná</div><div>dvě</div>',
+            BezpecneHtml::vycisti(
+                '<div class="drdStaty"><div>Akce:</div><div><hr><hr></div></div><div class="menu">jiná</div>'
+                . '<div class="drdStaty menu">dvě</div>',
+            ),
+        );
+    }
+
     #[Test]
     public function typografickeUvozovkyAEntityZustanouCitelne(): void
     {
@@ -185,6 +200,27 @@ HTML,
             '<img src="soubory/a.png" width="100">',
             BezpecneHtml::vycisti('<img src="soubory/a.png" width="100" height="100%;x" class="velky" id="logo">'),
         );
+    }
+
+    /**
+     * Markdown by na 800 vnořených citacích spotřeboval přes 350 MB, takový text se ukáže jako prostý text.
+     */
+    #[Test]
+    public function prilisVnorenyTextJakoProstyText(): void
+    {
+        $text = str_repeat('>', 800) . " <b>x</b>\nřádek";
+        $pamet = memory_get_usage();
+
+        self::assertTrue(BezpecneHtml::isPrilisVnoreny($text));
+        self::assertSame(
+            '<p>' . str_repeat('&gt;', 800) . " &lt;b&gt;x&lt;/b&gt;<br>\nřádek</p>\n",
+            BezpecneHtml::zMarkdownu($text),
+        );
+        self::assertLessThan(5_000_000, memory_get_peak_usage() - $pamet);
+        // běžné dvě tři úrovně projdou
+        self::assertFalse(BezpecneHtml::isPrilisVnoreny("> citát\n> > odpověď\n- seznam\n  - podseznam\n---"));
+        self::assertFalse(BezpecneHtml::isPrilisVnoreny(str_repeat('> ', BezpecneHtml::MAX_VNORENI) . 'x'));
+        self::assertTrue(BezpecneHtml::isPrilisVnoreny(str_repeat('- ', BezpecneHtml::MAX_VNORENI + 1) . 'x'));
     }
 
     #[Test]

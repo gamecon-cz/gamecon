@@ -6,6 +6,7 @@ namespace Gamecon\Uzivatel;
 
 use Gamecon\Pravo;
 use Gamecon\Web\BezpecneHtml;
+use Gamecon\Web\NahledMarkdownu;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -122,8 +123,9 @@ final class SchvaleniMedailonku
                 'nazev'          => $nazev,
                 'postText'       => $postNazev,
                 'text'           => htmlspecialchars($novyText),
-                'nahled'         => BezpecneHtml::zMarkdownu($novyText),
-                'zverejnenyHtml' => $zverejnenyHtml,
+                // relativní obrázky `soubory/…` by se v adminu (<base href> adminu) načítaly z adminu
+                'nahled'         => NahledMarkdownu::obrazkyNaWebu(BezpecneHtml::zMarkdownu($novyText)),
+                'zverejnenyHtml' => NahledMarkdownu::obrazkyNaWebu((string) $zverejnenyHtml),
             ]);
             $template->parse(trim((string) $zverejnenyHtml) !== ''
                 ? 'schvaleni.text.zverejneny'
@@ -150,7 +152,7 @@ final class SchvaleniMedailonku
         $text = post($pole);
 
         return is_string($text)
-            ? trim(str_replace("\r\n", "\n", mb_scrub($text, 'UTF-8')))
+            ? MedailonekKeSchvaleni::normalizujText($text)
             : '';
     }
 

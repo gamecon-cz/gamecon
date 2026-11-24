@@ -50,6 +50,11 @@ SQL,
 INSERT INTO medailonky(id_uzivatele, o_sobe, drd)
 VALUES (9901, '', 'Profil ![]({$obrazek})')
 SQL,
+            // text, který čeká na schválení, obrázek taky drží; schválený ne, ten už je v medailonkách
+            <<<SQL
+INSERT INTO medailonky_ke_schvaleni(id_uzivatele, o_sobe, drd)
+VALUES (9901, 'Nový text ![]({$obrazek})', NULL)
+SQL,
         ];
     }
 
@@ -118,6 +123,10 @@ SQL,
                     'popis' => 'medailonek Test „test-vypravec“ Vypravěč',
                     'url'   => 'aktivity/medailonky?id=9901',
                 ],
+                [
+                    'popis' => 'medailonek ke schválení Test „test-vypravec“ Vypravěč',
+                    'url'   => 'aktivity/medailonky?id=9901#ke-schvaleni',
+                ],
             ],
             (new PouzitiObrazku())->kdeJePouzity(self::absolutniCesta('obrazek_1.jpg')),
         );
@@ -161,7 +170,7 @@ SQL,
 
         $pouziti = (new PouzitiObrazku())->kdeJsouPouzity($cesty);
 
-        self::assertSame(4, dbNumQ() - $dotazuPred, 'Jeden dotaz na stránky, novinky, aktivity a medailonky');
+        self::assertSame(5, dbNumQ() - $dotazuPred, 'Jeden dotaz na stránky, novinky, aktivity, medailonky a texty ke schválení');
         self::assertSame($cesty, array_keys($pouziti));
         self::assertSame(
             [
@@ -169,6 +178,7 @@ SQL,
                 'blog Testovací blog',
                 'aktivita Testovací aktivita (' . ROCNIK . ')',
                 'medailonek Test „test-vypravec“ Vypravěč',
+                'medailonek ke schválení Test „test-vypravec“ Vypravěč',
             ],
             array_column($pouziti[$cesty[0]], 'popis'),
         );
@@ -187,7 +197,7 @@ SQL,
 
         $odkazy = (new PouzitiObrazku())->odkazyVeSlozkach([$slozka, 'soubory/obsah/' . self::adresar() . '-jina']);
 
-        self::assertSame(4, dbNumQ() - $dotazuPred, 'Jeden dotaz na stránky, novinky, aktivity a medailonky');
+        self::assertSame(5, dbNumQ() - $dotazuPred, 'Jeden dotaz na stránky, novinky, aktivity, medailonky a texty ke schválení');
         ksort($odkazy);
         self::assertSame(
             [
@@ -205,6 +215,7 @@ SQL,
                 'blog Testovací blog',
                 'aktivita Testovací aktivita (' . ROCNIK . ')',
                 'medailonek Test „test-vypravec“ Vypravěč',
+                'medailonek ke schválení Test „test-vypravec“ Vypravěč',
             ],
             array_column($odkazy[$slozka . '/obrazek_1.jpg'], 'popis'),
         );
@@ -427,7 +438,7 @@ SQL,
         } catch (NahravaniObrazkuException $nahravaniObrazkuException) {
             self::assertSame(
                 'Na soubor obrazek_1.jpg odkazuje stránka kontakty-test, blog Testovací blog, aktivita Testovací aktivita ('
-                . ROCNIK . ') a 1 další. Nejdřív prosím odkaz odstraň.',
+                . ROCNIK . ') a 2 další. Nejdřív prosím odkaz odstraň.',
                 $nahravaniObrazkuException->getMessage(),
             );
         }

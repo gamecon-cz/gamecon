@@ -58,7 +58,7 @@
 {fotkaHtml}
 
 <!-- begin:schvaleni -->
-<h2>Text ke schválení</h2>
+<h2 id="ke-schvaleni">Text ke schválení</h2>
 {schvaleniHtml}
 <!-- end:schvaleni -->
 <!-- begin:cekaNaSchvaleni -->

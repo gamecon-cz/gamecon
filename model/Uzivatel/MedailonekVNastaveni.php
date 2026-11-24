@@ -6,6 +6,7 @@ namespace Gamecon\Uzivatel;
 
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Role\Role;
+use Gamecon\Web\BezpecneHtml;
 use Gamecon\Web\FotkaUzivatele;
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\XTemplate\XTemplate;
@@ -168,12 +169,19 @@ final class MedailonekVNastaveni
         $cekajici = $this->getKeSchvaleni()?->isCekajici()
             ? $this->getKeSchvaleni()
             : null;
-        // limit jen pro text, který vypravěč změnil: organizátor v adminu limit nemá a delší text, který formulář jen
+        // kontroly jen pro text, který vypravěč změnil: organizátor v adminu limity nemá a text, který formulář jen
         // poslal zpátky, prohlížeč nehlídá (maxlength platí jen pro psaní)
-        if ($this->isDelsiNezSmi($oSobe, $cekajici?->oSobe ?? $this->getMedailonek()?->getOSobeMarkdown())
-            || $this->isDelsiNezSmi($drd, $cekajici?->drd ?? $this->getMedailonek()?->getDrdMarkdown())
-        ) {
+        $zmenenyOSobe = $this->zmenenyText($oSobe, $cekajici?->oSobe ?? $this->getMedailonek()?->getOSobeMarkdown());
+        $zmenenyDrd = $this->zmenenyText($drd, $cekajici?->drd ?? $this->getMedailonek()?->getDrdMarkdown());
+        if (mb_strlen($zmenenyOSobe ?? '') > self::MAX_DELKA_TEXTU || mb_strlen($zmenenyDrd ?? '') > self::MAX_DELKA_TEXTU) {
             \Chyba::nastav(sprintf('Text medailonku může mít nejvýš %d znaků.', self::MAX_DELKA_TEXTU), \Chyba::CHYBA);
+            back($this->getNavrat());
+        }
+        if (BezpecneHtml::isPrilisVnoreny($zmenenyOSobe ?? '') || BezpecneHtml::isPrilisVnoreny($zmenenyDrd ?? '')) {
+            \Chyba::nastav(
+                sprintf('Text má citace nebo seznamy v sobě víc než %d úrovní, zjednoduš ho prosím.', BezpecneHtml::MAX_VNORENI),
+                \Chyba::CHYBA,
+            );
             back($this->getNavrat());
         }
         // na web text pustí až organizátor, @see MedailonekKeSchvaleni
@@ -189,22 +197,25 @@ final class MedailonekVNastaveni
     }
 
     /**
-     * @return string|null null, když formulář pole neposlal
+     * @return string|null text, když se od původního liší; původní z adminu může mít jiné konce řádků
      */
-    private function isDelsiNezSmi(?string $text, ?string $puvodni): bool
+    private function zmenenyText(?string $text, ?string $puvodni): ?string
     {
-        return $text !== null && $text !== $puvodni && mb_strlen($text) > self::MAX_DELKA_TEXTU;
+        return $text === null || $text === MedailonekKeSchvaleni::normalizujText((string) $puvodni)
+            ? null
+            : $text;
     }
 
+    /**
+     * @return string|null null, když formulář pole neposlal
+     */
     private function textZFormulare(string $pole): ?string
     {
         $text = post($pole);
-        if (! is_string($text)) {
-            return null;
-        }
 
-        // textarea posílá konce řádků jako \r\n, admin je ukládá taky tak, Markdownu je to jedno
-        return trim(str_replace("\r\n", "\n", mb_scrub($text, 'UTF-8')));
+        return is_string($text)
+            ? MedailonekKeSchvaleni::normalizujText($text)
+            : null;
     }
 
     private function zalozMedailonek(): void
@@ -223,7 +234,9 @@ SQL,
      */
     private function isDrdRelevantni(): bool
     {
-        return ($this->getKeSchvaleni()?->drd ?? $this->getMedailonek()?->getDrdMarkdown() ?? '') !== ''
+        // i čekající prázdný profil: vypravěč ho smazal a pole musí zůstat, jinak by další uložení smazání zahodilo
+        return ($this->getKeSchvaleni()?->isCekajici() && $this->getKeSchvaleni()->drd !== null)
+            || ($this->getMedailonek()?->getDrdMarkdown() ?? '') !== ''
             || dbOneCol(<<<'SQL'
 SELECT 1
 FROM akce_organizatori

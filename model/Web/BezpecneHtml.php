@@ -32,7 +32,7 @@ final class BezpecneHtml
         'code'       => [],
         'dd'         => [],
         'del'        => [],
-        'div'        => [],
+        'div'        => ['class'],
         'dl'         => [],
         'dt'         => [],
         'em'         => [],
@@ -73,6 +73,12 @@ final class BezpecneHtml
     private const array PRAZDNE_ZNACKY = ['br', 'hr', 'img'];
 
     /**
+     * Třídy, které texty medailonků používají a web na ně má styl: hodnocení Pána jeskyně v profilu DrD (pruhy z `<hr>`,
+     * web/soubory/blackarrow/_spolecne/medailonek.less). Jiné třídy zmizí, mohly by napodobit prvky stránky.
+     */
+    private const array POVOLENE_TRIDY = ['drdStaty'];
+
+    /**
      * Neznámá značka zmizí a její obsah zůstane jako text. U těchhle by zbyl kód nebo obsah formuláře, proto zmizí celé.
      */
     private const array ZNACKY_BEZ_OBSAHU = [
@@ -95,6 +101,11 @@ final class BezpecneHtml
     private const int VERZE_KODU = 1;
 
     /**
+     * Nejvíc citací a seznamů v sobě, @see isPrilisVnoreny(); v medailonku stačí dvě tři úrovně
+     */
+    public const int MAX_VNORENI = 20;
+
+    /**
      * Odkaz ven z textu, který píše uživatel: vyhledávače mu nemají věřit jako odkazu od GameConu
      */
     private const string REL_ODKAZU_VEN = 'nofollow ugc';
@@ -110,6 +121,10 @@ final class BezpecneHtml
     {
         if ($markdown === null || trim($markdown) === '') {
             return '';
+        }
+        if (self::isPrilisVnoreny($markdown)) {
+            // Markdown by na tom spotřeboval stovky MB a stránku shodil, ukáže se jako prostý text
+            return '<p>' . str_replace("\n", "<br>\n", self::escapuj(trim(str_replace("\r\n", "\n", $markdown)))) . "</p>\n";
         }
         $adresarKese = SPEC . '/bezpecne-html/' . self::getOtiskPravidel();
         $soubor = $adresarKese . '/' . hash('sha256', $markdown) . '.html';
@@ -149,15 +164,79 @@ final class BezpecneHtml
     }
 
     /**
+     * Má text na začátku některého řádku víc než @see MAX_VNORENI citací (`>`) nebo značek seznamu? Paměť Markdownu
+     * roste s hloubkou citací víc než kvadraticky: 800 úrovní (800 znaků) zabere přes 350 MB. Seznamy rostou pomaleji,
+     * hlídají se pro jistotu taky. Text, který vypravěč posílá, se proto odmítne, a kdyby se přesto dostal do databáze,
+     * vykreslí se jako prostý text.
+     */
+    public static function isPrilisVnoreny(string $markdown): bool
+    {
+        // po znacích, ne regulárním výrazem: opakovaná skupina na dlouhém začátku řádku narazí na limit PCRE
+        // a preg_match vrátí chybu, kontrola by se tak dala obejít
+        foreach (preg_split('~\R~', $markdown) ?: [] as $radek) {
+            if (self::hloubkaNaZacatkuRadku($radek) > self::MAX_VNORENI) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Kolik citací (`>`) a značek seznamu (`-`, `*`, `+`, `1.`, `1)` s mezerou za sebou) je na začátku řádku
+     */
+    private static function hloubkaNaZacatkuRadku(string $radek): int
+    {
+        $hloubka = 0;
+        $delka = strlen($radek);
+        $pozice = 0;
+        while ($pozice < $delka) {
+            $znak = $radek[$pozice];
+            if ($znak === ' ' || $znak === "\t") {
+                ++$pozice;
+            } elseif ($znak === '>') {
+                ++$hloubka;
+                ++$pozice;
+            } elseif (str_contains('-*+', $znak) && self::jeMezera($radek, $pozice + 1)) {
+                ++$hloubka;
+                $pozice += 2;
+            } elseif (ctype_digit($znak)) {
+                $konecCisla = $pozice;
+                while ($konecCisla < $delka && ctype_digit($radek[$konecCisla])) {
+                    ++$konecCisla;
+                }
+                if ($konecCisla - $pozice > 9
+                    || ! in_array($radek[$konecCisla] ?? '', ['.', ')'], true)
+                    || ! self::jeMezera($radek, $konecCisla + 1)
+                ) {
+                    break;
+                }
+                ++$hloubka;
+                $pozice = $konecCisla + 2;
+            } else {
+                break;
+            }
+        }
+
+        return $hloubka;
+    }
+
+    private static function jeMezera(string $text, int $pozice): bool
+    {
+        return in_array($text[$pozice] ?? '', [' ', "\t"], true);
+    }
+
+    /**
      * Pravidla pro živý náhled v prohlížeči (admin/files/bezpecny-nahled-markdownu.js), ať je jen jedna jejich verze.
      *
-     * @return array{znacky: array<string, list<string>>, prazdne: list<string>, bezObsahu: list<string>, schemataOdkazu: list<string>, schemataObrazku: list<string>, domenaGameconu: string, hostWebu: string, zakladWebu: string, relOdkazuVen: string}
+     * @return array{znacky: array<string, list<string>>, prazdne: list<string>, tridy: list<string>, bezObsahu: list<string>, schemataOdkazu: list<string>, schemataObrazku: list<string>, domenaGameconu: string, hostWebu: string, zakladWebu: string, relOdkazuVen: string}
      */
     public static function getPravidlaProNahled(): array
     {
         return [
             'znacky'          => self::POVOLENE_ZNACKY,
             'prazdne'         => self::PRAZDNE_ZNACKY,
+            'tridy'           => self::POVOLENE_TRIDY,
             'bezObsahu'       => self::ZNACKY_BEZ_OBSAHU,
             'schemataOdkazu'  => self::SCHEMATA_ODKAZU,
             'schemataObrazku' => self::SCHEMATA_OBRAZKU,
@@ -267,6 +346,8 @@ final class BezpecneHtml
             'src'  => self::jePovolenyObrazek($hodnota),
             'width', 'height', 'colspan', 'rowspan', 'start' => preg_match('~^\d{1,4}$~', $hodnota) === 1,
             'align' => in_array($hodnota, ['left', 'right', 'center'], true),
+            'class' => preg_split('~\s+~', trim($hodnota)) !== ['']
+                && array_diff(preg_split('~\s+~', trim($hodnota)) ?: [], self::POVOLENE_TRIDY) === [],
             default => true, // title, alt: text se při výpisu escapuje
         };
     }
