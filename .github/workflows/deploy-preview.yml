@@ -6,6 +6,11 @@ on:
         branches-ignore:
             - main
             - beta
+            # Year archives deploy through deploy-year-archive.yml. A preview of
+            # archive/2026 has slug archive-2026, whose Caddy file
+            # (conf.d/archive-2026.conf) is the archive's own, so it overwrote the
+            # block of 2026.gamecon.cz on 2026-11-24.
+            - 'archive/**'
     # Teardown lives in teardown-preview.yml — that workflow owns the
     # `pull_request: closed` and `delete` triggers. Keep them out of here:
     # two workflows reacting to the same event would each SSH to the host
