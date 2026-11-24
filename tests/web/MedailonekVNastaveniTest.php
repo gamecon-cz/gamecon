@@ -11,6 +11,7 @@ use Gamecon\Role\Role;
 use Gamecon\Tests\Model\Web\TestovaciObrazky;
 use Gamecon\Uzivatel\MedailonekVNastaveni;
 use Gamecon\Uzivatel\SchvaleniMedailonku;
+use Gamecon\Web\BezpecneHtml;
 use Gamecon\Web\FotkaUzivatele;
 use Gamecon\Web\NahravaniObrazku;
 use Gamecon\Web\ZpracovaneObrazky;
@@ -229,13 +230,13 @@ SQL, [
 
         $odpoved = $this->odesliZNastaveni($relace, [
             MedailonekVNastaveni::POST_ULOZIT => 1,
-            MedailonekVNastaveni::POST_O_SOBE => 'O mně',
+            MedailonekVNastaveni::POST_O_SOBE => 'O mně ![](soubory/obsah/mapa.png)',
             MedailonekVNastaveni::POST_DRD    => 'Vedu družiny od roku 2010.',
         ]);
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertSame(
             [
-                'o_sobe'    => 'O mně',
+                'o_sobe'    => 'O mně ![](soubory/obsah/mapa.png)',
                 'drd'       => 'Vedu družiny od roku 2010.',
                 'schvaleno' => null,
             ],
@@ -247,6 +248,8 @@ SQL, [
         $organizator = $this->prihlas(\Uzivatel::SYSTEM_LOGIN);
         $detail = $this->stahni($organizator, 'aktivity/medailonky?id=' . self::ID_PANA_JESKYNE);
         self::assertStringContainsString('Text ke schválení', $detail);
+        // obrázek z textu v náhledu z webu, ne z adminu (<base href> adminu)
+        self::assertStringContainsString('src="' . URL_WEBU . '/soubory/obsah/mapa.png"', $detail);
         self::assertStringContainsString('name="' . SchvaleniMedailonku::POST_DRD . '"', $detail);
         self::assertStringContainsString('⏳', $this->stahni($organizator, 'aktivity/medailonky'));
 
@@ -402,6 +405,65 @@ SQL, [
         ]);
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertNull($this->medailonek(self::ID_BRIGADNIKA));
+    }
+
+    /**
+     * Text z adminu má konce řádků \r\n, z formuláře přijde sjednocený: beze změny nic nečeká na schválení. Smazaný
+     * profil DrD, který čeká, nechá pole DrD vidět, jinak by další uložení smazání zahodilo. Příliš vnořený text
+     * se neodešle, Markdown by na něm spotřeboval stovky MB.
+     *
+     * @test
+     */
+    public function konceRadkuSmazanyProfilAVnoreni(): void
+    {
+        dbQuery(<<<'SQL'
+INSERT INTO medailonky(id_uzivatele, o_sobe, drd) VALUES ($0, $1, 'Profil')
+ON DUPLICATE KEY UPDATE o_sobe = $1, drd = 'Profil'
+SQL, [
+            0 => self::ID_VYPRAVECE_V_PRIPRAVE,
+            1 => "Řádek jedna\r\n\r\nŘádek dva",
+        ]);
+        $relace = $this->prihlas('test-medailonek-priprava');
+        // vede jen RPG, pole DrD vidí kvůli profilu
+        self::assertStringContainsString('name="' . MedailonekVNastaveni::POST_DRD . '"', $this->nastaveni($relace));
+
+        self::assertSame(303, $this->odesliZNastaveni($relace, [
+            MedailonekVNastaveni::POST_ULOZIT => 1,
+            MedailonekVNastaveni::POST_O_SOBE => "Řádek jedna\r\n\r\nŘádek dva\r\n",
+            MedailonekVNastaveni::POST_DRD    => 'Profil',
+        ])['kod']);
+        self::assertNull($this->keSchvaleni(self::ID_VYPRAVECE_V_PRIPRAVE));
+        self::assertStringContainsString('Text je stejný jako na webu', $this->nastaveni($relace));
+
+        self::assertSame(303, $this->odesliZNastaveni($relace, [
+            MedailonekVNastaveni::POST_ULOZIT => 1,
+            MedailonekVNastaveni::POST_O_SOBE => "Řádek jedna\r\n\r\nŘádek dva",
+            MedailonekVNastaveni::POST_DRD    => '',
+        ])['kod']);
+        self::assertSame(
+            [
+                'o_sobe'    => null,
+                'drd'       => '',
+                'schvaleno' => null,
+            ],
+            $this->keSchvaleni(self::ID_VYPRAVECE_V_PRIPRAVE),
+        );
+        self::assertStringContainsString('name="' . MedailonekVNastaveni::POST_DRD . '"', $this->nastaveni($relace));
+
+        self::assertSame(303, $this->odesliZNastaveni($relace, [
+            MedailonekVNastaveni::POST_ULOZIT => 1,
+            MedailonekVNastaveni::POST_O_SOBE => str_repeat('>', 30) . ' citát',
+            MedailonekVNastaveni::POST_DRD    => '',
+        ])['kod']);
+        self::assertStringContainsString('víc než ' . BezpecneHtml::MAX_VNORENI . ' úrovní', $this->nastaveni($relace));
+        self::assertSame(
+            [
+                'o_sobe'    => null,
+                'drd'       => '',
+                'schvaleno' => null,
+            ],
+            $this->keSchvaleni(self::ID_VYPRAVECE_V_PRIPRAVE),
+        );
     }
 
     /**

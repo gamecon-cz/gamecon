@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Gamecon\Web;
 
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as AkceSql;
+use Gamecon\Uzivatel\MedailonekKeSchvaleni;
 use Gamecon\Uzivatel\SqlStruktura\MedailonekSqlStruktura as MedailonekSql;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 
 /**
  * Hledá, které texty webu odkazují na soubor: stránky, novinky a blog, popisy aktivit (všech ročníků)
- * a medailonky. Hledá cestu vůči kořeni webu (`soubory/obsah/...`), takže najde relativní
+ * a medailonky (i texty, které čekají na schválení). Hledá cestu vůči kořeni webu (`soubory/obsah/...`), takže najde relativní
  * i absolutní odkazy, i s procentovým kódováním. Šablony a kód neprohledává, jen zná
  * @see self::ODKAZY_Z_KODU
  */
@@ -277,13 +278,48 @@ class PouzitiObrazku
                     'url'   => 'aktivity/medailonky?id=' . $medailonek[MedailonekSql::ID_UZIVATELE],
                 ],
             ],
+            // text, který čeká na schválení: po schválení půjde na web, obrázek z něj nesmí zmizet
+            [
+                'sloupce'      => sprintf(
+                    '%1$s.%2$s, %3$s.%4$s, %3$s.%5$s, %3$s.%6$s',
+                    MedailonekKeSchvaleni::TABULKA,
+                    MedailonekSql::ID_UZIVATELE,
+                    UzivatelSql::UZIVATELE_HODNOTY_TABULKA,
+                    UzivatelSql::LOGIN_UZIVATELE,
+                    UzivatelSql::JMENO_UZIVATELE,
+                    UzivatelSql::PRIJMENI_UZIVATELE,
+                ),
+                // schválený už je v medailonkách
+                'zdroj'        => sprintf(
+                    '%1$s INNER JOIN %2$s ON %2$s.%3$s = %1$s.%3$s AND %1$s.schvaleno IS NULL',
+                    MedailonekKeSchvaleni::TABULKA,
+                    UzivatelSql::UZIVATELE_HODNOTY_TABULKA,
+                    MedailonekSql::ID_UZIVATELE,
+                ),
+                'tabulka'      => MedailonekKeSchvaleni::TABULKA,
+                'klic'         => MedailonekSql::ID_UZIVATELE,
+                'sloupceTextu' => [
+                    MedailonekKeSchvaleni::TABULKA . '.' . MedailonekSql::O_SOBE,
+                    MedailonekKeSchvaleni::TABULKA . '.' . MedailonekSql::DRD,
+                ],
+                'razeni'       => MedailonekKeSchvaleni::TABULKA . '.' . MedailonekSql::ID_UZIVATELE,
+                'popisMista'   => static fn (array $medailonek): array => [
+                    'popis' => 'medailonek ke schválení ' . \Uzivatel::jmenoNickZjisti($medailonek),
+                    // jiná adresa než medailonek, výpis odkazů je podle adres slučuje
+                    'url'   => 'aktivity/medailonky?id=' . $medailonek[MedailonekSql::ID_UZIVATELE] . '#ke-schvaleni',
+                ],
+            ],
         ];
 
         return $this->vcetneMedailonku
             ? $zdroje
             : array_values(array_filter(
                 $zdroje,
-                static fn (array $zdroj): bool => $zdroj['tabulka'] !== MedailonekSql::MEDAILONKY_TABULKA,
+                static fn (array $zdroj): bool => ! in_array(
+                    $zdroj['tabulka'],
+                    [MedailonekSql::MEDAILONKY_TABULKA, MedailonekKeSchvaleni::TABULKA],
+                    true,
+                ),
             ));
     }
 
