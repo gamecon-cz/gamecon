@@ -42,8 +42,8 @@ final class FotkaKostymu
     {
         try {
             return \Nahled::zeSouboru($this->getCesta())->pokryjOrez($sirka, $vyska)->url();
-        } catch (\Exception) {
-            return $this->getUrl();
+        } catch (\Exception $chyba) {
+            return $this->getUrlPoChybeNahledu($chyba);
         }
     }
 
@@ -56,8 +56,20 @@ final class FotkaKostymu
     {
         try {
             return \Nahled::zeSouboru($this->getCesta())->pokryjOrez($sirka, $vyska)->jakoJpeg()->url();
-        } catch (\Exception) {
-            return $this->getUrl();
+        } catch (\Exception $chyba) {
+            return $this->getUrlPoChybeNahledu($chyba);
         }
+    }
+
+    /**
+     * Stránka s původním souborem funguje dál, příčina (třeba nezapisovatelná cache náhledů) ale patří do logu,
+     * jinak by web potichu posílal fotky v plné velikosti. Do logu PHP, ne do výjimkovače: katalog by tam s každým
+     * načtením přidal řádek za každou fotku.
+     */
+    private function getUrlPoChybeNahledu(\Exception $chyba): string
+    {
+        error_log(sprintf('Náhled fotky kostýmu %s nejde vytvořit, web dá původní soubor: %s', $this->soubor, $chyba->getMessage()));
+
+        return $this->getUrl();
     }
 }

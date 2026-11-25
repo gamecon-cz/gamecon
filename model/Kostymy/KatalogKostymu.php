@@ -146,10 +146,15 @@ SQL, [$idKostymu]);
         // všechny fotky jedním průchodem textů webu
         foreach ($this->nahravaniFotek()->kdeJsouPouzity($souboryFotek) as $soubor => $pouziti) {
             if ($pouziti !== []) {
+                // odkaz bez adresy do administrace je v kódu webu, jako v NahravaniObrazku::overZeNeniPouzity()
+                $jeVKodu = in_array('', array_column($pouziti, 'url'), true);
                 throw new ChybaPujcovny(sprintf(
-                    'Na fotku kostýmu %s odkazuje %s. Nejdřív prosím odkaz odstraň.',
+                    'Na fotku kostýmu %s odkazuje %s. %s',
                     basename($soubor),
                     PouzitiObrazku::popis($pouziti),
+                    $jeVKodu
+                        ? 'Odkaz je v kódu webu, smazat ho jde jen jeho úpravou.'
+                        : 'Nejdřív prosím odkaz odstraň.',
                 ));
             }
         }
