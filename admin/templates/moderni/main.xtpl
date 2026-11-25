@@ -50,7 +50,7 @@
   {jsVyjimkovac}
   <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
   <script type="text/javascript" src="files/jquery-ui-timepicker-addon-1.6.3.min.js"></script>
-  <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
+  <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js?version=929ae19029950cb42c525331838d9fbf"></script>
   <script type="text/javascript" src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
   <script type="text/javascript" src="files/jquery.cookie-v1.4.1.js"></script>
   <script type="text/javascript" src="files/aplikace.js?version={jsVersions.aplikace}"></script>

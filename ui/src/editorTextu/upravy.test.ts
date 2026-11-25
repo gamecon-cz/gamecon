@@ -99,7 +99,10 @@ describe('předpony řádků', () => {
   it('když ji mají jen některé, přidá ji ostatním a čísla zamění za odrážky a naopak', () => {
     expect(jenText(prepniPredponuRadku(ODRAZKY), '⟨1. a\n2. b⟩')).toBe('- a\n- b')
     expect(jenText(prepniPredponuRadku(CISLOVANY_SEZNAM), '⟨- a\n- b⟩')).toBe('1. a\n2. b')
-    expect(jenText(prepniPredponuRadku(CITACE), '⟨> a\nb⟩')).toBe('> > a\n> b')
+    expect(jenText(prepniPredponuRadku(CITACE), '⟨> a\nb⟩')).toBe('> a\n> b')
+    expect(jenText(prepniPredponuRadku(ODRAZKY), '⟨- a\nb⟩')).toBe('- a\n- b')
+    expect(jenText(prepniPredponuRadku(NADPIS), '⟨## Titul\ntext⟩')).toBe('## Titul\n## text')
+    expect(jenText(prepniPredponuRadku(CISLOVANY_SEZNAM), '⟨1. a\nb⟩')).toBe('1. a\n2. b')
   })
 
   it('nadpis přidá na řádek s kurzorem a odebere jakoukoli úroveň', () => {

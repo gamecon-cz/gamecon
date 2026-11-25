@@ -144,6 +144,8 @@ export const vytvorEditor = (pole: HTMLTextAreaElement, nastaveni: NastaveniEdit
 
   let poradiNahravani = 0;
   let fronta: Promise<void> = Promise.resolve();
+  /** vložení obrázků, která ještě nejsou v textu */
+  let nahravaSe = 0;
 
   const vlozObrazky = (view: EditorView, soubory: Soubory, pozice: number | null, zeSchranky: boolean): void => {
     if (nastaveni.obrazky === null) {
@@ -169,6 +171,7 @@ export const vytvorEditor = (pole: HTMLTextAreaElement, nastaveni: NastaveniEdit
       scrollIntoView: true,
       userEvent: "input.paste",
     });
+    nahravaSe++;
     // obrázky se nahrávají po jednom: dva se stejným názvem naráz by si vzaly stejný volný název
     fronta = fronta.then(async () => {
       const zapisy: string[] = [];
@@ -186,6 +189,8 @@ export const vytvorEditor = (pole: HTMLTextAreaElement, nastaveni: NastaveniEdit
           chyby.push(`${nazev} se nenahrál: ${zpravaChyby(chyba)}`);
         }
       }
+      // před vložením, ať počítadlo neuvízne, kdyby vložení selhalo; uložit mezi nimi nejde, běží za sebou
+      nahravaSe--;
       view.dispatch(vlozNaMisto(view.state, id, zapisy.join("\n")));
       if (chyby.length > 0) {
         stav.chyba(chyby.join(" "));
@@ -317,6 +322,15 @@ export const vytvorEditor = (pole: HTMLTextAreaElement, nastaveni: NastaveniEdit
   view.dom.addEventListener("submit", (udalost) => {
     udalost.stopPropagation();
   });
+  // nahrávané obrázky v textu ještě nejsou (jen značka „Nahrávám…“) a stránka se po uložení načte znovu: uložení
+  // (Ctrl+S i tlačítkem) by je z textu vypustilo. Zachytí se cestou k formuláři, dřív než ho odešle db-form.xtpl.
+  pole.ownerDocument.addEventListener("submit", (udalost) => {
+    if (nahravaSe > 0 && udalost.target === pole.form) {
+      udalost.preventDefault();
+      udalost.stopPropagation();
+      stav.chyba("Počkej, až se obrázky nahrají, jinak by se text uložil bez nich.");
+    }
+  }, { capture: true });
   pole.parentElement?.insertBefore(view.dom, pole);
   pole.parentElement?.append(vyberSouboru);
   pole.hidden = true;
