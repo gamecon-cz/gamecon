@@ -94,12 +94,16 @@ SQL;
         try {
             $this->zamkniKostymKRezervaci($idKostymu);
             $this->zamkniPrihlasku($aktivita, $ucastnik, $rezervujici);
-            $stavajici = $this->rezervaceUcastnika($aktivita->id(), $ucastnik->id(), zamknout: true);
-
+            // Tentýž kostým znovu se pozná bez zámku rezervace: výdej drží rezervaci a čeká na její kostým, který
+            // tady už je zamčený, takže by se zablokovaly. Kostým rezervace mění jen ten, kdo drží zámek přihlášky.
+            $stavajici = $this->rezervaceUcastnika($aktivita->id(), $ucastnik->id());
             if ($stavajici?->getIdKostymu() === $idKostymu) {
                 dbCommit();
 
                 return VysledekRezervaceKostymuEnum::BEZE_ZMENY;
+            }
+            if ($stavajici !== null) {
+                $stavajici = $this->rezervaceUcastnika($aktivita->id(), $ucastnik->id(), zamknout: true);
             }
             if ($stavajici !== null) {
                 if (! $jakoSpravce) {

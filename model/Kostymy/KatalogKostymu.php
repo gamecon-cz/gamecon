@@ -146,7 +146,8 @@ SQL, [$idKostymu]);
         // všechny fotky jedním průchodem textů webu
         foreach ($this->nahravaniFotek()->kdeJsouPouzity($souboryFotek) as $soubor => $pouziti) {
             if ($pouziti !== []) {
-                // odkaz bez adresy do administrace je v kódu webu, jako v NahravaniObrazku::overZeNeniPouzity()
+                // Odkaz bez adresy do administrace je v kódu webu, jako v NahravaniObrazku::overZeNeniPouzity(). Na fotky
+                // kostýmů dnes kód webu neodkazuje (PouzitiObrazku::ODKAZY_Z_KODU), hláška je pro případ, že začne.
                 $jeVKodu = in_array('', array_column($pouziti, 'url'), true);
                 throw new ChybaPujcovny(sprintf(
                     'Na fotku kostýmu %s odkazuje %s. %s',

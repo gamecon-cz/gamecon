@@ -64,11 +64,14 @@ final class FotkaKostymu
     /**
      * Stránka s původním souborem funguje dál, příčina (třeba nezapisovatelná cache náhledů) ale patří do logu,
      * jinak by web potichu posílal fotky v plné velikosti. Do logu PHP, ne do výjimkovače: katalog by tam s každým
-     * načtením přidal řádek za každou fotku.
+     * načtením přidal řádek za každou fotku. Chybějící soubor se nehlásí: na betě a preview s databází z ostré fotky
+     * v databázi jsou, soubory ne, a log by zaplavily.
      */
     private function getUrlPoChybeNahledu(\Exception $chyba): string
     {
-        error_log(sprintf('Náhled fotky kostýmu %s nejde vytvořit, web dá původní soubor: %s', $this->soubor, $chyba->getMessage()));
+        if (is_file($this->getCesta())) {
+            error_log(sprintf('Náhled fotky kostýmu %s nejde vytvořit, web dá původní soubor: %s', $this->soubor, $chyba->getMessage()));
+        }
 
         return $this->getUrl();
     }
