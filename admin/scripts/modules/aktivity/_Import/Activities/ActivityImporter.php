@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Gamecon\Admin\Modules\Aktivity\Import\Activities;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\HlavniLokace;
+use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Vyjimkovac\Logovac;
@@ -128,8 +130,7 @@ readonly class ActivityImporter
                 markdownPopis: $longAnnotation,
                 organizatoriIds: $storytellersIds,
                 lokaceIds: $locationIds,
-                hlavniLokaceId: reset($locationIds)
-                    ?: null,
+                hlavniLokaceId: $this->getChosenMainLocationId($locationIds),
                 tagIds: $tagIds,
                 systemoveNastaveni: $this->systemoveNastaveni,
             );
@@ -147,6 +148,25 @@ readonly class ActivityImporter
                 ),
             );
         }
+    }
+
+    /**
+     * The file knows no "automatic" main room: the main room is the first room in the cell, and the export writes it
+     * first. When it is the room the automatic rule picks anyway, it is saved as automatic (null), so an export and
+     * a re-import do not turn an automatic main room into a chosen one, @see HlavniLokace
+     * @param array<int> $locationIds in the order of the cell
+     */
+    private function getChosenMainLocationId(array $locationIds): ?int
+    {
+        $firstLocationId = reset($locationIds);
+        if ($firstLocationId === false) {
+            return null;
+        }
+        $automaticMainLocation = HlavniLokace::vyber(Lokace::zIds(array_values($locationIds)), null);
+
+        return $automaticMainLocation?->id() === (int)$firstLocationId
+            ? null
+            : (int)$firstLocationId;
     }
 
     private function findParentActivityId(

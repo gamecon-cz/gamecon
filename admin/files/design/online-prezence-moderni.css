@@ -655,4 +655,10 @@ body.vzhled-moderni {
   .moderni-tmave .vzhled-moderni .kontakty-zamcene-pruh {
     color: var(--m-text-tlumeny);
   }
+
+  /* Ikona náhradníka je černá silueta, na tmavé ploše by zmizela. Inverze z ní udělá světlou v odstínu textu.
+     Ikona v legendě (tooltip) třídu nemá, má vlastní světlý podklad a zůstává černá. */
+  .moderni-tmave .vzhled-moderni .ikona-nahradnika {
+    filter: invert(0.9);
+  }
 }

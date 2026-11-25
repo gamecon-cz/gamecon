@@ -21,7 +21,7 @@ if (!defined('ROCNIK')) {
     $rocnikOverride     = is_readable($rocnikOverrideFile)
         ? (int)trim((string)file_get_contents($rocnikOverrideFile))
         : null;
-    define('ROCNIK', $rocnikOverride ?: 2025);
+    define('ROCNIK', $rocnikOverride ?: 2027);
 }
 
 /**

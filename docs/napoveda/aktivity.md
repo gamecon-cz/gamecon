@@ -44,7 +44,7 @@ Kromě ručního tlačítka se připravené aktivity aktivují i **automaticky v
 Novou aktivitu založíš na podstránce **Nová aktivita**, existující upravíš tužkou z přehledu. Formulář má tato pole (pole označená ¹ jsou *specifická pro instanci* — u rodiny instancí je má každý termín vlastní):
 
 - **Název** (povinný) a **URL** — adresa na webu, ideálně malá písmena a pomlčky. URL musí být v ročníku jedinečná; stejnou URL smí sdílet jen instance téže aktivity (pro duplikaci použij „inst" v přehledu).
-- **Místnosti¹** — aktivita může být ve více místnostech; volitelně jednu označ jako **hlavní místnost¹**.
+- **Místnosti¹** — aktivita může být ve více místnostech; v seznamu můžeš hledat psaním do políčka „Hledej místnost". Volitelně jednu z vybraných označ jako **hlavní místnost¹** (nabídka ukazuje jen vybrané místnosti). Výchozí je „automaticky: …": hlavní je ta z vybraných místností, která je první podle pořadí místností, a to i když místnosti později změníš. Zvolená hlavní místnost platí, dokud ji z místností neodebereš, pak se vrátí na „automaticky". Hlavní místnost se uvádí jako první (program, export); záleží na ní hlavně u aktivity se záložní místností, třeba když se hraje venku.
 - **Den¹** a **Čas¹** (od–do). Konec musí být po začátku.
 - **Vypravěč¹** — jeden nebo více. Pokud má vypravěč v tu dobu jinou aktivitu, uložení skončí chybou s názvem kolizní aktivity.
 - **Typ** (programová linie) a zaškrtávátko **teamová** — u týmové aktivity si první přihlášený sestavuje tým.
@@ -81,7 +81,7 @@ Podstránka **Štítky** vypisuje všechny štítky (tagy) seskupené po kategor
 
 ### Místnosti
 
-Podstránka **Místnosti** spravuje seznam místností: **Pořadí** (šipkami ▲▼ — určuje řazení v programu), **Název**, **Dveře** (číslo dveří) a **Poznámka** (slouží i jako kategorie pro seskupení místností v editoru aktivity). Tlačítko **vytvořit další místnost** přidá novou, **uprav** → **ulož** změní existující. Aktivitám místnosti přiřazuješ v editaci aktivity.
+Podstránka **Místnosti** spravuje seznam místností: **Pořadí** (šipkami ▲▼ — určuje řazení v programu a také to, která místnost je hlavní u aktivity s hlavní místností „automaticky"), **Název**, **Dveře** (číslo dveří) a **Poznámka** (slouží i jako kategorie pro seskupení místností v editoru aktivity). Tlačítko **vytvořit další místnost** přidá novou, **uprav** → **ulož** změní existující. Aktivitám místnosti přiřazuješ v editaci aktivity.
 
 ### Týmy
 
@@ -109,7 +109,7 @@ Postup: vyber programovou linii (a případně rok) → **Exportovat aktivity** 
 - **Nová aktivita**: smaž ID (řádek bez ID se založí jako nová); jméno je povinné, pokud nejde o instanci.
 - **Nová instance**: musí mít stejné URL jako mateřská aktivita.
 - **Úprava stávající**: ponech původní ID — co na řádku přepíšeš, to se importem změní.
-- Vypravěče zadávej jako ID, jméno, nick nebo e-mail — ale nové vypravěče naklikej do adminu **před** importem, jinak je import vynechá. Přehled vypravěčů, štítků a místností je v exportu na dalších kartách. Štítky jde psát bez ohledu na velikost písmen a diakritiku, stavy stačí zkrátit na první tři písmena (PUB…).
+- Vypravěče zadávej jako ID, jméno, nick nebo e-mail — ale nové vypravěče naklikej do adminu **před** importem, jinak je import vynechá. Přehled vypravěčů, štítků a místností je v exportu na dalších kartách. Víc místností odděl středníkem; hlavní je ta první (export ji tak i zapisuje). Když je první ta, kterou by vybralo „automaticky", uloží se hlavní místnost jako automatická. Štítky jde psát bez ohledu na velikost písmen a diakritiku, stavy stačí zkrátit na první tři písmena (PUB…).
 - Po importu čti barevný výsledek: **červená** = řádek se nenahrál, **oranžová** = varování, přečti si detail a rozhodni, jestli vadí.
 - **Jednou použitý import nejde recyklovat** — pro další kolo úprav si udělej nový export.
 
