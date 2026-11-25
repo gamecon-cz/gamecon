@@ -86,6 +86,10 @@ type Tlacitko = {
 
 const zeStavu = (prikaz: StateCommand) => (view: EditorView): boolean => prikaz(view);
 
+/** vypnuté tlačítko, které formulář odesílá (`<button>` bez typu odesílá také) */
+const jeVypnuteOdeslani = (prvek: Element): boolean =>
+  (prvek instanceof HTMLButtonElement || prvek instanceof HTMLInputElement) && prvek.type === "submit" && prvek.disabled;
+
 const lista = (view: EditorView, tlacitka: (Tlacitko | "oddelovac" | "mezera")[]): Panel => {
   const dom = document.createElement("div");
   dom.className = "et-lista";
@@ -215,7 +219,12 @@ export const vytvorEditor = (pole: HTMLTextAreaElement, nastaveni: NastaveniEdit
   };
 
   const ulozit = (): boolean => {
-    pole.form?.requestSubmit();
+    const formular = pole.form;
+    // během ukládání je Uložit vypnuté (db-form.xtpl), requestSubmit() by ale formulář odeslal znovu a nová stránka
+    // nebo novinka by se vložila podruhé
+    if (formular && !Array.from(formular.elements).some(jeVypnuteOdeslani)) {
+      formular.requestSubmit();
+    }
     return true;
   };
 
@@ -302,6 +311,11 @@ export const vytvorEditor = (pole: HTMLTextAreaElement, nastaveni: NastaveniEdit
         vzhled,
       ],
     }),
+  });
+  // dialog CodeMirroru (Ctrl+Alt+G, přejít na řádek) je formulář uvnitř formuláře stránky: jeho odeslání nesmí
+  // probublat k formuláři stránky, ten by text uložil
+  view.dom.addEventListener("submit", (udalost) => {
+    udalost.stopPropagation();
   });
   pole.parentElement?.insertBefore(view.dom, pole);
   pole.parentElement?.append(vyberSouboru);

@@ -1,5 +1,5 @@
 import { type EditorState, StateEffect, StateField, type TransactionSpec } from "@codemirror/state";
-import { Decoration, type DecorationSet, EditorView, WidgetType } from "@codemirror/view";
+import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 
 /**
  * Obrázky vložené do textu ze schránky, přetažením nebo tlačítkem: které soubory se nahrají a místo v textu, kam
@@ -53,10 +53,9 @@ export const nazevProNahrani = (soubor: File, zeSchranky: boolean): string => {
 /** Místo v textu, kam přijdou obrázky, až se nahrají */
 type Misto = { id: number; pozice: number; popis: string };
 
-const idMista = (dekorace: Decoration): number | undefined => (dekorace.spec as { id?: number }).id;
-
 export const pridejMisto = StateEffect.define<Misto>();
 export const odeberMisto = StateEffect.define<number>();
+const posunMisto = StateEffect.define<{ id: number; pozice: number }>();
 
 class ZnackaNahravani extends WidgetType {
   constructor(readonly id: number, readonly popis: string) {
@@ -77,57 +76,64 @@ class ZnackaNahravani extends WidgetType {
 }
 
 /**
- * Značky „Nahrávám…“ na místech, kam přijdou nahrávané obrázky. Nejsou součástí textu, takže se neuloží, kdyby
- * se text uložil dřív, než se obrázek nahraje, a posouvají se s textem, který se kolem nich mezitím píše.
- * Vlevo od kurzoru (`side: -1`): co se po vložení píše dál, zůstane za obrázkem.
+ * Místa, kam přijdou nahrávané obrázky, v pořadí, v jakém se vložila, se značkami „Nahrávám…“. Nejsou součástí
+ * textu, takže se neuloží, kdyby se text uložil dřív, než se obrázek nahraje, a posouvají se s textem, který se kolem
+ * nich mezitím píše. Pozice posouvá pole samo: dekoraci, přes kterou se smaže text, by CodeMirror zahodil, místo se
+ * tak jen přesune na začátek smazaného úseku a nahraný obrázek do textu přijde, i když se mezitím přepsal odstavec,
+ * ve kterém čekal.
  */
-export const mistaObrazku = StateField.define<DecorationSet>({
-  create: () => Decoration.none,
+export const mistaObrazku = StateField.define<readonly Misto[]>({
+  create: () => [],
   update(mista, transakce) {
-    let nova = mista.map(transakce.changes);
+    let nova = transakce.docChanged && mista.length > 0
+      ? mista.map((misto) => ({ ...misto, pozice: transakce.changes.mapPos(misto.pozice, -1) }))
+      : mista;
     for (const efekt of transakce.effects) {
       if (efekt.is(pridejMisto)) {
-        const { id, pozice, popis } = efekt.value;
-        nova = nova.update({
-          add: [Decoration.widget({ widget: new ZnackaNahravani(id, popis), side: -1, id }).range(pozice)],
-        });
+        nova = [...nova, efekt.value];
       } else if (efekt.is(odeberMisto)) {
-        nova = nova.update({ filter: (_od, _do, dekorace) => idMista(dekorace) !== efekt.value });
+        nova = nova.filter((misto) => misto.id !== efekt.value);
+      } else if (efekt.is(posunMisto)) {
+        const { id, pozice } = efekt.value;
+        nova = nova.map((misto) => misto.id === id ? { ...misto, pozice } : misto);
       }
     }
 
     return nova;
   },
-  provide: (pole) => EditorView.decorations.from(pole),
+  // značka vlevo od kurzoru (`side: -1`): co se po vložení píše dál, zůstane za obrázkem; značky na stejné pozici
+  // zůstanou v pořadí míst, řazení je stabilní
+  provide: (pole) => EditorView.decorations.from(pole, (mista) => Decoration.set(
+    mista.map(({ id, pozice, popis }) =>
+      Decoration.widget({ widget: new ZnackaNahravani(id, popis), side: -1 }).range(pozice)),
+    true,
+  )),
 });
 
-export const poziceMista = (state: EditorState, id: number): number | null => {
-  let pozice: number | null = null;
-  state.field(mistaObrazku).between(0, state.doc.length, (od, _do, dekorace) => {
-    if (idMista(dekorace) === id) {
-      pozice = od;
-      return false;
-    }
-    return undefined;
-  });
-
-  return pozice;
-};
+export const poziceMista = (state: EditorState, id: number): number | null =>
+  state.field(mistaObrazku).find((misto) => misto.id === id)?.pozice ?? null;
 
 /**
  * Vloží zápis nahraných obrázků na jejich místo a místo odebere (i když se nic nenahrálo). Je to obyčejný krok
- * historie, Ctrl+Z ho vrátí celý. Kurzor, který na místě čeká, se posune za obrázek, jako po vložení textu.
+ * historie, Ctrl+Z ho vrátí celý. Kurzor, který na místě čeká, se posune za obrázek, jako po vložení textu, a stejně
+ * tak místa, která na stejné pozici čekají za ním: obrázky vložené rychle po sobě přijdou v pořadí, v jakém se
+ * vložily.
  */
 export const vlozNaMisto = (state: EditorState, id: number, text: string): TransactionSpec => {
-  const pozice = poziceMista(state, id);
-  if (pozice === null || text === "") {
+  const mista = state.field(mistaObrazku);
+  const poradi = mista.findIndex((misto) => misto.id === id);
+  if (poradi === -1 || text === "") {
     return { effects: odeberMisto.of(id) };
   }
+  const { pozice } = mista[poradi];
   const kurzor = state.selection.main;
+  const posunuta = mista.slice(poradi + 1)
+    .filter((misto) => misto.pozice === pozice)
+    .map((misto) => posunMisto.of({ id: misto.id, pozice: pozice + text.length }));
 
   return {
     changes: { from: pozice, insert: text },
-    effects: odeberMisto.of(id),
+    effects: [odeberMisto.of(id), ...posunuta],
     selection: state.selection.ranges.length === 1 && kurzor.empty && kurzor.head === pozice
       ? { anchor: pozice + text.length }
       : undefined,

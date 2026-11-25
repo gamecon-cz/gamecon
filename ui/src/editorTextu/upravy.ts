@@ -71,7 +71,9 @@ export type PredponaRadku = {
 export const prepniPredponuRadku = ({ predpona, vzor, nahrazuje }: PredponaRadku): StateCommand => ({ state, dispatch }) => {
   const cislaRadku = new Set<number>();
   for (const rozsah of state.selection.ranges) {
-    const posledni = state.doc.lineAt(rozsah.to).number;
+    // výběr celého řádku i s odřádkováním (trojklik) končí na začátku dalšího řádku, ten už do výběru nepatří
+    const konec = !rozsah.empty && state.doc.lineAt(rozsah.to).from === rozsah.to ? rozsah.to - 1 : rozsah.to;
+    const posledni = state.doc.lineAt(konec).number;
     for (let cislo = state.doc.lineAt(rozsah.from).number; cislo <= posledni; cislo++) {
       cislaRadku.add(cislo);
     }

@@ -108,6 +108,13 @@ describe('předpony řádků', () => {
     expect(proved(prepniPredponuRadku(NADPIS), '# Velký‸')).toBe('Velký‸')
   })
 
+  it('řádek vybraný i s odřádkováním (trojklikem) změní sám, ne i ten pod ním', () => {
+    expect(jenText(prepniPredponuRadku(NADPIS), '⟨Program\n⟩První odstavec')).toBe('## Program\nPrvní odstavec')
+    expect(jenText(prepniPredponuRadku(NADPIS), '⟨## Program\n⟩První odstavec')).toBe('Program\nPrvní odstavec')
+    expect(jenText(prepniPredponuRadku(ODRAZKY), '⟨- a\n⟩b')).toBe('a\nb')
+    expect(jenText(prepniPredponuRadku(CITACE), '⟨a\nb\n⟩c')).toBe('> a\n> b\nc')
+  })
+
   it('na prázdném řádku předponu přidá, ať jde začít psát seznam', () => {
     expect(proved(prepniPredponuRadku(ODRAZKY), 'text\n‸')).toBe('text\n- ‸')
   })
