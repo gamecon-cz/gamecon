@@ -6,6 +6,7 @@ namespace Gamecon\Kostymy;
 
 use Gamecon\Web\NahranyObrazek;
 use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\NahravaniObrazkuException;
 use Gamecon\Web\PouzitiObrazku;
 
 /**
@@ -129,7 +130,7 @@ SQL));
      * předem u všech, aby kostým nepřišel jen o část fotek.
      *
      * @throws ChybaPujcovny
-     * @throws \Gamecon\Web\NahravaniObrazkuException soubor fotky nejde smazat, kostým už smazaný je
+     * @throws NahravaniObrazkuException soubory některých fotek nejde smazat, kostým už smazaný je
      */
     public function smaz(int $idKostymu): void
     {
@@ -141,13 +142,13 @@ SQL, [$idKostymu]);
         if ($pouzity) {
             throw new ChybaPujcovny('Kostým má rezervace nebo záznamy o výdeji. Místo smazání ho vyřaď.');
         }
-        $nahravani = $this->nahravaniFotek();
-        foreach ($kostym->getFotky() as $fotka) {
-            $pouziti = $nahravani->kdeJePouzity($nahravani->cestaKSouboru($fotka->getSoubor()));
+        $souboryFotek = $this->souboryFotek($kostym->getFotky());
+        // všechny fotky jedním průchodem textů webu
+        foreach ($this->nahravaniFotek()->kdeJsouPouzity($souboryFotek) as $soubor => $pouziti) {
             if ($pouziti !== []) {
                 throw new ChybaPujcovny(sprintf(
                     'Na fotku kostýmu %s odkazuje %s. Nejdřív prosím odkaz odstraň.',
-                    $fotka->getSoubor(),
+                    basename($soubor),
                     PouzitiObrazku::popis($pouziti),
                 ));
             }
@@ -156,8 +157,18 @@ SQL, [$idKostymu]);
         dbQuery(<<<'SQL'
 DELETE FROM kostym WHERE id = $0
 SQL, [$idKostymu]);
-        foreach ($kostym->getFotky() as $fotka) {
-            $this->smazSouborFotky($fotka);
+        $nesmazane = [];
+        foreach ($souboryFotek as $soubor) {
+            // použití už je ověřené, proto rovnou, ne přes NahravaniObrazku::smaz(), které by texty prošlo znovu
+            if (is_file($soubor) && ! @unlink($soubor)) {
+                $nesmazane[] = basename($soubor);
+            }
+        }
+        if ($nesmazane !== []) {
+            throw new NahravaniObrazkuException(sprintf(
+                'Kostým je smazaný, ale soubory jeho fotek %s se nepodařilo smazat.',
+                implode(', ', $nesmazane),
+            ));
         }
     }
 
@@ -218,10 +229,34 @@ SQL, [$idKostymu, $idFotky]);
 
     private function smazSouborFotky(FotkaKostymu $fotka): void
     {
-        $nahravani = $this->nahravaniFotek();
-        if (is_file($nahravani->cestaKSouboru($fotka->getSoubor()))) {
-            $nahravani->smaz($fotka->getSoubor());
+        if ($this->souboryFotek([$fotka]) !== []) {
+            $this->nahravaniFotek()->smaz($fotka->getSoubor());
         }
+    }
+
+    /**
+     * @param list<FotkaKostymu> $fotky
+     *
+     * @return list<string> absolutní cesty souborů fotek, které na disku jsou. Na betě a na preview s databází z ostré
+     *                      fotky v databázi jsou, ale soubory, a často ani jejich adresář, ne.
+     */
+    private function souboryFotek(array $fotky): array
+    {
+        $nahravani = $this->nahravaniFotek();
+        $soubory = [];
+        foreach ($fotky as $fotka) {
+            try {
+                $soubor = $nahravani->cestaKSouboru($fotka->getSoubor());
+            } catch (NahravaniObrazkuException) {
+                // adresář fotek neexistuje
+                continue;
+            }
+            if (is_file($soubor)) {
+                $soubory[] = $soubor;
+            }
+        }
+
+        return $soubory;
     }
 
     /**

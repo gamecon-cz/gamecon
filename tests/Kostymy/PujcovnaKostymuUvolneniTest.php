@@ -107,6 +107,32 @@ SQL, [(int) dbInsertId(), $idAktivity]);
         self::assertSame(0, self::pocetEmailu($this->ucastnik, KodEmailoveSablonyEnum::KOSTYM_REZERVACE_UVOLNENA));
     }
 
+    /**
+     * Tak to dělá import účastníků: odhlášení v transakci, kterou pozdější chyba vrátí.
+     */
+    public function testOdlozenyEmailPoVracenePrihlasceNeodejde(): void
+    {
+        $this->rezervuj();
+
+        try {
+            PujcovnaKostymu::sOznamenimUvolneniPoZmene(function (): void {
+                dbBegin();
+                try {
+                    $this->aktivita->odhlas($this->ucastnik, $this->vypravec, 'test');
+                    throw new \Chyba('Import spadl na dalším řádku');
+                } catch (\Throwable $chyba) {
+                    dbRollback();
+                    throw $chyba;
+                }
+            });
+            self::fail('Změna měla spadnout');
+        } catch (\Chyba) {
+        }
+
+        self::assertCount(1, self::rezervaceAktivity($this->aktivita->id()), 'Rollback rezervaci vrátil');
+        self::assertSame(0, self::pocetEmailu($this->ucastnik, KodEmailoveSablonyEnum::KOSTYM_REZERVACE_UVOLNENA));
+    }
+
     public function testRezervacePlatiIKdyzEmailNejdeOdeslat(): void
     {
         self::smazSablonu(KodEmailoveSablonyEnum::KOSTYM_REZERVACE_POTVRZENA);

@@ -168,7 +168,7 @@
           <input type="hidden" name="idAktivity" value="{idAktivity}">
           <button type="submit" class="kostymy_tlacitko kostymy_tlacitko-zrusit">Zrušit rezervaci</button>
         </form>
-        <p class="kostymy_poznamka">Zrušit nebo vyměnit ho můžeš do uzávěrky: {uzaverka}.</p>
+        <p class="kostymy_poznamka">{coJdeDoUzaverky} ho můžeš do uzávěrky: {uzaverka}.</p>
       </div>
       <!-- end: zmenit -->
       <!-- begin: poUzaverce --><p class="kostymy_poznamka">Zrušit nebo vyměnit už jde jen v půjčovně.</p><!-- end: poUzaverce -->
