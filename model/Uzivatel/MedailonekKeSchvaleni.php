@@ -93,17 +93,13 @@ SQL,
 
     /**
      * Pošle text z Nastavení ke schválení. Text stejný jako zveřejněný se neschvaluje a čekání se zruší (vypravěč se
-     * vrátil ke zveřejněnému textu).
+     * vrátil ke zveřejněnému textu). Stejný text, jaký už čeká, čeká dál od původního času.
      *
      * @return bool jestli teď něco čeká na schválení
      */
     public static function odesli(int $idUzivatele, string $oSobe): bool
     {
-        dbInsertIgnore(MedailonekSql::MEDAILONKY_TABULKA, [
-            MedailonekSql::ID_UZIVATELE => $idUzivatele,
-            MedailonekSql::O_SOBE       => '',
-            MedailonekSql::DRD          => '',
-        ]);
+        // kdo medailonek nemá, má zveřejněný prázdný text
         $zverejneny = (string) dbOneCol(<<<'SQL'
 SELECT o_sobe FROM medailonky WHERE id_uzivatele = $0
 SQL,
@@ -123,6 +119,19 @@ SQL,
 
             return false;
         }
+        $cekajici = self::zUzivatele($idUzivatele);
+        // poslaný znovu (dvojklik, odeslání beze změny): nový čas odeslání by organizátorovi, který text má otevřený,
+        // schválení odmítl, jako by vypravěč poslal jiný text, a vypravěč by spadl na konec fronty
+        if ($cekajici?->isCekajici() && self::normalizujText($cekajici->oSobe) === self::normalizujText($oSobe)) {
+            return true;
+        }
+        // řádek medailonku (a s ním stránku /<id>) zakládá až text, který opravdu jde ke schválení, ne odeslání
+        // prázdného pole
+        dbInsertIgnore(MedailonekSql::MEDAILONKY_TABULKA, [
+            MedailonekSql::ID_UZIVATELE => $idUzivatele,
+            MedailonekSql::O_SOBE       => '',
+            MedailonekSql::DRD          => '',
+        ]);
         dbQuery(<<<'SQL'
 INSERT INTO medailonky_ke_schvaleni (id_uzivatele, o_sobe, odeslano, schvaleno, id_schvalil)
 VALUES ($0, $1, NOW(6), NULL, NULL)
