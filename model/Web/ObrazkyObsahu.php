@@ -10,6 +10,9 @@ use Gamecon\XTemplate\XTemplate;
  * Obrázky k textu stránky nebo novinky, pod editorem v administraci: nahrání, nahrazení a smazání. Má vlastní
  * formuláře, protože editor textu (@see \DbForm) se odesílá AJAXem. Nové obrázky jdou do adresáře stránky,
  * starší z doby FTP zůstávají, kde jsou, a nahrazují se na místě, aby odkazy dál fungovaly.
+ *
+ * Atribut `data-editor-textu-obrazky` bloku (s povolenými typy) říká editoru textu nad ním, že obrázek jde vložit rovnou
+ * do textu; uloží ho @see EditorTextuPozadavek do stejného adresáře.
  */
 final class ObrazkyObsahu
 {

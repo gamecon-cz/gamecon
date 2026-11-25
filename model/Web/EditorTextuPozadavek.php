@@ -8,7 +8,8 @@ namespace Gamecon\Web;
  * Požadavky editoru textu v administraci (ui/src/editorTextu, pole @see \DbffMarkdownDirect). Modul s editorem je
  * obslouží na vlastní adrese s parametrem `editorTextu`:
  * - `nahled` (POST `text`) vrátí `html`, text vykreslený stejně jako náhled vedle editoru při načtení stránky,
- *   tedy stejným Markdownem jako na webu,
+ *   tedy stejným Markdownem jako na webu; s `odUzivatele=1` (pole s textem, který si píše uživatel sám, @see
+ *   \DbffMarkdownOdUzivatele) jen vyčištěné HTML,
  * - `obrazek` (POST soubor `obrazek`) uloží obrázek vložený do textu ze schránky nebo přetažením do adresáře textu
  *   (stejného jako blok Obrázky pod editorem) pod volným názvem a vrátí `cesta` (jak ji zapsat do textu) a `markdown`.
  * Odpověď je JSON s `ok`; chyba, kterou má vidět člověk, je `ok: false` se `zprava` a kód 422.
@@ -21,6 +22,7 @@ final class EditorTextuPozadavek
      */
     public const string HLAVICKA = 'HTTP_X_GAMECON_EDITOR';
     public const string POST_TEXT = 'text';
+    public const string POST_OD_UZIVATELE = 'odUzivatele';
     public const string POST_OBRAZEK = 'obrazek';
 
     /**
@@ -130,8 +132,12 @@ final class EditorTextuPozadavek
             throw new NahravaniObrazkuException('Chybí text k náhledu.');
         }
 
+        // příznak posílá editor podle pole; požadavek bez naší hlavičky server odmítne, takže ho cizí web
+        // organizátorovi podstrčit nemůže
         return [
-            'html' => NahledMarkdownu::zTextu($text),
+            'html' => ($post[self::POST_OD_UZIVATELE] ?? null) === '1'
+                ? NahledMarkdownu::zTextuOdUzivatele($text)
+                : NahledMarkdownu::zTextu($text),
         ];
     }
 

@@ -214,9 +214,10 @@ SQL, [
         self::assertStringNotContainsString("alert('medailonek')", $admin);
         // v textovém poli zůstane, jak ho vypravěč napsal, odkaz z něj ale v náhledu není
         self::assertStringNotContainsString('href="javascript:', $admin);
-        // živý náhled při psaní čistí prohlížeč podle stejných pravidel
-        self::assertStringContainsString('data-bezpecny-nahled="', $admin);
-        self::assertStringContainsString('files/bezpecny-nahled-markdownu.js', $admin);
+        // náhled, který si editor při psaní načítá ze serveru, je vyčištěný stejně (EditorTextuPozadavekTest), profil
+        // Pána jeskyně píše jen organizátor
+        self::assertMatchesRegularExpression('~<textarea [^>]*name="[^"]*\[o_sobe\][^"]*" data-editor-textu data-editor-textu-od-uzivatele>~', $admin);
+        self::assertMatchesRegularExpression('~<textarea [^>]*name="[^"]*\[drd\][^"]*" data-editor-textu>~', $admin);
     }
 
     /**

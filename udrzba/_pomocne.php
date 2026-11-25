@@ -118,6 +118,7 @@ function buildIgnoreMasks(): array
             '/udrzba',
             '/ui',
             '/admin/files/ui/bundle.js.map',
+            '/admin/files/ui/editor-textu.js.map',
 
             '/docker-compose.yml',
 

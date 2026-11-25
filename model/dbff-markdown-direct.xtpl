@@ -1,7 +1,6 @@
 <!-- begin:md -->
 
 <style>
-/* styly jsou před skriptem s autosize: pole se měří při načtení a obrázek bez pravidla by smrštil jeho sloupec na pár bodů */
 .dbffMdtext p { margin: 1.35em 0; }
 .dbffMdtext > :first-child { margin-top: 0; }
 /* náhled má na výšku jen pár řádků, velký obrázek se v něm ukáže zmenšený */
@@ -9,35 +8,15 @@
 </style>
 
 <input type="hidden" name="{pnOldId}" value="{oldId}">
-<table style="width:100%"{bezpecnyNahled}>
+<table style="width:100%" class="editor-textu">
   <tr>
-    <td style="width: 50%; vertical-align: top"><textarea style="width: 100%" name="{pnText}">{text}</textarea></td>
-    <td style="vertical-align: top" class="dbffMdtext">{mdText}</td>
+    <td style="width: 50%; vertical-align: top"><textarea style="width: 100%" rows="20" name="{pnText}" data-editor-textu{odUzivatele}>{text}</textarea></td>
+    <td style="vertical-align: top" class="dbffMdtext" data-editor-textu-nahled>{mdText}</td>
   </tr>
 </table>
-<script src="files/showdown.js"></script>
-<script src="files/bezpecny-nahled-markdownu.js"></script>
-<script src="files/jquery.autosize-1.18.13.js"></script>
+<!-- editor nad polem (ui/src/editorTextu), bez skriptu zůstane obyčejné pole a náhled podle uloženého textu -->
+<script type="module" src="{skriptEditoru}"></script>
 <script>
-  var $text = $('textarea[name="{pnText}"]').last();
-  $text.autosize();
-  $text.keyup(function(){
-    var md = new Showdown.converter();
-    var html = md.makeHtml($(this).val());
-    // stejná úprava jako NahledMarkdownu::obrazkyNaWebu()
-    html = html.replace(/(<img\b[^>]*\ssrc=["']?)soubory\//gi, function (shoda, zacatek) {
-      return zacatek + {urlWebu} + '/soubory/';
-    });
-    var $tabulka = $(this).closest('table');
-    // text, který si píše uživatel sám (medailonek), jen přes stejná pravidla jako na webu, jinak by se skript z něj
-    // spustil organizátorovi v adminu
-    var pravidla = $tabulka.data('bezpecny-nahled');
-    if (pravidla) {
-      $tabulka.find('.dbffMdtext').empty().append(window.gcBezpecneHtml(html, pravidla));
-    } else {
-      $tabulka.find('.dbffMdtext').html(html);
-    }
-  });
-  $('table').last().parent().css('padding', 0);
+  $('table.editor-textu').last().parent().css('padding', 0);
 </script>
 <!-- end:md -->

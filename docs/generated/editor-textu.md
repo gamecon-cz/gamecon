@@ -1,0 +1,38 @@
+Editor textů v Markdownu v administraci (stránky, novinky a blog, medailonky): CodeMirror 6 nad původním polem, lišta úprav, vložení obrázku ze schránky nebo přetažením a náhled vykreslený serverem. Proč ne WYSIWYG, jak se editor sestavuje a na co si dát pozor.
+
+## Vstupní body v kódu
+
+- `model/dbff-markdown-direct.php` + `.xtpl`: pole formuláře pro sloupec s komentářem `markdown` (`DbFormGc::fieldFromDescription`). Vykreslí `<textarea data-editor-textu>`, náhled `data-editor-textu-nahled` (při načtení serverem, `markdown()` s cache) a `<script type="module" src="files/ui/editor-textu.js?version=<md5>">`. Používají ho `web/editace-stranek`, `web/novinka` a `aktivity/medailonky` (dvě pole).
+- `ui/src/editorTextu/`: editor. `editor.ts` (sestavení, lišta, stavový řádek, vkládání obrázků, `spustEditoryTextu`), `upravy.ts` (tučně, kurzíva, nadpis, seznamy, citace, odkaz jako příkazy nad stavem), `obrazky.ts` (co ze schránky a přetažení nahrát, značky „Nahrávám…“), `nahled.ts` (náhled se zpožděním a rušením starších požadavků), `server.ts` (požadavky), `vzhled.ts` (barvy, české popisky hledání).
+- `model/Web/EditorTextuPozadavek.php`: server. Modul ho volá na začátku (`obslouzPokudJe`), požadavek s `?editorTextu=nahled|obrazek` obslouží JSONem a skončí, jako `NahravaniPoCastechPozadavek`.
+- `ui/vite.config.mts`, plugin `editorTextu()`: po hlavním buildu postaví `editor-textu.js` do téhož `outDir`.
+
+Testy: `ui/src/editorTextu/*.test.ts` (vitest), `tests/Model/Web/EditorTextuPozadavekTest.php`, přes Apache `tests/web/EditorTextuVAdminuTest.php`.
+
+## Pravidla
+
+- **Text se ukládá přesně tak, jak je napsaný.** (záměr) Proto editor zdrojového textu, ne WYSIWYG: v anonymizované DB (listopad 2026) mělo HTML 40 ze 66 stránek (`<script>` 14, `<style>` 14, `<svg>` 11, tabulky 7) a 18 z 56 novinek (`<iframe>` 5). WYSIWYG editor text převádí do svého modelu a zpět a neznámé HTML zahodí nebo zmrší.
+- **Pole zůstává ve formuláři**, schované, a editor do něj píše při každé změně. Ukládání (AJAX z `db-form.xtpl`, `$(form).serialize()`) i upozornění na neuložený text (`admin/files/neulozeny-text-editoru.js`, porovnává `FormData` s `reset()` kopií) proto fungují beze změny. Bez skriptu zůstane obyčejné pole.
+- **Náhled vykresluje server** (`NahledMarkdownu::zTextu`: `markdownNoCache()` + `obrazkyNaWebu()`), stejně jako web: Markdown Extra a SmartyPants. Dřív ho při psaní dělal `showdown.js` (obyčejný Markdown), takže tabulky, poznámky pod čarou a `{.trida}` vypadaly jinak než na webu. Bez cache, jinak by v ní zůstala každá rozepsaná verze. `showdown.js` dál používá editor aktivity (`model/Aktivita/templates/editor-aktivity.xtpl`).
+- **Text, který si píše uživatel sám, má náhled jen vyčištěný.** Medailonek (`o_sobe`) píše i vypravěč na webu, takže pole je `DbffMarkdownOdUzivatele`: náhled při načtení i náhled při psaní jde přes `BezpecneHtml` jako na webu, jinak by se skript z textu spustil organizátorovi v adminu. Pole nese `data-editor-textu-od-uzivatele`, editor pak k náhledu pošle `odUzivatele=1` a server použije `NahledMarkdownu::zTextuOdUzivatele()` (bez keše). Příznaku jde věřit: požadavek bez hlavičky editoru server odmítne, cizí web ho tedy organizátorovi nepodstrčí. Profil Pána jeskyně (`drd`) píše jen organizátor, ten se nečistí. (Než se náhled přesunul na server, čistil ho v prohlížeči `bezpecny-nahled-markdownu.js`; ten je pryč.)
+- **Požadavky editoru jdou na adresu stránky** (absolutní URL: relativní by se počítala od `<base href>` adminu), POST s hlavičkou `X-Gamecon-Editor`, bez ní 400. Práva hlídá admin před spuštěním modulu (bez práva 403).
+- **Obrázky jdou vložit jen tam, kde je pod editorem blok „Obrázky“** (`data-editor-textu-obrazky` na `<details class="obrazky-obsahu">` nese povolené typy). Nová neuložená stránka nebo novinka a medailonek ho nemají; server pak odpoví 422 „půjde vložit, až text uložíš“ a editor to řekne dřív, než něco pošle.
+- **Ze schránky má přednost text.** Word, LibreOffice a Excel dávají k textu i jeho obrázek; obrázek se nahraje, jen když ve schránce žádný text není (`souboryZeSchranky`). Přetažený soubor editor obslouží vždy, jinak by CodeMirror vložil jeho obsah jako text; soubor, který není obrázek, odmítne s odkazem na blok Soubory ke stažení.
+- **Obrázek ze schránky se jmenuje `obrazek`**, prohlížeče mu dávají `image.png`; obsazený název dostane číslo (`NahravaniObrazku::ulozNovyPodVolnymNazvem`). Obrázky se nahrávají po jednom (fronta v `editor.ts`), aby si dva naráz nevzaly stejný volný název.
+- **Místo nahrávaného obrázku drží značka, ne text.** `mistaObrazku` je dekorace „Nahrávám…“, která se posouvá s textem a do textu se nedostane, kdyby se uložil dřív. Po nahrání se zápis vloží jako obyčejný krok historie, jedno Ctrl+Z ho vrátí. (Zástupný text v dokumentu nešel: jeho náhrada mimo historii Ctrl+Z rozbila, v historii by vyžadovala dvě Ctrl+Z.)
+- **Zkratky**: Ctrl+B, Ctrl+I, Ctrl+K (odkaz), Ctrl+S (uloží formulář přes `requestSubmit()`), Ctrl+F hledání, Ctrl+Z / Ctrl+Shift+Z. `Mod-i` má CodeMirror ve výchozí klávesnici pro výběr nadřazeného uzlu, proto vlastní zkratky mají `Prec.high`. Tab zůstává na přechod mezi poli.
+- **Vzhled**: barvy z proměnných moderního vzhledu (`--m-*`) s náhradou pro klasický, tmavé podle třídy `moderni-tmave` na `<html>` (`.moderni-tmave &` v `EditorView.theme`), ne podle `prefers-color-scheme`. Styly vkládá CodeMirror sám, soubor nemá CSS.
+
+## Sestavení
+
+- `editor-textu.js` je zvlášť, protože ho potřebují jen tři stránky adminu a `bundle.js` stahuje každý návštěvník programu. Formát IIFE neumí víc vstupů ani dynamický import, proto plugin po hlavním buildu (`closeBundle`) zavolá `build()` s `configFile: false` do téhož `outDir`. Díky tomu platí `--outDir` z `build:admin` a `make check-ui-bundles` i `--watch` (v režimu sledování přidá soubory editoru do sledovaných) beze změny skriptů.
+- Velikost: zhruba 550 kB minifikovaně, 187 kB gzip. Většinu tvoří `@codemirror/lang-markdown`, který kvůli zvýraznění HTML v Markdownu tahá `lang-html` a s ním `lang-css` a `lang-javascript`.
+- Soubor se commituje do `web/soubory/ui` i `admin/files/ui` jako ostatní bundly (kontrola porovnává jeden build s oběma složkami), web ho nepoužívá.
+- Nové závislosti (listopad 2026) jsou zamčené na verze starší než dva týdny; tři tranzitivní (`@codemirror/lint`, `@lezer/common`, `style-mod`) byly mladší a v `yarn.lock` jsou o verzi níž.
+
+## Gotchas
+
+- **Playwright `press('Control+Shift+z')` je Ctrl+Z, ne Znovu.** S malým `z` pošle `key: "z"` a CodeMirror u znakových kláves zkouší nejdřív zkratku bez Shiftu. Ve skutečném prohlížeči je `key: "Z"`. Pro QA použij `Control+Shift+KeyZ` nebo `Control+y`.
+- **Syntetické vložení a přetažení v QA**: `new ClipboardEvent('paste', { clipboardData: dataTransfer })` a `new DragEvent('drop', { dataTransfer, clientX, clientY })` na `.cm-content` / řádek, `DataTransfer.items.add(new File(...))`. Chrome je přijme a CodeMirror je zpracuje jako skutečné.
+- **Nadpis `##Text` bez mezery** zvýraznění (CommonMark) nepozná, Markdown Extra na webu ano; náhled je správně, protože ho dělá server.
+- Moduly adminu běží ve scope `admin/index.php`: obsluha editoru načítá stránku nebo novinku v closure (`$upravovanaStranka`, ne `$stranka`), viz [nahravani-obrazku](nahravani-obrazku.md).

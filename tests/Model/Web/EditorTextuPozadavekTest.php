@@ -50,6 +50,32 @@ class EditorTextuPozadavekTest extends TestCase
     }
 
     /**
+     * Medailonek si píše vypravěč sám a organizátorovi se v adminu nesmí spustit nic z jeho textu.
+     *
+     * @test
+     */
+    public function nahledTextuOdUzivateleJeJenVycistenyJakoNaWebu(): void
+    {
+        $text = "**O mně** <script>alert('medailonek')</script> [odkaz](javascript:alert(1))\n\n![](soubory/obsah/mapa.png)";
+
+        $odUzivatele = $this->pozadavek()->zpracuj('nahled', 'POST', true, [
+            EditorTextuPozadavek::POST_TEXT         => $text,
+            EditorTextuPozadavek::POST_OD_UZIVATELE => '1',
+        ], $this->bezObrazku());
+        $odOrganizatora = $this->pozadavek()->zpracuj('nahled', 'POST', true, [
+            EditorTextuPozadavek::POST_TEXT => $text,
+        ], $this->bezObrazku());
+
+        self::assertSame(200, $odUzivatele['kod']);
+        self::assertStringContainsString('<strong>O mně</strong>', $odUzivatele['telo']['html']);
+        self::assertStringNotContainsString('<script', $odUzivatele['telo']['html']);
+        self::assertStringNotContainsString('javascript:', $odUzivatele['telo']['html']);
+        self::assertStringContainsString(URL_WEBU . '/soubory/obsah/mapa.png', $odUzivatele['telo']['html']);
+        // stránka nebo novinka od organizátora se ukáže, jak je napsaná, i s HTML
+        self::assertStringContainsString('<script>', $odOrganizatora['telo']['html']);
+    }
+
+    /**
      * @test
      */
     public function bezHlavickyEditoruNeboJinakNezPostemNicNeudela(): void

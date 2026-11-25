@@ -15,8 +15,8 @@ class DbffMarkdownOdUzivatele extends DbffMarkdownDirect
         return BezpecneHtml::zMarkdownu($this->value());
     }
 
-    protected function pravidlaBezpecnehoNahledu(): ?array
+    protected function isTextOdUzivatele(): bool
     {
-        return BezpecneHtml::getPravidlaProNahled();
+        return true;
     }
 }
