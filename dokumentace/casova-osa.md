@@ -3,9 +3,9 @@
 
 Rámcový přehled činností, které se během roku běžně v souvislosti s webem provádí:
 
-- (někdy září–listopad) Výchozí stav po překlopení ročníku (TODO: odkaz).
+- (někdy září–listopad) Výchozí stav po [překlopení ročníku](../PREKLOPENI_ROCNIKU_NAVOD.md).
 - (prosinec) V prosinci posílá marketing obvykle PF – následující je potřeba udělat, než PF vyjde:
-  - Nastavení základních datumů do `nastaveni/nastaveni.php` (kdy začíná budoucí GC, kdy se otevře registrace, …).
+  - Nastavení základních datumů v adminu → Nastavení (kdy začíná budoucí GC, kdy se otevře registrace, …).
   - Od grafiky vyžádáme a v případě úspěchu nasadíme aktualizovaný vzhled webu.
 - (po jarním srazu – březen)
   - Kontrola nastavení, že si zadané datumy nikdo nerozmyslel.
@@ -25,7 +25,7 @@ Rámcový přehled činností, které se během roku běžně v souvislosti s we
 - (konec GC) Automatické přepnutí stránek do režimu „GC skončil“ – nejde měnit přihlášky, aktivity, ani nic dalšího, ale zůstávají viditelné finance.
 - (hned po GC) Infopult zpravidla vygeneruje nějaké nedodělky (člověk nemá platit storno, člověk má v systému napsánu účast na aktivitě, ale místo toho tam byl někdo jiný, …). Tyto věci infopult předá a zpracují se, aby se návštěvníkům zarovnaly zůstatky jak mají být.
 - (srpen) Zázemí udělá „účetní uzávěrku“. Ideálně dotlačit k tomu, aby to provedli co nejrychleji. Po vzájemném ujištění, že je vše hotovo, je vhodné přejít co nejdřív k překlápění ročníku.
-- (někdy září–listopad) překlopení ročníku (TODO: aktuálně máme dokumentaci tohoto procesu na gdrive, budeme nejspíš migrovat do repa)
+- (někdy září–listopad) překlopení ročníku, viz [`PREKLOPENI_ROCNIKU_NAVOD.md`](../PREKLOPENI_ROCNIKU_NAVOD.md)
 
 ---
 

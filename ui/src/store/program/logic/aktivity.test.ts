@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { aktivitaStatusZAktivity, filtrujAktivity, FiltrAktivit, MapováníTagů } from "./aktivity";
 import { Aktivita } from "../slices/programDataSlice";
+import { ApiObsazenost } from "../../../api/program";
+import { Pohlavi } from "../../../api/přihlášenýUživatel";
 
 // Regresní krytí pro filtr interních (nepublikovaných technických/brigádnických)
 // aktivit v `filtrujAktivity`. Filtr už dvakrát regredoval (nejdřív mizely
@@ -88,5 +90,56 @@ describe("neúčast (nedorazil, pozdě se odhlásil)", () => {
   it("filtr legendy ji odliší od přihlášení", () => {
     expect(idčka(aktivity, { filtrStavAktivit: ["prihlasen"], filtrInterni: true })).toEqual([1, 2]);
     expect(idčka(aktivity, { filtrStavAktivit: ["neucast"], filtrInterni: true })).toEqual([3, 4]);
+  });
+});
+
+describe("filtr Volná místa", () => {
+  const obsazenost = (vlastnosti: Partial<ApiObsazenost>): ApiObsazenost =>
+    ({ m: 0, f: 0, km: 0, kf: 0, ku: 0, ...vlastnosti });
+
+  const veřejná = (id: number, vlastnosti: Record<string, unknown>): Aktivita =>
+    aktivita(id, { interni: false, stavPrihlaseni: null, vedu: false, ...vlastnosti });
+
+  const aktivity: Aktivita[] = [
+    veřejná(1, { obsazenost: obsazenost({ ku: 4, m: 2 }), prihlasovatelna: true }), // volno
+    veřejná(2, { obsazenost: obsazenost({ ku: 4, m: 3, f: 2 }), prihlasovatelna: true }), // přeplněná (5/4)
+    // po GC: nepřihlašovatelná, proběhlá, ale nezaplněná, právě ta má zůstat
+    veřejná(3, { obsazenost: obsazenost({ ku: 6, f: 2 }), prihlasovatelna: false, probehnuta: true }),
+    veřejná(4, { obsazenost: obsazenost({ km: 1, kf: 1, f: 1 }), prihlasovatelna: true }), // zbývá jen mužské místo
+    veřejná(5, { obsazenost: obsazenost({ ku: 25, m: 17, f: 4, kt: 5, t: 5 }), prihlasovatelna: true }), // plná týmovka
+    veřejná(6, { obsazenost: obsazenost({}), prihlasovatelna: true }), // bez omezení
+    // po GC, zbyla jen ženská místa: nezaplnila se, i když se dívá muž
+    veřejná(7, { obsazenost: obsazenost({ km: 3, kf: 3, m: 3, f: 1 }), prihlasovatelna: false, probehnuta: true }),
+  ];
+
+  const volné = (pohlavi?: Pohlavi, filtr: FiltrAktivit = {}): number[] =>
+    filtrujAktivity(aktivity, { filtrVolné: true, filtrInterni: true, ...filtr }, prázdnéMapováníTagů, pohlavi)
+      .map(a => a.id);
+
+  it("nechá aktivity s místem i mimo registraci a po GC", () => {
+    expect(volné("m")).toEqual([1, 3, 4, 6, 7]);
+  });
+
+  it("kam se dá přihlásit, tam přihlášenému počítá jen místa pro jeho pohlaví, nepřihlášenému jakékoli", () => {
+    expect(volné("f")).toEqual([1, 3, 6, 7]);
+    expect(volné(undefined)).toEqual([1, 3, 4, 6, 7]);
+  });
+
+  it("co se nezaplnilo, ukáže bez ohledu na pohlaví toho, kdo se dívá", () => {
+    for (const pohlavi of ["m", "f", undefined] as const) {
+      expect(volné(pohlavi)).toContain(7);
+    }
+  });
+
+  it("s Přihlašovatelné jen to, kam se dá jít", () => {
+    expect(volné("m", { filtrPřihlašovatelné: true })).toEqual([1, 4, 6]);
+  });
+
+  it("filtr legendy Plno počítá s pohlavím přihlášeného jako obarvení", () => {
+    expect(idčka(aktivity, { filtrStavAktivit: ["plno"], filtrInterni: true })).toEqual([2, 4, 5, 7]);
+    expect(
+      filtrujAktivity(aktivity, { filtrStavAktivit: ["plno"], filtrInterni: true }, prázdnéMapováníTagů, "m")
+        .map(a => a.id),
+    ).toEqual([2, 5, 7]);
   });
 });

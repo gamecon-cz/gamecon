@@ -6,6 +6,7 @@ namespace Gamecon\Web;
 
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Pravo;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\ZpusobZobrazeniNaWebu;
 use Gamecon\XTemplate\XTemplate;
 
@@ -13,18 +14,25 @@ use Gamecon\XTemplate\XTemplate;
  * Vyrenderuje horní navigaci veřejného webu (blackarrow {menu}).
  *
  * Hlavička je na všech veřejných stránkách stejná — liší se jen podle
- * přihlášeného uživatele a viditelných typů aktivit, nezávisí na konkrétní
- * stránce. Logika byla původně inline ve web/index.php; vytažením sem ji může
- * sdílet i Symfony controller, který renderuje vybrané veřejné stránky.
+ * přihlášeného uživatele, viditelných typů aktivit a toho, jestli GameCon
+ * zrovna běží, nezávisí na konkrétní stránce. Logika byla původně inline ve
+ * web/index.php; vytažením sem ji může sdílet i Symfony controller, který
+ * renderuje vybrané veřejné stránky.
  */
 class MenuWebu
 {
-    public static function html(?\Uzivatel $uzivatel): string
+    public static function html(?\Uzivatel $uzivatel, SystemoveNastaveni $systemoveNastaveni): string
     {
         $sablona = new XTemplate(WWW . '/sablony/blackarrow/menu.xtpl');
 
         $typy = \serazenePodle(TypAktivity::zViditelnych(), 'poradi');
         $sablona->parseEach($typy, 'typ', 'menu.typAktivit');
+
+        // Jídelníček má v menu smysl jen během GameConu. Přihlášený účastník
+        // ho před GC najde u objednávky jídla v přihlášce.
+        if ($systemoveNastaveni->isGcBeziPodleTed()) {
+            $sablona->parse('menu.jidelnicek');
+        }
 
         if ($uzivatel) {
             $jmenoDoMenu = match ($uzivatel->zpusobZobrazeniNaWebu()) {

@@ -14,7 +14,7 @@ use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 
 /**
  * Ověřuje, že okno „telefony viditelné" v prezenci je vůči injektovanému času
- * ({@see SystemoveNastaveni::ted()}) a že hranice GC_BEZI_OD / GC_BEZI_DO jsou
+ * ({@see SystemoveNastaveni::isGcBeziPodleTed()}) a že hranice GC_BEZI_OD / GC_BEZI_DO jsou
  * inkluzivní – stejně jako kanonické {@see SystemoveNastaveni::gcBezi()} přes mezi().
  */
 class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
@@ -41,21 +41,13 @@ class OnlinePrezenceUcastnikTelefonTest extends AbstractUzivatelTestDb
     /**
      * @dataProvider poskytniCasy
      */
-    public function testGcBeziPodleInjektovanehoCasuRespektujeInkluzivniHranice(
+    public function testGcBeziPodleTedRespektujeInkluzivniHranice(
         string $ted,
         bool $ocekavanoBezi,
     ): void {
-        $ucastnikHtml = new OnlinePrezenceUcastnikHtml(
-            $this->nastaveniSCasem($ted),
-            $this->potvrzeniKontaktu(),
-        );
-
-        $metoda = new \ReflectionMethod($ucastnikHtml, 'gcBeziPodleInjektovanehoCasu');
-        $metoda->setAccessible(true);
-
         self::assertSame(
             $ocekavanoBezi,
-            $metoda->invoke($ucastnikHtml),
+            $this->nastaveniSCasem($ted)->isGcBeziPodleTed(),
             "Pro čas {$ted} mělo být 'GC běží' = " . ($ocekavanoBezi ? 'true' : 'false'),
         );
     }

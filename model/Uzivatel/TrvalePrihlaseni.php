@@ -83,16 +83,18 @@ final class TrvalePrihlaseni
     }
 
     /**
-     * @param string|null $razitko  razítko přihlášení, které platilo při ověření hesla. Změnilo-li se mezitím
-     *                              (změna hesla, odhlášení ostatních zařízení), řádek nevznikne.
-     * @param int|null    $idTohoto trvalé přihlášení, které si pamatuje session tohoto prohlížeče
+     * Nová cookie přepíše jen cookie tohoto hostu, a tak se ruší jen její řádek. Řádek, který si pamatuje session,
+     * může na ostré patřit cookie druhého hostu (web a admin), a ta v prohlížeči platí dál.
+     *
+     * @param string|null $razitko razítko přihlášení, které platilo při ověření hesla. Změnilo-li se mezitím
+     *                             (změna hesla, odhlášení ostatních zařízení), řádek nevznikne.
      *
      * @return int|null id nového trvalého přihlášení, null když se razítko mezitím změnilo
      */
-    public static function zaloz(int $idUzivatele, ?string $razitko, ?int $idTohoto): ?int
+    public static function zaloz(int $idUzivatele, ?string $razitko): ?int
     {
-        // Prohlížeč nese jen jednu cookie, předchozí přihlášení by jinak zůstalo viset bez ní.
-        self::smazTotoZarizeni($idTohoto);
+        // Na tomto hostu nese prohlížeč jen jednu cookie, předchozí přihlášení by jinak zůstalo viset bez ní.
+        self::smazTotoZarizeni(null);
         dbQuery(<<<'SQL'
             DELETE FROM uzivatele_trvala_prihlaseni
             WHERE naposledy_pouzito < NOW() - INTERVAL $0 DAY
@@ -203,8 +205,9 @@ final class TrvalePrihlaseni
     }
 
     /**
-     * @param int|null $idTohoto trvalé přihlášení, které si pamatuje session tohoto prohlížeče. Admin běží
-     *                           na jiném hostu a cookie nevidí, bez tohohle by odhlášení v něm trvalé přihlášení nechalo.
+     * @param int|null $idTohoto trvalé přihlášení, které si pamatuje session tohoto prohlížeče. Na ostré běží admin
+     *                           na jiném hostu než web a cookie toho druhého nevidí, bez tohohle by odhlášení na jednom
+     *                           nechalo trvalé přihlášení, ze kterého session vznikla na druhém.
      */
     public static function zrusNaTomtoZarizeni(?int $idTohoto): void
     {
@@ -304,7 +307,7 @@ final class TrvalePrihlaseni
         \Chyba::nastav(
             'Trvalé přihlášení v tomto prohlížeči skončilo, přihlas se prosím znovu. Obvykle se to stane, když '
             . 'zavřeš stránku během načítání. Mohl ho ale použít i jiný prohlížeč: jestli to nečekáš, odhlas po '
-            . 'přihlášení v Nastavení ostatní zařízení.',
+            . 'přihlášení na webu v Nastavení ostatní zařízení.',
             \Chyba::VAROVANI,
         );
     }

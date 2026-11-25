@@ -67,6 +67,9 @@ if ($ucastnik) {
             'mistnosti'       => !empty($seznamLokaci) ? $seznamLokaci : null,
             'vedu'            => $vedeAktivitu,
             'interni'         => $interni,
+            // {nadpis, text, kontakt}, když účastníkovi v den aktivity ještě nebude její minimální věk, jinak null;
+            // ukáže se před přihlášením, stejně jako po odhlášení z odpovědi aktivitaAkce.php
+            'upozorneniNaVek' => $aktivita->getUpozorneniNaVekProPrihlasovatko($ucastnik, $operator ?? $ucastnik),
         ];
 
         // Hidden activities visible only to this user (not publicly visible).

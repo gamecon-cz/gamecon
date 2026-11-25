@@ -5,6 +5,9 @@ declare(strict_types=1);
 /**
  * Stránka pro přehled všech přihlášených na aktivity
  *
+ * Přihlášení mladší, než je věk aktivity (štítek „Věk: 15+“), jsou vyznačení (MladsiUcastniciAktivit), odkazuje sem
+ * i e-mail šéfovi sekce (#aktivita-<id>).
+ *
  * nazev: Seznam přihlášených
  * ikona: clipboard-list
  * pravo: 102
@@ -12,8 +15,10 @@ declare(strict_types=1);
  * submenu_order: 1
  */
 
+use Gamecon\Aktivita\MladsiUcastniciAktivit;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\KategorieTagu;
 use Gamecon\XTemplate\XTemplate;
 
 $xtpl2 = new XTemplate(__DIR__ . '/prihlaseni.xtpl');
@@ -83,16 +88,23 @@ if (! get('typ')) {
 // sjednotíme do jednoho seznamu. Sledující řadíme na konec aktivity (je_sledujici),
 // uvnitř každé skupiny pak od nejdříve přihlášeného (datum_prihlaseni) – stejně
 // jako v online prezenci.
-$sledujici = StavPrihlaseni::SLEDUJICI;
-$odpoved = dbQuery(<<<SQL
+// Mladší, než je věk aktivity (štítek „Věk: 15+“), se počítají z téhož řádku (registrovan, stitky_veku), viz
+// MladsiUcastniciAktivit::getMladsiZHodnot().
+$odpoved = dbQuery(<<<'SQL'
 SELECT  akce_seznam.nazev_akce AS nazevAktivity, akce_seznam.id_akce AS id,
         (akce_seznam.kapacita + akce_seznam.kapacita_m + akce_seznam.kapacita_f) AS kapacita,
         akce_seznam.kapacita AS kapacita_u, akce_seznam.kapacita_m, akce_seznam.kapacita_f,
     akce_seznam.zacatek, akce_seznam.konec,
         ucastnik.login_uzivatele AS nick, ucastnik.jmeno_uzivatele AS jmeno, ucastnik.id_uzivatele,
         ucastnik.prijmeni_uzivatele AS prijmeni, ucastnik.email1_uzivatele AS mail, ucastnik.telefon_uzivatele AS telefon,
-        ucastnik.datum_narozeni, ucastnik.pohlavi,
+        ucastnik.datum_narozeni, ucastnik.registrovan, ucastnik.pohlavi,
         prihlaseni.je_sledujici,
+        (SELECT GROUP_CONCAT(sjednocene_tagy.nazev SEPARATOR '|')
+            FROM akce_sjednocene_tagy
+            JOIN sjednocene_tagy ON sjednocene_tagy.id = akce_sjednocene_tagy.id_tagu
+            WHERE akce_sjednocene_tagy.id_akce = akce_seznam.id_akce
+                AND sjednocene_tagy.id_kategorie_tagu = $3
+        ) AS stitky_veku,
         (SELECT GROUP_CONCAT(organizator.login_uzivatele SEPARATOR ', ')
             FROM akce_organizatori
             JOIN uzivatele_hodnoty AS organizator ON organizator.id_uzivatele = akce_organizatori.id_uzivatele
@@ -101,6 +113,8 @@ SELECT  akce_seznam.nazev_akce AS nazevAktivity, akce_seznam.id_akce AS id,
         (SELECT GROUP_CONCAT(
                 lokace.nazev,
                 IF (TRIM(lokace.dvere) != '', CONCAT(', ', lokace.dvere), '')
+                -- hlavní místnost první jako v Aktivita::seznamLokaci(), zvolená mimo místnosti dá všude 0 a platí pořadí
+                ORDER BY lokace.id_lokace <=> akce_seznam.id_hlavni_lokace DESC, lokace.poradi, lokace.id_lokace
                 SEPARATOR '; '
             )
             FROM akce_lokace
@@ -126,7 +140,8 @@ SQL,
     [
         0 => ROCNIK,
         1 => get('typ'),
-        2 => $sledujici,
+        2 => StavPrihlaseni::SLEDUJICI,
+        3 => KategorieTagu::OMEZENI_VEK,
     ]
 );
 
@@ -144,6 +159,7 @@ $obsazenostUniverzalni = 0;
 $pocetSledujicich = 0;
 $odd = 0;
 $maily = [];
+$mladsiNaAktivite = [];
 while ($totoPrihlaseni) {
     $jeSledujici = (bool) ($totoPrihlaseni['je_sledujici'] ?? false);
     $xtpl2->assign($totoPrihlaseni);
@@ -152,7 +168,23 @@ while ($totoPrihlaseni) {
     $xtpl2->assign('sledujiciStitek', $jeSledujici ? ' (sledující)' : '');
     if ($totoPrihlaseni['id_uzivatele']) {
         $datumAktivity = $naDateTimeCz($totoPrihlaseni['zacatek'] ?? null);
-        $xtpl2->assign('vek', $formatVek($totoPrihlaseni['datum_narozeni'] ?? null, $datumAktivity));
+        // sledující na aktivitě nejsou
+        $mladsiUcastnik = $jeSledujici
+            ? null
+            : MladsiUcastniciAktivit::getMladsiZHodnot(
+                stitkyVeku: array_filter(explode('|', (string) ($totoPrihlaseni['stitky_veku'] ?? ''))),
+                zacatek: $totoPrihlaseni['zacatek'] ?? null,
+                datumNarozeni: $totoPrihlaseni['datum_narozeni'] ?? null,
+                registrovan: $totoPrihlaseni['registrovan'] ?? null,
+            );
+        if ($mladsiUcastnik !== null) {
+            $mladsiNaAktivite[] = $mladsiUcastnik;
+        }
+        $xtpl2->assign('vek', $mladsiUcastnik === null
+            ? $formatVek($totoPrihlaseni['datum_narozeni'] ?? null, $datumAktivity)
+            : '<span class="hinted mladsi-nez-vek-aktivity"><i class="fa-solid fa-baby" aria-hidden="true"></i>&nbsp;'
+              . $mladsiUcastnik['vek']
+              . "<span class=\"hint\">Aktivita je od {$mladsiUcastnik['minimalniVek']} let</span></span>");
         $xtpl2->assign('datum_prihlaseni', $formatDatumPrihlaseni($totoPrihlaseni['datum_prihlaseni'] ?? null));
         $xtpl2->assign('odd', $odd ? $odd = '' : $odd = 'odd');
         $xtpl2->parse('prihlaseni.aktivita.lide.clovek');
@@ -188,6 +220,12 @@ while ($totoPrihlaseni) {
             . ' <span style="font-size: small; color: grey">'
             . $rozpadObsazenosti . $rozpadKapacity . ' (u + m + ž)</span>');
         $xtpl2->assign('druzina', '');
+        $xtpl2->assign('mladsi', $mladsiNaAktivite === []
+            ? ''
+            : ' <span class="mladsi-nez-vek-aktivity" style="font-size: small">'
+              . '<i class="fa-solid fa-baby" aria-hidden="true"></i> mladší než '
+              . $mladsiNaAktivite[0]['minimalniVek'] . ' let: ' . count($mladsiNaAktivite)
+              . '</span>');
         if ($obsazenost || $pocetSledujicich) {
             $xtpl2->parse('prihlaseni.aktivita.lide');
         }
@@ -199,6 +237,7 @@ while ($totoPrihlaseni) {
         $pocetSledujicich = 0;
         $odd = 0;
         $maily = [];
+        $mladsiNaAktivite = [];
     }
     $totoPrihlaseni = $dalsiPrihlaseni;
     $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);

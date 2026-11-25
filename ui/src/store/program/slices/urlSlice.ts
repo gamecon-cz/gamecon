@@ -15,7 +15,7 @@ export type ProgramUrlSlice = {
 export const createProgramUrlSlice: ProgramStateCreator<ProgramUrlSlice> = () => ({
   urlStav: URL_STATE_VÝCHOZÍ_STAV,
   urlStavMožnosti: {
-    dny: urlStavProgramTabulkaMožnostíDnyMůj({ jeAdmin: GAMECON_KONSTANTY.JE_ADMIN }),
+    dny: urlStavProgramTabulkaMožnostíDnyMůj(),
     linie: [],
     stavy: AktivitaStavyVšechny,
   }
@@ -109,6 +109,12 @@ export const nastavFiltrPřihlašovatelné = (přihlašovatelné: boolean) => {
   useProgramStore.setState((s) => {
     s.urlStav.filtrPřihlašovatelné = přihlašovatelné;
   }, undefined, "nastav filtr přihlašovatelné");
+};
+
+export const nastavFiltrVolné = (volné: boolean) => {
+  useProgramStore.setState((s) => {
+    s.urlStav.filtrVolné = volné;
+  }, undefined, "nastav filtr volné");
 };
 
 export const přepniPodleMístnosti = () => {

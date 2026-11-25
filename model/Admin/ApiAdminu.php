@@ -20,6 +20,8 @@ final class ApiAdminu
             . ' nepřihlášenému musí odpovědět, že přihlášený není. Bez platného tokenu brány vrací 404.',
         'programManifest' => 'Vrací veřejná data programu, stejná jako web/api/programManifest. Volá ho stránka'
             . ' program-obecny, která jde v adminu otevřít i bez přihlášení.',
+        'prihlaseni-qr'   => 'Ptá se na něj přihlašovací stránka, tedy nepřihlášený, jestli už někdo schválil'
+            . ' přihlášení QR kódem. Odpovídá jen o žádosti této session (PrihlaseniQrKodem).',
     ];
 
     public static function isBezPrihlaseni(string $endpoint): bool

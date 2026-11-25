@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Uzivatel;
 
+use Gamecon\Login\Login;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\PrepnutiNaUzivatele;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
 use Gamecon\Uzivatel\TrvalePrihlaseni;
+use Gamecon\Web\Info;
 
 /**
  * Trvalé přihlášení má řádek na zařízení, takže přihlášení ani odhlášení na jednom zařízení
@@ -252,7 +255,7 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
     }
 
     /**
-     * Admin běží na jiném hostu než web a cookie trvalého přihlášení nevidí, s webem sdílí jen session.
+     * Na ostré běží admin na jiném hostu než web a cookie webu nevidí, s webem sdílí jen session.
      */
     public function testOdhlaseniVAdminuZrusiTrvalePrihlaseniZWebu(): void
     {
@@ -270,6 +273,74 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
             $webPoRestartu = $this->poRestartuProhlizece($web);
             self::assertNull($this->idPrihlasenehoNa($webPoRestartu));
         }
+    }
+
+    /**
+     * Na ostré má admin vlastní host a cookie, session sdílí s webem. Přihlášení „Trvale“ v adminu (formulář
+     * v zastaralé kartě, session už přihlášená z cookie webu) přepíše jen cookie adminu, a tak nesmí zrušit
+     * trvalé přihlášení webu, i když si jeho řádek pamatuje session.
+     */
+    public function testTrvalePrihlaseniNaDruhemHostuNezrusiTrvalePrihlaseniPrvniho(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $web = $this->zarizeni(cookie: $this->zalozTrvalePrihlaseni($idUzivatele));
+        $this->idPrihlasenehoNa($web);
+        $login = $this->getLogin($idUzivatele);
+        $admin = $this->zarizeni(session: $web['session']);
+
+        $this->pozadavek($admin, static fn () => \Uzivatel::prihlasTrvale($login, self::HESLO));
+
+        self::assertNotNull($admin['cookie'], 'Trvalé přihlášení v adminu má dát cookie, jinak test nic nezkouší.');
+        $webPoRestartu = $this->poRestartuProhlizece($web);
+        self::assertSame($idUzivatele, $this->idPrihlasenehoNa($webPoRestartu));
+        $adminPoRestartu = $this->poRestartuProhlizece($admin);
+        self::assertSame($idUzivatele, $this->idPrihlasenehoNa($adminPoRestartu));
+    }
+
+    /**
+     * Formulář v zastaralé kartě: v session přihlášené z cookie webu se v adminu (jiný host, cookie webu nevidí)
+     * přihlásí heslem někdo jiný. Jeho odhlášení nemá zrušit trvalé přihlášení toho, kdo byl v session dřív.
+     */
+    public function testOdhlaseniJinehoUzivateleNezrusiTrvalePrihlaseniZeSession(): void
+    {
+        $idPrvniho = $this->vytvorUzivatele();
+        $web = $this->zarizeni(cookie: $this->zalozTrvalePrihlaseni($idPrvniho));
+        $this->idPrihlasenehoNa($web);
+        $idDruheho = $this->vytvorUzivatele();
+        $loginDruheho = $this->getLogin($idDruheho);
+        $admin = $this->zarizeni(session: $web['session']);
+
+        $this->pozadavek($admin, static fn () => \Uzivatel::prihlas($loginDruheho, self::HESLO));
+        $this->pozadavek($admin, static fn () => \Uzivatel::zSession()->odhlas(false));
+
+        $webPoRestartu = $this->poRestartuProhlizece($web);
+        self::assertSame($idPrvniho, $this->idPrihlasenehoNa($webPoRestartu));
+    }
+
+    /**
+     * Admin vykreslí přihlašovací stránku v tomtéž požadavku, ve kterém cookie zneužití odhalí. Varování s radou
+     * změnit heslo tam být musí, hláška žije v cookie jen pár sekund a po přihlášení heslem by už nebyla.
+     */
+    public function testPrihlasovaciStrankaAdminuUkazeVarovaniOZneuziti(): void
+    {
+        $idUzivatele = $this->vytvorUzivatele();
+        $cookie = $this->zalozTrvalePrihlaseni($idUzivatele);
+        $zlodej = $this->zarizeni(cookie: $cookie);
+        $this->idPrihlasenehoNa($zlodej);
+        $this->posunPouzitiDoMinulosti($idUzivatele, 120);
+        $zlodej = $this->poRestartuProhlizece($zlodej);
+        $this->idPrihlasenehoNa($zlodej);
+        $this->posunPouzitiDoMinulosti($idUzivatele, 120);
+        $majitel = $this->zarizeni(cookie: $cookie);
+
+        $prihlasovaciStranka = $this->pozadavek($majitel, static function (): string {
+            self::assertNull(\Uzivatel::zSession(), 'Zneužitá cookie nemá přihlásit, jinak test nic nezkouší.');
+            $systemoveNastaveni = SystemoveNastaveni::zGlobals();
+
+            return (new Login(new Info($systemoveNastaveni), $systemoveNastaveni))->htmlLogin();
+        });
+
+        self::assertMatchesRegularExpression('~class="[^"]*alert-warning[^"]*"[^>]*>[^<]*změň si heslo~u', $prihlasovaciStranka);
     }
 
     /**
@@ -648,7 +719,6 @@ class TrvalePrihlaseniTest extends AbstractPrihlaseniNaZarizenichTestDb
         $idTrvalehoPrihlaseni = $this->pozadavek($utocnik, static fn () => TrvalePrihlaseni::zaloz(
             $idUzivatele,
             $prihlaseny->rawDb()[Sql::RAZITKO_PRIHLASENI],
-            null,
         ));
 
         self::assertNull($idTrvalehoPrihlaseni);

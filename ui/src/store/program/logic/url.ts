@@ -20,6 +20,7 @@ export type ProgramURLStav = {
   ročník: number,
   výběr: ProgramTabulkaVýběr,
   filtrPřihlašovatelné?: boolean,
+  filtrVolné?: boolean,
   aktivitaNáhledId?: number,
   filtrLinie?: string[],
   filtrTagy?: number[],
@@ -90,6 +91,7 @@ const NÁHLED_QUERY_KEY = "idAktivityNahled";
 const LINIE_QUERY_KEY = "linie";
 const TAGY_QUERY_KEY = "tagy";
 const PŘIHLAŠOVATELNÉ_QUERY_KEY = "pouzePrihlasovatelne";
+const VOLNÉ_QUERY_KEY = "pouzeVolne";
 const ROCNIK_QUERY_KEY = "rocnik";
 const STAVY_QUERY_KEY = "stav";
 const TEXT_QUERY_KEY = "text";
@@ -104,6 +106,7 @@ const párováníQueryDoStavu: {
   stavString: keyof ProgramURLStav,
 }[] = [
   { stavString: "filtrPřihlašovatelné", query: PŘIHLAŠOVATELNÉ_QUERY_KEY },
+  { stavString: "filtrVolné", query: VOLNÉ_QUERY_KEY },
   { stavString: "aktivitaNáhledId", query: NÁHLED_QUERY_KEY },
   { stavString: "filtrLinie", query: LINIE_QUERY_KEY },
   { stavString: "filtrTagy", query: TAGY_QUERY_KEY },
@@ -167,7 +170,7 @@ export const parsujUrl = (url: string) => {
     || "";
 
   // TODO: co tady dělá přihlášen: true ?? nemá být náhodou z předaných konstant ?
-  const výběr = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true, jeAdmin: GAMECON_KONSTANTY.JE_ADMIN })
+  const výběr = urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true })
     .find(x => urlZTabulkaVýběr(x) === den)
     ?? URL_STATE_VÝCHOZÍ_MOŽNOST;
 
@@ -201,7 +204,7 @@ export const parsujUrl = (url: string) => {
 /** vytvoří url z aktuálního url-stavu nebo z předaného stavu */
 export const generujUrl = (urlStav: ProgramURLStav): string | undefined => {
   const výběr =
-    urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true, jeAdmin: GAMECON_KONSTANTY.JE_ADMIN }).find(x => porovnejTabulkaVýběr(x, urlStav.výběr));
+    urlStavProgramTabulkaMožnostíDnyMůj({ přihlášen: true }).find(x => porovnejTabulkaVýběr(x, urlStav.výběr));
 
   if (!výběr) return undefined;
 
@@ -224,8 +227,8 @@ export const generujUrl = (urlStav: ProgramURLStav): string | undefined => {
   return url;
 };
 
-export const urlStavProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: boolean, ročník?: number, jeAdmin?: boolean }): ProgramTabulkaVýběr[] =>
-  ((props?.jeAdmin ?? false) ? [{ typ: "všechny_dny" } as ProgramTabulkaVýběr] : [])
+export const urlStavProgramTabulkaMožnostíDnyMůj = (props?: { přihlášen?: boolean, ročník?: number }): ProgramTabulkaVýběr[] =>
+  ([{ typ: "všechny_dny" }] as ProgramTabulkaVýběr[])
     .concat(
       GAMECON_KONSTANTY.PROGRAM_DNY
         .map((den) => ({

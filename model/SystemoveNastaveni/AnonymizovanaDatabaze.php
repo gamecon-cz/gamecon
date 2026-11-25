@@ -41,6 +41,8 @@ class AnonymizovanaDatabaze
         'upominka_dluznika_log',     // debt per user
         'upominka_vlastni_zneni',
         'uzivatele_trvala_prihlaseni', // hashes of persistent login tokens
+        'prihlaseni_qr',             // IP address and browser of devices logged in with a QR code, and by whom
+        'akce_mladsi_ucastnik_sef_informovan', // who was younger than the activity's age, from the real birth date
         'bingo_fraze',               // phrases from council meetings, internal
         'bingo_karta',
         'bingo_karta_pole',
@@ -152,6 +154,18 @@ class AnonymizovanaDatabaze
             array_values($medailonkyData),
         ));
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.`medailonky` SET $medailonkySet WHERE TRUE");
+
+        // The archive of lectures keeps a speaker's name as the spreadsheet or an administrator wrote it, often the
+        // civil name of someone the web shows only by nickname (the web names a linked speaker by the account).
+        // Next to the link to the account it would tell whose the pseudonymous account is.
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                UPDATE `{$db}`.archiv_prednasek_prednasejici
+                SET jmeno = CONCAT('Přednášející ', id_prednasejiciho)
+                WHERE id_uzivatele IS NOT NULL
+            SQL,
+        );
 
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.uzivatele_role SET `posazen` = '1970-01-01 01:01:01' WHERE TRUE");
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.akce_prihlaseni_log SET `kdy` = '1970-01-01 01:01:01' WHERE TRUE");

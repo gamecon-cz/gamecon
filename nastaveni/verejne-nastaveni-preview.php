@@ -25,7 +25,7 @@ if (!defined('ROCNIK')) {
     $rocnikOverride     = is_readable($rocnikOverrideFile)
         ? (int)trim((string)file_get_contents($rocnikOverrideFile))
         : null;
-    define('ROCNIK', $rocnikOverride ?: 2026);
+    define('ROCNIK', $rocnikOverride ?: 2027);
 }
 
 // Same diagnostic/testing facilities as beta — previews are

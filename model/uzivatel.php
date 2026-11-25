@@ -934,6 +934,123 @@ SQL,
     }
 
     /**
+     * Smí vracet přihlášení, příjezd a odjezd, které někdo na infopultu odklikl omylem. Jen šéf infopultu, ať se to
+     * nestane omylem znovu (Trello 961).
+     */
+    public function isOpravnenVracetStavNaGc(): bool
+    {
+        return $this->jeSefInfopultu();
+    }
+
+    /**
+     * Vrátí „Odjel z GC“, účastník je zase přítomen
+     */
+    public function gcZrusOdjezd(self $editor): void
+    {
+        $this->zkontrolujZeEditorJeOpravnenVracetStavNaGc($editor);
+        if (! $this->gcOdjel()) {
+            throw new Chyba('Uživatel z GC neodjel, není co vracet');
+        }
+        $this->odeberRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
+    }
+
+    /**
+     * Vrátí „Přijel a Dát materiály“, účastník je zase jen přihlášen. Odjezd se vrací dřív, pořadí kroků zůstane
+     * stejné jako cestou tam.
+     */
+    public function gcZrusPrijezd(self $editor): void
+    {
+        $this->zkontrolujZeEditorJeOpravnenVracetStavNaGc($editor);
+        if (! $this->gcPritomen()) {
+            throw new Chyba('Uživatel na GC nepřijel, není co vracet');
+        }
+        if ($this->gcOdjel()) {
+            throw new Chyba('Uživatel už z GC odjel, nejdřív vrať odjezd');
+        }
+        $this->odeberRoli(Role::PRITOMEN_NA_LETOSNIM_GC, $editor);
+    }
+
+    /**
+     * Vrátí „Přihlásit“, jen dokud na přihlášení nic nevisí (@see getPrekazkyZruseniPrihlaseni()), takže zmizí beze
+     * stopy a účastníkovi nepřijde žádný mail. Jinak je to odhlášení z GC (@see odhlasZGc()), a to patří správci financí.
+     */
+    public function gcZrusPrihlaseni(self $editor): void
+    {
+        $this->zkontrolujZeEditorJeOpravnenVracetStavNaGc($editor);
+        if (! $this->gcPrihlasen()) {
+            throw new Chyba('Uživatel není přihlášen na GC, není co vracet');
+        }
+        if ($this->gcPritomen()) {
+            throw new Chyba('Uživatel už prošel infopultem, nejdřív vrať příjezd');
+        }
+        $prekazky = $this->getPrekazkyZruseniPrihlaseni();
+        if ($prekazky !== []) {
+            throw new Chyba(sprintf(
+                'Uživatel už má letos %s, přihlášení nejde jen tak vrátit. Odhlásit z GC ho může správce financí.',
+                implode(', ', $prekazky),
+            ));
+        }
+        $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $editor);
+    }
+
+    /**
+     * Co na letošním přihlášení visí: aktivity v jakémkoli stavu (i sledované, pozdě zrušené, nedorazil), aktivity,
+     * které vede (vypravěč přihlášený z webu není omyl infopultu), objednávky a platby. Platby proto, že odhlášení
+     * plátce hlásí info@ (@see informujOOdhlaseni()).
+     *
+     * @return list<string> prázdné, když jde přihlášení zrušit beze stopy
+     */
+    public function getPrekazkyZruseniPrihlaseni(): array
+    {
+        $parametry = [
+            0 => $this->id(),
+            1 => $this->systemoveNastaveni->rocnik(),
+        ];
+        $prekazky = [];
+        if (dbOneCol(<<<'SQL'
+SELECT EXISTS(
+    SELECT 1 FROM akce_prihlaseni
+    JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni.id_akce
+    WHERE akce_prihlaseni.id_uzivatele = $0 AND akce_seznam.rok = $1
+) OR EXISTS(
+    SELECT 1 FROM akce_prihlaseni_spec
+    JOIN akce_seznam ON akce_seznam.id_akce = akce_prihlaseni_spec.id_akce
+    WHERE akce_prihlaseni_spec.id_uzivatele = $0 AND akce_seznam.rok = $1
+)
+SQL, $parametry)) {
+            $prekazky[] = 'aktivity';
+        }
+        if (dbOneCol(<<<'SQL'
+SELECT EXISTS(
+    SELECT 1 FROM akce_organizatori
+    JOIN akce_seznam ON akce_seznam.id_akce = akce_organizatori.id_akce
+    WHERE akce_organizatori.id_uzivatele = $0 AND akce_seznam.rok = $1
+)
+SQL, $parametry)) {
+            $prekazky[] = 'vedené aktivity';
+        }
+        if (dbOneCol(<<<'SQL'
+SELECT EXISTS(SELECT 1 FROM shop_nakupy WHERE id_uzivatele = $0 AND rok = $1)
+SQL, $parametry)) {
+            $prekazky[] = 'objednávky';
+        }
+        if (dbOneCol(<<<'SQL'
+SELECT EXISTS(SELECT 1 FROM platby WHERE id_uzivatele = $0 AND rok = $1)
+SQL, $parametry)) {
+            $prekazky[] = 'platby';
+        }
+
+        return $prekazky;
+    }
+
+    private function zkontrolujZeEditorJeOpravnenVracetStavNaGc(self $editor): void
+    {
+        if (! $editor->isOpravnenVracetStavNaGc()) {
+            throw new Chyba('Vracet přihlášení, příjezd nebo odjezd účastníka smí jen šéf infopultu');
+        }
+    }
+
+    /**
      * Je uživatel přihlášen na aktuální GC?
      */
     public function gcPrihlasen(): bool
@@ -1981,6 +2098,17 @@ SQL,
             dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
         }
 
+        if ($klic === self::UZIVATEL) {
+            if (! session_id() && PHP_SAPI !== 'cli') {
+                session_start();
+            }
+            // Trvalé přihlášení, které si session pamatuje, patří tomu, kdo se v ní přihlásil dřív (formulář v zastaralé
+            // kartě). Jinému uživateli ho jeho odhlášení rušit nemá. Stejnému ano, na ostré může patřit cookie druhého
+            // hostu (web a admin) a odhlášení ruší toto zařízení.
+            if ((int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) !== (int) $uzivatelData['id_uzivatele']) {
+                unset($_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI]);
+            }
+        }
         $uzivatel = self::prihlasDoSession($uzivatelData, $klic);
         if ($klic === self::UZIVATEL) {
             // nové přihlášení začíná bez přepnutí, až po startu session, který by ho načetl znovu
@@ -2127,7 +2255,45 @@ SQL,
             $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
                 $u->id(),
                 $u->r[Sql::RAZITKO_PRIHLASENI],
-                $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] ?? null,
+            );
+        }
+
+        return $u;
+    }
+
+    /**
+     * Přihlášení zařízení, které schválil přihlášený uživatel na jiném zařízení (QR kódem,
+     * {@see \Gamecon\Uzivatel\PrihlaseniQrKodem}).
+     *
+     * @param string|null $razitko razítko přihlášení session, která schválila. Když se mezitím změnilo (odhlášení
+     *                             ostatních zařízení, nové heslo), zařízení se nepřihlásí.
+     * @param bool        $trvale  jako zaškrtnuté „Trvale přihlásit“
+     */
+    public static function prihlasSchvalenymZarizenim(int $idUzivatele, ?string $razitko, bool $trvale): ?self
+    {
+        $uzivatelData = self::nactiDataProPrihlaseni($idUzivatele);
+        if ($uzivatelData === null
+            || ! self::isRazitkoPlatne($uzivatelData[Sql::RAZITKO_PRIHLASENI], $razitko)
+        ) {
+            return null;
+        }
+        // Přihlásí se session s novým id: to dosavadní mohl prohlížeči podstrčit někdo jiný (cookie session je pro
+        // celou doménu a nastavit ji jde z kterékoli subdomény, třeba z preview), a přihlášením by s ním získal účet.
+        if (session_status() === PHP_SESSION_ACTIVE && ! headers_sent()) {
+            session_regenerate_id(true);
+        }
+        // trvalé přihlášení jiného uživatele, který byl v session dřív, nechá jako přihlášení heslem, viz prihlas()
+        if ((int) ($_SESSION[self::UZIVATEL]['id_uzivatele'] ?? 0) !== $idUzivatele) {
+            unset($_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI]);
+        }
+        $u = self::prihlasDoSession($uzivatelData, self::UZIVATEL);
+        // nové přihlášení začíná bez přepnutí, až po startu session, který by ho načetl znovu
+        PrepnutiNaUzivatele::zSession()->zapomen();
+        if ($trvale) {
+            // razítko z DB: jen proti tomu založí řádek, viz TrvalePrihlaseni::zaloz()
+            $_SESSION[self::UZIVATEL][self::SESSION_ID_TRVALEHO_PRIHLASENI] = TrvalePrihlaseni::zaloz(
+                $u->id(),
+                $uzivatelData[Sql::RAZITKO_PRIHLASENI],
             );
         }
 
@@ -2485,22 +2651,15 @@ SQL,
                 $u->otoc();
             }
             $idUzivatele = $u->id();
-            $urlUzivatele = self::vytvorUrl($u->r);
             if ($zmeniloSeJmenoNaWebu) {
                 self::invalidujProgramCacheJeLiVypravecem($u->id());
             }
         } else {
             dbInsert(Sql::UZIVATELE_HODNOTY_TABULKA, $dbTab);
             $idUzivatele = dbInsertId();
-            $dbTab[Sql::ID_UZIVATELE] = $idUzivatele;
-            $urlUzivatele = self::vytvorUrl($dbTab);
         }
-        if ($urlUzivatele !== null) {
-            dbInsertUpdate('uzivatele_url', [
-                'id_uzivatele' => $idUzivatele,
-                'url'          => $urlUzivatele,
-            ]);
-        }
+        // Adresu podle jména (uzivatele_url) už nezakládá: web odkazuje na medailonek přes /<id> a přívěsek se jménem
+        // by se mohl srazit se stránkou nebo modulem, nebo (url je unikátní) přebrat adresu jinému uživateli.
 
         return (string) $idUzivatele;
     }
@@ -2767,33 +2926,6 @@ SQL,
         throw new Chyba($idNeboHlaska);
     }
 
-    /**
-     * Vrátí url cestu k stránce uživatele (bez domény).
-     */
-    public function url(bool $vcetneId = false): ?string
-    {
-        if (! $this->r[Sql::JMENO_UZIVATELE]) {
-            return null; // nevracet url, asi vypravěčská skupina nebo podobně
-        }
-        if (! empty($this->r['url'])) {
-            return $vcetneId
-                ? $this->id() . '-' . $this->r['url']
-                : $this->r['url'];
-        }
-
-        return self::vytvorUrl($this->r);
-    }
-
-    private static function vytvorUrl(array $uzivatelData): ?string
-    {
-        $jmenoNick = self::jmenoNickZjisti($uzivatelData);
-        $url = slugify($jmenoNick);
-
-        return Url::povolena($url)
-            ? $url
-            : null;
-    }
-
     public function vek(): ?int
     {
         if ($this->r['datum_narozeni'] === '0000-00-00' || $this->r['datum_narozeni'] === '1970-01-01') {
@@ -2816,6 +2948,33 @@ SQL,
         }
 
         return date_diff($this->datumNarozeni(), $datum)->y;
+    }
+
+    /**
+     * Je datum narození skutečné? Viz isDatumNarozeniSkutecneKRegistraci().
+     */
+    public function isDatumNarozeniSkutecne(): bool
+    {
+        return self::isDatumNarozeniSkutecneKRegistraci(
+            (string) $this->r[Sql::DATUM_NAROZENI],
+            (string) $this->r[Sql::REGISTROVAN],
+        );
+    }
+
+    /**
+     * Je datum narození skutečné? Rychloregistrace na místě (rychloregistrace()) a admin anonymizované databáze
+     * dostanou místo něj den registrace, a kdo by se narodil v den registrace nebo po ní, má datum vyplněné jen
+     * pro formu (i překlep do budoucnosti). Staré účty mají registraci '0000-00-00', u nich porovnávat není s čím.
+     * Z hodnot sloupců, pro výpis nad vlastním SQL (Seznam přihlášených).
+     */
+    public static function isDatumNarozeniSkutecneKRegistraci(string $datumNarozeni, string $registrovan): bool
+    {
+        if (!(int) $datumNarozeni) { // neplatné datum je '0000-00-00'
+            return false;
+        }
+        $denRegistrace = substr($registrovan, 0, 10);
+
+        return !(int) $denRegistrace || $datumNarozeni < $denRegistrace;
     }
 
     /**
@@ -3334,7 +3493,11 @@ SQL,
             return self::zId($idUzivatele);
         }
         $urlUzivatele = preg_replace('~^[^[:alnum:]]*\d*-?~', '', $aktualniUrl);
-        $u = self::nactiUzivatele('WHERE uzivatele_url.url = ' . dbQv($urlUzivatele));
+        // adresy podle jména z dřívějška; nové se nezapisují, web odkazuje na /<id>
+        $u = self::nactiUzivatele(
+            'WHERE u.id_uzivatele IN (SELECT uzivatele_url.id_uzivatele FROM uzivatele_url WHERE uzivatele_url.url = '
+            . dbQv($urlUzivatele) . ')',
+        );
 
         return count($u) !== 1
             ? null
@@ -3364,12 +3527,10 @@ SQL,
         return <<<SQL
 SELECT
     u.*,
-    (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
     GROUP_CONCAT(DISTINCT p.id_prava) as prava
 FROM uzivatele_hodnoty u
 LEFT JOIN platne_role_uzivatelu z ON (z.id_uzivatele = u.id_uzivatele)
 LEFT JOIN prava_role p ON (p.id_role = z.id_role)
-LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
 {$where}
 GROUP BY u.id_uzivatele
 SQL;

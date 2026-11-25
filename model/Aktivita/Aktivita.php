@@ -54,7 +54,6 @@ class Aktivita
     private array $kolekce = []; // nadřízená kolekce, v rámci které byla aktivita načtena
     /** @var array<Lokace>|null */
     private ?array             $seznamLokaci;
-    private null | int | false $idHlavniLokace        = null;
     private                    $stav;
     private ?int               $idHlavniAktivityCache = null;
     private bool               $nova;           // jestli jde o nově uloženou aktivitu nebo načtenou z DB
@@ -85,6 +84,13 @@ class Aktivita
     const PN_PLUSMINUSP         = 'cAktivitaPlusminusp'; // název post proměnné pro úpravy typu plus
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm'; // název post proměnné pro úpravy typu mínus
     const LIMIT_POPIS_KRATKY    = 180; // max počet znaků v krátkém popisku
+
+    // kontakt na šéfa sekce u linie bez vyplněné hlavičky (KontaktSefaLinie), stejný jako na stránce linie
+    public const KONTAKT_NA_SEFA_PROGRAMU = 'info@gamecon.cz';
+
+    // jak se šéf sekce dozvěděl o mladším účastníkovi (akce_mladsi_ucastnik_sef_informovan.jak)
+    private const string SEF_SEKCE_INFORMOVAN_EMAILEM = 'email';
+    private const string SEF_SEKCE_INFORMOVAN_PRIHLASIL_JINY = 'prihlasil_jiny';
 
     // todo: tym asi lepší commenty k parametrům by bodly :)
     /* ignore a parametry kolem přihlašovátka */
@@ -484,18 +490,19 @@ SQL
      */
     protected static function editorChyby(array $a)
     {
-        $chyby = []; // kontrola dostupnosti organizátorů v daný čas
+        $chyby = [];
+        $puvodniAktivita = !empty($a[Sql::ID_AKCE])
+            ? self::zId((int)$a[Sql::ID_AKCE])
+            : null;
+        // kontrola dostupnosti organizátorů v daný čas
         if ($casy = self::dejCasyZFormulare($a)) {
             [$zacatek, $konec] = $casy;
             if ($zacatek >= $konec) {
                 $chyby[] = 'Konec aktivity musí být po jejím začátku.';
             }
-            $ignorovatAktivitu = isset($a[Sql::ID_AKCE])
-                ? self::zId($a[Sql::ID_AKCE])
-                : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
-                if ($kolizniAktivita = $org->maKoliziSJinouAktivitouVCase($zacatek, $konec, $ignorovatAktivitu)) {
+                if ($kolizniAktivita = $org->maKoliziSJinouAktivitouVCase($zacatek, $konec, $puvodniAktivita)) {
                     $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu: ' . $kolizniAktivita->nazev();
                 }
             }
@@ -503,6 +510,11 @@ SQL
 
         if (mb_strlen($a[Sql::POPIS_KRATKY] ?? '') > self::LIMIT_POPIS_KRATKY) {
             $chyby[] = sprintf('Krátký popis překračuje maximální povolenou délku %d znaků.', self::LIMIT_POPIS_KRATKY);
+        }
+
+        $chybaTypu = self::zkontrolujTyp($a, $puvodniAktivita);
+        if ($chybaTypu !== null) {
+            $chyby[] = $chybaTypu;
         }
 
         // kontrola duplicit url
@@ -514,6 +526,43 @@ SQL
         }
 
         return $chyby;
+    }
+
+    /**
+     * Nově vybraný typ musí být aktivní. Neaktivní typ, například „(bez typu – organizační)“ starých aktivit,
+     * si aktivita, která ho má, může jen ponechat.
+     *
+     * @param array<string, mixed> $a data z formuláře editoru
+     * @return string|null chyba, null když je typ v pořádku
+     */
+    private static function zkontrolujTyp(array $a, ?Aktivita $puvodniAktivita): ?string
+    {
+        $typ = $a[Sql::TYP] ?? null;
+        if ($typ === null) {
+            // nevybraný typ prohlížeč neodešle (volba je disabled); bez typu by DB uložila 0
+            return $puvodniAktivita === null
+                ? 'Vyber typ aktivity.'
+                : null; // existující aktivita si typ ponechá
+        }
+        // jen celé číslo: uloží se hodnota z formuláře a DB by například „4.6“ zaokrouhlila na jiný typ, než prošel kontrolou
+        $idTypu = is_int($typ) || is_string($typ)
+            ? filter_var($typ, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]])
+            : false;
+        if ($idTypu === false) {
+            return 'Vyber typ aktivity.';
+        }
+        if ($puvodniAktivita !== null && $idTypu === (int)$puvodniAktivita->a[Sql::TYP]) {
+            return null;
+        }
+        $typAktivity = TypAktivity::zId($idTypu);
+        if ($typAktivity === null) {
+            return 'Vyber typ aktivity.';
+        }
+        if (!$typAktivity->isAktivni()) {
+            return sprintf('Typ aktivity „%s“ se už nepoužívá, vyber jiný.', $typAktivity->nazevJednotnehoCisla());
+        }
+
+        return null;
     }
 
     protected static function urlJeObsazena(array $a): bool
@@ -599,12 +648,7 @@ SQL
         XTemplate $xtpl,
     ): void {
         $vsechnyLokace = Lokace::zVsech();
-        usort($vsechnyLokace, static function (
-            Lokace $a,
-            Lokace $b,
-        ) {
-            return $a->poradi() <=> $b->poradi();
-        });
+        usort($vsechnyLokace, [Lokace::class, 'porovnejPodlePoradi']);
 
         /** @var array<string, array<int, Lokace>> $vsechnyLokacePodlePoznamky */
         $vsechnyLokacePodlePoznamky = [];
@@ -612,73 +656,62 @@ SQL
             $vsechnyLokacePodlePoznamky[trim((string)$lokace->poznamka())][] = $lokace;
         }
 
-        $pocetVsechLokaci = count($vsechnyLokace);
-        $nazevPredchoziKategorie = null;
-
-        $encodeForHtml = function (
+        $encodeForHtml = static function (
             ?string $value,
-        ) {
+        ): string {
             return htmlspecialchars((string)$value, ENT_QUOTES | ENT_HTML5);
         };
 
-        $vybraneLokace = $aktivita?->seznamLokaciIdcka() ?? [];
+        $idckaVybranychLokaci = $aktivita?->seznamLokaciIdcka() ?? [];
 
-        $indexLokace = 0;
+        // místnosti se stejnou poznámkou jsou v jedné skupině (jeden nadpis), místnosti bez poznámky mimo skupinu
         foreach ($vsechnyLokacePodlePoznamky as $poznamka => $lokaceSeStejnouPoznamkou) {
-            $jeNovaKategorie = $nazevPredchoziKategorie !== null
-                               && $nazevPredchoziKategorie !== $poznamka;
-            foreach ($lokaceSeStejnouPoznamkou as $lokace) {
-                assert($lokace instanceof Lokace);
+            $poznamka = (string)$poznamka; // číselný klíč pole by byl int
+            $jeSkupina = $poznamka !== '';
+            $indexPosledniLokace = count($lokaceSeStejnouPoznamkou) - 1;
+            foreach ($lokaceSeStejnouPoznamkou as $indexLokace => $lokace) {
                 $xtpl->assign('id_lokace', $lokace->id());
                 $xtpl->assign('nazev_lokace', $encodeForHtml($lokace->nazev()));
-                $xtpl->assign('lokace_selected', in_array($lokace->id(), $vybraneLokace, true)
+                $xtpl->assign('lokace_selected', in_array($lokace->id(), $idckaVybranychLokaci, true)
                     ? 'selected'
                     : '');
                 $xtpl->assign(
-                    'previous_optgroup_lokace_end',
-                    $jeNovaKategorie && $nazevPredchoziKategorie !== null
-                        ? '</optgroup>'
-                        : '',
-                );
-                $xtpl->assign(
                     'optgroup_lokace_start',
-                    $jeNovaKategorie
+                    $jeSkupina && $indexLokace === 0
                         ? '<optgroup label="' . $encodeForHtml(mb_ucfirst($poznamka)) . '">'
                         : '',
                 );
                 $xtpl->assign(
-                    'last_optgroup_lokace_end',
-                    $indexLokace + 1 === $pocetVsechLokaci
+                    'optgroup_lokace_end',
+                    $jeSkupina && $indexLokace === $indexPosledniLokace
                         ? '</optgroup>'
                         : '',
                 );
                 $xtpl->parse('upravy.tabulka.lokace');
-                $nazevPredchoziKategorie = $poznamka;
             }
-            $indexLokace++;
         }
-        self::parseUpravyTabulkaHlavniLokace($aktivita, $vsechnyLokace, $xtpl);
-    }
 
-    /**
-     * @param array<Lokace> $vsechnyLokace
-     */
-    private static function parseUpravyTabulkaHlavniLokace(
-        ?Aktivita $aktivita,
-        array     $vsechnyLokace,
-        XTemplate $xtpl,
-    ): void {
-        $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)', 'selected' => '']);
-        $xtpl->parse('upravy.tabulka.vyberHlavniLokace');
-
-        $hlavniLokace = $aktivita?->hlavniLokace();
-        foreach ($vsechnyLokace as $lokace) {
-            $xtpl->assign('selected', $lokace->id() === $hlavniLokace?->id()
-                ? 'selected'
-                : '');
-            $xtpl->assign(['id_lokace' => $lokace->id(), 'nazev' => htmlspecialchars($lokace->nazev(), ENT_QUOTES | ENT_HTML5)]);
-            $xtpl->parse('upravy.tabulka.vyberHlavniLokace');
-        }
+        // Nabídku hlavní místnosti (automaticky + vybrané místnosti) skládá jen JS v šabloně, při načtení i při každé
+        // změně místností. Odsud dostane všechny místnosti v pořadí a výslovně zvolenou hlavní místnost, pokud nějaká je.
+        $idZvoleneHlavniLokace = $aktivita?->getIdZvoleneHlavniLokace();
+        $xtpl->assign(
+            'idZvoleneHlavniLokace',
+            $idZvoleneHlavniLokace !== null && in_array($idZvoleneHlavniLokace, $idckaVybranychLokaci, true)
+                ? $idZvoleneHlavniLokace
+                : '',
+        );
+        $xtpl->assign(
+            'lokaceProHlavniLokaciJson',
+            json_encode(
+                array_map(
+                    static fn(
+                        Lokace $lokace,
+                    ): array => ['id' => $lokace->id(), 'nazev' => (string)$lokace->nazev()],
+                    $vsechnyLokace,
+                ),
+                JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_THROW_ON_ERROR,
+            ),
+        );
     }
 
     private static function dejRozsirenyNazevAktivity(Aktivita $aktivita): string
@@ -897,14 +930,25 @@ SQL
     private static function parseUpravyTabulkaTypy(
         ?Aktivita $aktivita,
         XTemplate $xtpl,
-    ) {
-        $aktivitaData = $aktivita?->a; // databázový řádek
-        // typ s id 0 je (bez typu – organizační) a ten chceme první
-        $sKladnymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND (poradi > 0 OR id_typu = 0) ORDER BY poradi');
-        // typy se záporným pořadím jsou technické, brigádnické a tak
-        $seZapornymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND poradi < 0 AND id_typu != 0 ORDER BY poradi DESC');
-        foreach (array_merge($sKladnymPoradim, $seZapornymPoradim) as $akceTypData) {
-            $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData[Sql::TYP]
+    ): void {
+        $idTypuAktivity = $aktivita !== null
+            ? (int)$aktivita->a[Sql::TYP]
+            : null;
+        // Neaktivní typy, například „(bez typu – organizační)“, se nenabízí. Typ, který aktivita už má, se nabídne
+        // i neaktivní, jinak by ho uložení formuláře potichu změnilo, viz zkontrolujTyp().
+        // Typy se záporným pořadím (technické, brigádnické a tak) jsou na konci.
+        $typy = dbFetchAll(<<<'SQL'
+            SELECT id_typu, typ_1p
+            FROM akce_typy
+            WHERE aktivni = 1 OR id_typu = $0
+            ORDER BY poradi < 0, ABS(poradi)
+            SQL, [0 => $idTypuAktivity]);
+        if ($idTypuAktivity === null) {
+            // nová aktivita nemá předvybraný typ, ať se nezadá omylem ten první
+            $xtpl->parse('upravy.tabulka.vyberTypu');
+        }
+        foreach ($typy as $akceTypData) {
+            $xtpl->assign('selected', (int)$akceTypData['id_typu'] === $idTypuAktivity
                 ? 'selected'
                 : '');
             $xtpl->assign($akceTypData);
@@ -1136,18 +1180,9 @@ SQL
                 $lokaceIds[$lokaceId] = $lokaceId;
             }
         }
-        $hlavniLokaceId = post(self::HLAVNI_LOKACE_KLIC);
-        $hlavniLokaceId = $hlavniLokaceId
-            ? (int)$hlavniLokaceId
-            : null;
-        if ($hlavniLokaceId !== null) {
-            $lokaceIds[$hlavniLokaceId] = $hlavniLokaceId; // automaticky přidáme zvolenou hlavní lokaci do seznamu lokací
-        }
-        if ($hlavniLokaceId === null && count($lokaceIds) === 1) {
-            // pokud je vybrána pouze jedna lokace, nastavíme ji jako hlavní
-            $hlavniLokaceId = reset($lokaceIds);
-        }
-        self::chybaNebylaLiHlavniLokaceNastavena($lokaceIds, $hlavniLokaceId);
+        // Hlavní místnost je nepovinná: prázdná znamená „automaticky“ a zvolená, která mezi vybranými místnostmi není
+        // (organizátor ji odebral), se mezi místnosti zpátky nepřidá a platí taky „automaticky“, @see nastavLokacePodleIds
+        $hlavniLokaceId = (int)post(self::HLAVNI_LOKACE_KLIC) ?: null;
 
         $obrazekSoubor = postFile(self::OBRAZEK_KLIC);
         $obrazekUrl = post(self::OBRAZEK_KLIC . 'Url');
@@ -1203,22 +1238,6 @@ SQL
                 chyba($result->getError(), false);
             }
         }
-    }
-
-    private static function chybaNebylaLiHlavniLokaceNastavena(
-        array $lokaceIds,
-        ?int  $hlavniLokaceId,
-    ): void {
-        if ($lokaceIds === [] && $hlavniLokaceId === null) {
-            return;
-        }
-        if (in_array($hlavniLokaceId, $lokaceIds, true)) {
-            return;
-        }
-        chyba(
-            'Hlavní místnost musí být jednou z vybraných místností.',
-            true,
-        );
     }
 
     /**
@@ -1312,8 +1331,14 @@ SQL
         // uložení změn do akce_seznam
         if (empty($data[Sql::PATRI_POD]) && !empty($data[Sql::ID_AKCE])) {
             // editace jediné aktivity
+            $puvodniStav = dbOneCol(<<<'SQL'
+                SELECT stav FROM akce_seznam WHERE id_akce = $0
+                SQL, [0 => $data[Sql::ID_AKCE]]);
             dbInsertUpdate('akce_seznam', $data);
             $aktivita = self::zId($data[Sql::ID_AKCE]);
+            $aktivita->zalogujStavPoUlozeni($puvodniStav !== null && $puvodniStav !== false
+                ? (int)$puvodniStav
+                : null);
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
         } elseif (!empty($data[Sql::PATRI_POD])) {
             // editace aktivity z rodiny instancí
@@ -1321,7 +1346,10 @@ SQL
             $doAktualni = [Sql::ZACATEK, Sql::KONEC, Sql::ID_TURNAJE, Sql::TURNAJ_KOLO];       // věci, které se mají změnit jen u aktuální instance
             $aktivita = self::zId($data[Sql::ID_AKCE]);       // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
-                $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
+                // import posílá stav i beze změny, do logu jde jen opravdová změna
+                if ((int)$data[ActivitiesImportSqlColumn::STAV] !== $aktivita->idStavu()) {
+                    $aktivita->zmenStav((int)$data[ActivitiesImportSqlColumn::STAV]);
+                }
                 unset($data[ActivitiesImportSqlColumn::STAV]); // stav se může měnit jenom u jedné instance
             }
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
@@ -1365,6 +1393,7 @@ SQL
             dbInsertUpdate(Sql::AKCE_SEZNAM_TABULKA, $data);
             $data[Sql::ID_AKCE] = dbInsertId();
             $aktivita = self::zId($data[Sql::ID_AKCE]);
+            $aktivita->zalogujStavPoUlozeni(null);
             $aktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
             $aktivita->nova = true;
         }
@@ -1482,7 +1511,7 @@ SQL
     public function instancuj(): ?Aktivita
     {
         $lokaceIds = $this->seznamLokaciIdcka();
-        $hlavniLokaceId = $this->idHlavniLokace();
+        $hlavniLokaceId = $this->getIdZvoleneHlavniLokace(); // automatická zůstane automatickou
 
         $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
         //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
@@ -1516,9 +1545,6 @@ SQL
             throw new \LogicException("Nepodařilo se načíst nově vytvořenou aktivitu s ID {$idNoveAktivity}");
         }
 
-        if ($hlavniLokaceId !== null && !in_array($hlavniLokaceId, $lokaceIds, true)) {
-            $hlavniLokaceId = null;
-        }
         $novaAktivita->nastavLokacePodleIds($lokaceIds, $hlavniLokaceId);
         $novaAktivita->nastavTagy($this->tagy());
 
@@ -1600,6 +1626,7 @@ SQL
     }
 
     /**
+     * Místnosti aktivity, hlavní první (@see HlavniLokace), ostatní v pořadí místností.
      * @return array<Lokace>
      */
     public function seznamLokaci(): array
@@ -1618,128 +1645,127 @@ SQL
         }
 
         if (count($this->seznamLokaci) > 1) {
-            $idHlavniLokace = $this->idHlavniLokace();
-            usort(
-                $this->seznamLokaci,
-                static function (
-                    Lokace $a,
-                    Lokace $b,
-                ) use
-                (
-                    $idHlavniLokace,
-                ) {
-                    if ($a->id() === $b->id()) {
-                        return 0; // stejná lokace
-                    }
-                    if ($idHlavniLokace !== null) {
-                        // hlavní nejdřív, pak podle pořadí
-                        if ($a->id() === $idHlavniLokace) {
-                            return -1; // a je hlavní lokace
-                        }
-                        if ($b->id() === $idHlavniLokace) {
-                            return 1; // b je hlavní lokace
-                        }
-                    }
-
-                    return $a->poradi() <=> $b->poradi();
-                },
-            );
+            usort($this->seznamLokaci, [Lokace::class, 'porovnejPodlePoradi']);
+            $idHlavniLokace = HlavniLokace::vyber($this->seznamLokaci, $this->getIdZvoleneHlavniLokace())?->id();
+            $this->seznamLokaci = [
+                ...array_filter($this->seznamLokaci, static fn(Lokace $lokace): bool => $lokace->id() === $idHlavniLokace),
+                ...array_filter($this->seznamLokaci, static fn(Lokace $lokace): bool => $lokace->id() !== $idHlavniLokace),
+            ];
         }
 
         return $this->seznamLokaci;
     }
 
+    /**
+     * Výslovně zvolená, nebo automatická hlavní místnost (@see HlavniLokace), bez místností null.
+     */
     public function hlavniLokace(): ?Lokace
     {
-        $idHlavniLokace = $this->idHlavniLokace();
-        if ($idHlavniLokace === null) {
-            return null;
-        }
-        foreach ($this->seznamLokaci() as $lokace) {
-            if ($lokace->id() === $idHlavniLokace) {
-                return $lokace;
-            }
-        }
-        throw new \LogicException(sprintf(
-            'Hlavní lokace s ID %d nebyla nalezena v seznamu lokací aktivity %d.',
-            $idHlavniLokace,
-            $this->id(),
-        ));
+        return $this->seznamLokaci()[0] ?? null;
     }
 
     public function idHlavniLokace(): ?int
     {
-        if (!isset($this->idHlavniLokace)) {
-            $idHlavniLokace = dbFetchSingle(<<<SQL
-                SELECT COALESCE(
-                    akce_seznam.id_hlavni_lokace,
-                    (SELECT id_lokace FROM akce_lokace WHERE id_akce = {$this->id()} ORDER BY id_lokace ASC LIMIT 1)
-                )
-                FROM akce_seznam
-                WHERE id_akce = {$this->id()}
-                SQL,
-            );
-            $this->idHlavniLokace = $idHlavniLokace
-                ? (int)$idHlavniLokace
-                : false;
-        }
-
-        return $this->idHlavniLokace
-            ?: null;
+        return $this->hlavniLokace()?->id();
     }
 
+    /**
+     * Hlavní místnost, kterou organizátor výslovně zvolil, null znamená „automaticky“ (@see HlavniLokace).
+     */
+    public function getIdZvoleneHlavniLokace(): ?int
+    {
+        $idZvoleneHlavniLokace = $this->a[Sql::ID_HLAVNI_LOKACE] ?? null;
+
+        return $idZvoleneHlavniLokace !== null && $idZvoleneHlavniLokace !== ''
+            ? (int)$idZvoleneHlavniLokace
+            : null;
+    }
+
+    /**
+     * Uloží místnosti aktivity a výslovně zvolenou hlavní místnost, v jedné transakci a jen s existujícími místnostmi.
+     * Zvolená hlavní místnost, která mezi místnostmi není (třeba ji někdo z místností právě odebral), se mezi ně
+     * nepřidá a uloží se null, tedy „automaticky“ (@see HlavniLokace).
+     * @param array<int|string> $idckaLokaci
+     */
     public function nastavLokacePodleIds(
         array $idckaLokaci,
         ?int  $hlavniLokaceId,
     ): void {
-        if ($idckaLokaci === []) {
-            dbQuery(<<<SQL
+        $idckaLokaci = array_values(array_unique(array_map('intval', $idckaLokaci)));
+        $idZvoleneHlavniLokace = $hlavniLokaceId !== null && in_array($hlavniLokaceId, $idckaLokaci, true)
+            ? $hlavniLokaceId
+            : null;
+        self::overExistenciLokaci($idckaLokaci);
+
+        dbBegin();
+        try {
+            if ($idckaLokaci === []) {
+                dbQuery(<<<SQL
                     DELETE FROM akce_lokace
                     WHERE id_akce = {$this->id()}
                     SQL,
-            );
-        } else {
-            dbQuery(<<<SQL
+                );
+            } else {
+                // prázdné pole by dalo NOT IN (NULL), které nesmaže nic, proto zvlášť
+                dbQuery(<<<SQL
                     DELETE FROM akce_lokace
                     WHERE id_akce = {$this->id()}
-                    AND id_lokace NOT IN ($1)
+                        AND id_lokace NOT IN ($1)
                     SQL,
-                [1 => $idckaLokaci],
-            );
-        }
-        if ($idckaLokaci !== []) {
-            $values = array_map(
-                function (
-                    int $idLokace,
-                ) {
-                    return "({$this->id()}, $idLokace)";
-                },
-                array_map('intval', $idckaLokaci),
-            );
-            $valuesSql = implode(',', $values);
+                    [1 => $idckaLokaci],
+                );
+                $valuesSql = implode(
+                    ',',
+                    array_map(
+                        fn(
+                            int $idLokace,
+                        ): string => "({$this->id()}, $idLokace)",
+                        $idckaLokaci,
+                    ),
+                );
+                dbQuery(<<<SQL
+                    REPLACE INTO akce_lokace(id_akce, id_lokace)
+                    VALUES {$valuesSql}
+                    SQL,
+                );
+            }
             dbQuery(<<<SQL
-                REPLACE INTO akce_lokace(id_akce, id_lokace)
-                VALUES {$valuesSql}
+                UPDATE akce_seznam
+                SET id_hlavni_lokace = $1
+                WHERE id_akce = {$this->id()}
                 SQL,
+                [1 => $idZvoleneHlavniLokace],
             );
+            dbCommit();
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
         }
-        if ($hlavniLokaceId !== null && !in_array($hlavniLokaceId, array_map('intval', $idckaLokaci), true)) {
-            throw new \LogicException(
-                sprintf(
-                    'Given ID of main location %d is not in given list of locations %s.',
-                    $hlavniLokaceId, implode(', ', $idckaLokaci),
-                ),
-            );
-        }
-        dbQuery(<<<SQL
-            UPDATE akce_seznam
-            SET id_hlavni_lokace = $1
-            WHERE id_akce = {$this->id()}
-            SQL,
-            [1 => $hlavniLokaceId],
-        );
-        $this->idHlavniLokace = null;
+
+        $this->a[Sql::ID_HLAVNI_LOKACE] = $idZvoleneHlavniLokace;
         $this->seznamLokaci = null;
+    }
+
+    /**
+     * @param array<int> $idckaLokaci
+     */
+    private static function overExistenciLokaci(array $idckaLokaci): void
+    {
+        if ($idckaLokaci === []) {
+            return;
+        }
+        $idckaExistujicichLokaci = array_map('intval', dbFetchColumn(<<<'SQL'
+            SELECT id_lokace FROM lokace WHERE id_lokace IN ($0)
+            SQL,
+            [0 => $idckaLokaci],
+        ));
+        $idckaNeexistujicichLokaci = array_diff($idckaLokaci, $idckaExistujicichLokaci);
+        if ($idckaNeexistujicichLokaci !== []) {
+            throw new \InvalidArgumentException(sprintf(
+                'Místnosti s ID %s neexistují.',
+                implode(', ', $idckaNeexistujicichLokaci),
+            ));
+        }
     }
 
     public function popisLokaci(): string
@@ -2530,7 +2556,7 @@ SQL
                 [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN],
             );
 
-            $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
+            $zmenaPrihlaseni = $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
             // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
             $this->zrusPredchoziStornoPoplatek($uzivatel);
 
@@ -2546,7 +2572,140 @@ SQL
 
         $uzivatel->finance()->prepoctiSlevuNaJednuAktivitu();
 
+        // o dalších aktivitách turnaje či týmu (IGNOROVAT_TURNAJ) se nepíše, upozornění bylo jen o aktivitě, na kterou
+        // se hlásí
+        if (!($parametry & self::IGNOROVAT_TURNAJ)) {
+            $this->informujSefaSekceOMladsimUcastnikovi($uzivatel, $prihlasujici, $zmenaPrihlaseni->idLogu());
+        }
+
         return true;
+    }
+
+    /**
+     * Po uloženém přihlášení: je-li účastník na aktivitě mladší, než je její věk, zařídí, aby o tom šéf sekce věděl,
+     * a zapíše to k přihlášení ($idLoguPrihlaseni, akce_mladsi_ucastnik_sef_informovan).
+     * - Přihlásil se sám (stejné pravidlo jako upozornění, getUpozorneniNaVek(), účastník ho tedy viděl): šéf sekce
+     *   dostane e-mail, když o něm ještě neví (jeSefSekceInformovanOMladsimUcastnikovi()). Zapíše se, jen když e-mail
+     *   opravdu odešel, jinak mu při dalším přihlášení napíše znovu.
+     * - Přihlásil ho jiný (admin, vypravěč v prezenci): ten měl výjimku domluvenou (záměr), e-mail nejde, jen se zapíše.
+     * Věk je jen aktivity, na kterou se hlásí (u turnaje první kolo).
+     * Přihlášení je v tu chvíli uložené: když se e-mail nepodaří odeslat, nesmí to vypadat, že se nepovedlo přihlásit.
+     * Chyba se proto jen zapíše do logu chyb (Vyjimkovac), trigger_error() by ji tam, kde se chyby zobrazují, ukázal
+     * místo odpovědi a skript ukončil.
+     */
+    private function informujSefaSekceOMladsimUcastnikovi(
+        Uzivatel $ucastnik,
+        Uzivatel $prihlasujici,
+        int $idLoguPrihlaseni,
+    ): void {
+        try {
+            $mladsi = $this->getMladsiUcastnik($ucastnik);
+            if ($mladsi === null) {
+                return;
+            }
+            if ((int) $prihlasujici->id() !== (int) $ucastnik->id()) {
+                $this->zapisSefSekceInformovan($idLoguPrihlaseni, self::SEF_SEKCE_INFORMOVAN_PRIHLASIL_JINY);
+
+                return;
+            }
+            if ($this->jeSefSekceInformovanOMladsimUcastnikovi($ucastnik)) {
+                return;
+            }
+            if (self::napisSefoviSekceOMladsimUcastnikovi($mladsi)) {
+                $this->zapisSefSekceInformovan($idLoguPrihlaseni, self::SEF_SEKCE_INFORMOVAN_EMAILEM);
+            }
+        } catch (\Throwable $chyba) {
+            Vyjimkovac::vytvorZGlobals()->zaloguj(new \RuntimeException(
+                "Šéfa sekce se nepodařilo informovat o mladším účastníkovi {$ucastnik->id()} na aktivitě {$this->id()}",
+                previous: $chyba,
+            ));
+        }
+    }
+
+    /**
+     * Šéf sekce už o účastníkovi na téhle aktivitě ví: od chvíle, kdy ho z ní naposledy odhlásil někdo jiný, byl na ni
+     * přihlášený a šéf sekce se o tom dozvěděl (akce_mladsi_ucastnik_sef_informovan: e-mail odešel, nebo ho přihlásil
+     * jiný, ten měl výjimku domluvenou).
+     * Kdo se sám odhlásí a znovu přihlásí, nic nového nepřináší. Koho odhlásil šéf sekce (nebo kdokoli jiný) a on se
+     * přihlásil znovu, o tom šéf sekce dostane nový e-mail. Přihlášení, o kterém se šéf sekce nedozvěděl (e-mail
+     * neodešel, štítek věku tehdy aktivita neměla, účastník byl tehdy dost starý), se nepočítá.
+     */
+    private function jeSefSekceInformovanOMladsimUcastnikovi(Uzivatel $ucastnik): bool
+    {
+        $informovan = false;
+        foreach (dbFetchAll(<<<'SQL'
+            SELECT akce_prihlaseni_log.typ,
+                   akce_prihlaseni_log.id_zmenil,
+                   akce_mladsi_ucastnik_sef_informovan.id_log IS NOT NULL AS sef_sekce_informovan
+            FROM akce_prihlaseni_log
+            LEFT JOIN akce_mladsi_ucastnik_sef_informovan
+                ON akce_mladsi_ucastnik_sef_informovan.id_log = akce_prihlaseni_log.id_log
+            WHERE akce_prihlaseni_log.id_akce = $0
+              AND akce_prihlaseni_log.id_uzivatele = $1
+              AND akce_prihlaseni_log.typ IN ($2)
+            ORDER BY akce_prihlaseni_log.id_log
+            SQL, [
+            0 => $this->id(),
+            1 => $ucastnik->id(),
+            2 => [AktivitaPrezenceTyp::PRIHLASENI, AktivitaPrezenceTyp::ODHLASENI, AktivitaPrezenceTyp::ODHLASENI_HROMADNE],
+        ]) as $zaznam) {
+            if ($zaznam['typ'] === AktivitaPrezenceTyp::PRIHLASENI) {
+                $informovan = $informovan || (bool) $zaznam['sef_sekce_informovan'];
+            } elseif ((int) $zaznam['id_zmenil'] !== (int) $ucastnik->id()) {
+                $informovan = false;
+            }
+        }
+
+        return $informovan;
+    }
+
+    private function zapisSefSekceInformovan(int $idLoguPrihlaseni, string $jak): void
+    {
+        dbQuery(<<<'SQL'
+            INSERT INTO akce_mladsi_ucastnik_sef_informovan (id_log, jak) VALUES ($0, $1)
+            SQL, [
+            0 => $idLoguPrihlaseni,
+            1 => $jak,
+        ]);
+    }
+
+    /**
+     * Šéfovi sekce (KontaktSefaLinie) napíše, že se na aktivitu sám přihlásil účastník, kterému v den aktivity ještě
+     * nebude její minimální věk. Účastník před přihlášením viděl upozornění, že se mu šéf sekce ozve
+     * (getUpozorneniNaVek()).
+     *
+     * @return bool e-mail odešel; chyba odeslání se vyhodí
+     */
+    private static function napisSefoviSekceOMladsimUcastnikovi(MladsiUcastnikAktivity $mladsi): bool
+    {
+        $aktivita = $mladsi->aktivita;
+        $ucastnik = $mladsi->ucastnik;
+
+        return (bool) (new EmailoveSablony($aktivita->systemoveNastaveni))
+            ->vytvorMail(KodEmailoveSablonyEnum::MLADSI_UCASTNIK_NA_AKTIVITE, [
+                'aktivita'        => $aktivita->nazev(),
+                'cas'             => $aktivita->denCasSkutecny(),
+                'minimalni_vek'   => (string) $mladsi->minimalniVek,
+                'vek'             => (string) $mladsi->vek,
+                'ucastnik'        => (string) $ucastnik->jmenoNick(),
+                'email_ucastnika' => (string) $ucastnik->mail(),
+                'vypraveci'       => implode(', ', array_map(
+                    static fn(Uzivatel $vypravec) => (string) $vypravec->jmenoNick(),
+                    $aktivita->organizatori(),
+                )) ?: 'nikdo',
+                'odkaz'           => URL_ADMIN . '/aktivity/prihlaseni?typ=' . $aktivita->typId() . '#aktivita-' . $aktivita->id(),
+            ])
+            ->adresat($aktivita->getKontaktSefaSekce()->getEmail())
+            ->odeslat();
+    }
+
+    /**
+     * Komu napsat o mladším účastníkovi a na koho se má obrátit on: šéf sekce linie aktivity, bez hlavičky linie
+     * šéf programu.
+     */
+    public function getKontaktSefaSekce(): KontaktSefaLinie
+    {
+        return KontaktSefaLinie::zTypu($this->typId());
     }
 
     private function zrusPredchoziStornoPoplatek(Uzivatel $uzivatel): void
@@ -3178,11 +3337,13 @@ HTML
             } else {
                 $volnoPro = $this->volnoPro();
                 if ($volnoPro->proPohlaviJeVolno($u->pohlavi())) {
-                    $out =
-                        '<form method="post" style="display:inline">' .
-                        '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
-                        '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
-                        '</form>';
+                    $upozorneniNaVek = $this->getUpozorneniNaVek($u);
+                    $out             = $upozorneniNaVek !== null
+                        ? $this->getPrihlasovatkoSUpozornenimNaVek($upozorneniNaVek)
+                        : '<form method="post" style="display:inline">' .
+                          '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
+                          '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
+                          '</form>';
                 } elseif ($volnoPro === VolnoProEnum::JEN_ZENY) {
                     // volno už je jen pro ženy → pro tohoto uživatele (muže) je plno, smí proto sledovat
                     $out = 'pouze ženská místa' . $this->prihlasovatkoSledovani($u, ' | ');
@@ -3198,6 +3359,61 @@ HTML
         }
 
         return $out;
+    }
+
+    /**
+     * Odkaz „přihlásit" pro účastníka mladšího, než je minimální věk aktivity: místo odeslání otevře upozornění
+     * (Preact, UpozorneniNaVekModal), formulář odešle až potvrzení. Než se Preact načte, poslouží confirm().
+     * Scroll stránky (zachovej-scroll.js) se uloží až s potvrzením, kdo upozornění zavře, na stránce zůstává.
+     *
+     * @param array{nadpis: string, text: string, kontakt: string} $upozorneniNaVek z getUpozorneniNaVek()
+     */
+    private function getPrihlasovatkoSUpozornenimNaVek(array $upozorneniNaVek): string
+    {
+        $nadpis     = htmlspecialchars($upozorneniNaVek['nadpis'], ENT_QUOTES);
+        $upozorneni = htmlspecialchars($upozorneniNaVek['text'], ENT_QUOTES);
+        $kontakt    = htmlspecialchars($upozorneniNaVek['kontakt'], ENT_QUOTES);
+        $onclick    = htmlspecialchars(
+            'var formular = this.parentNode, otevri = window.preactMost && window.preactMost.upozorneniNaVek && window.preactMost.upozorneniNaVek.otevri;'
+            . ' var prihlas = function () { if (window.zachovejScrollUloz) { zachovejScrollUloz(null); } formular.submit(); };'
+            . ' if (otevri) { otevri({ nadpis: formular.dataset.nadpis, text: formular.dataset.upozorneni, kontakt: formular.dataset.kontakt }, prihlas); }'
+            . ' else if (confirm(formular.dataset.nadpis + "\n\n" + formular.dataset.upozorneni)) { prihlas(); }'
+            . ' return false',
+            ENT_QUOTES,
+        );
+
+        // bez zalomení řádků, mezera mezi prvky by se v textu karty ukázala
+        return '<form method="post" style="display:inline"'
+               . " data-nadpis=\"{$nadpis}\" data-upozorneni=\"{$upozorneni}\" data-kontakt=\"{$kontakt}\">"
+               . '<input type="hidden" name="prihlasit" value="' . $this->id() . '">'
+               . "<a href=\"#\" onclick=\"{$onclick}\">přihlásit</a>"
+               . '</form>';
+    }
+
+    /**
+     * Tlačítko týmové aktivity na stránkách linií: otevře nastavení týmu v Preactu (NastaveniTymuModal), kde se tým
+     * zakládá i kde se k němu přidává. Kdo na aktivitě ještě není a nebude mu v den aktivity její minimální věk,
+     * dostane napřed upozornění (getUpozorneniNaVek()), nastavení týmu se otevře až po potvrzení.
+     * Bez Preactu tlačítko nefunguje vůbec, záložní confirm() tu proto není.
+     */
+    public function getPrihlasovatkoTymu(Uzivatel $u): string
+    {
+        $prihlasen  = $this->prihlasen($u);
+        $otevriTym  = 'window.preactMost.prihlaseniTymu.otevri('
+                      . $this->id() . ', ' . json_encode($this->nazev(), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . ')';
+        $upozorneni = $prihlasen
+            ? null
+            : $this->getUpozorneniNaVek($u);
+        $onclick    = $upozorneni === null
+            ? $otevriTym
+            : 'window.preactMost.upozorneniNaVek.otevri('
+              . json_encode($upozorneni, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
+              . ", function () { {$otevriTym}; })";
+        $popisek    = $prihlasen
+            ? 'Nastavení týmu'
+            : 'Přihlásit tým';
+
+        return '<button onclick="' . htmlspecialchars($onclick, ENT_QUOTES) . '">' . $popisek . '</button>';
     }
 
     /**
@@ -3354,13 +3570,14 @@ HTML
         $this->zmenStav(StavAktivity::PUBLIKOVANA);
     }
 
-    private function zmenStav(int $novyStav)
+    private function zmenStav(int $novyStav): void
     {
         if (!StavAktivity::jeZnamy($novyStav)) {
             throw new \LogicException("Neznámý stav aktivity '$novyStav'");
         }
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
-        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        // se zápisem do akce_stavy_log jako zamčení a uzavření: podle logu se pozná, že aktivita byla veřejná
+        // (archiv přednášek, hodinový cron zamyká i nezveřejněné), a online prezence z něj čte změny stavu
+        $this->zmenStavNa($novyStav);
     }
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */
@@ -3502,13 +3719,45 @@ HTML
      */
     public function tagy(): array
     {
-        if ($this->tagy === null) {
-            $this->tagy = Tag::zIds($this->tagyId());
-        }
-
         return array_map(static fn(
             Tag $tag,
-        ) => $tag->nazev(), $this->tagy);
+        ) => $tag->nazev(), $this->getObjektyTagu());
+    }
+
+    /**
+     * @return Tag[] seřazené jako tagyId(), tedy podle pořadí kategorie a názvu
+     */
+    private function getObjektyTagu(): array
+    {
+        if ($this->tagy === null) {
+            $this->prednactiTagy();
+        }
+        // aktivita mimo kolekci (prázdná kolekce)
+        $this->tagy ??= Tag::zIds($this->tagyId());
+
+        return $this->tagy;
+    }
+
+    /**
+     * Štítky všech aktivit kolekce jedním dotazem: program i stránky linií se ptají na štítky (a minimální věk)
+     * u každé aktivity. Na rozdíl od přihlášek (prednacitat) vždy, štítků je pár set a dotaz stojí pár milisekund,
+     * kdežto přihlášky celého ročníku by malou stránku linie zpomalily.
+     */
+    private function prednactiTagy(): void
+    {
+        $kolekce     = $this->kolekce();
+        $tagyPodleId = [];
+        foreach (Tag::zIds(array_values(array_unique(array_merge(
+            ...array_map(static fn(self $aktivita) => $aktivita->tagyId(), array_values($kolekce)),
+        )))) as $tag) {
+            $tagyPodleId[$tag->id()] = $tag;
+        }
+        foreach ($kolekce as $aktivita) {
+            $aktivita->tagy ??= array_values(array_filter(array_map(
+                static fn(int $idTagu) => $tagyPodleId[$idTagu] ?? null,
+                $aktivita->tagyId(),
+            )));
+        }
     }
 
     /**
@@ -3517,6 +3766,120 @@ HTML
     public function tagyId(): array
     {
         return $this->parseIds($this->a['ids_tagu'] ?? '');
+    }
+
+    /**
+     * Minimální věk hráčů ze štítku „Věk: 15+“, null když aktivita takový štítek nemá.
+     */
+    public function getMinimalniVek(): ?int
+    {
+        $veky = array_filter(
+            array_map(
+                static fn(Tag $tag) => $tag->getMinimalniVek(),
+                $this->getObjektyTagu(),
+            ),
+            static fn(?int $vek) => $vek !== null,
+        );
+
+        return $veky !== []
+            ? max($veky)
+            : null;
+    }
+
+    /**
+     * Minimální věk aktivity, když ho účastníkovi v den aktivity ještě nebude, jinak null.
+     * Přihlášení to nebrání (záměr): účastníka se před přihlášením upozorní a šéf sekce dostane e-mail.
+     * Upozorňuje se jen ten, kdo se hlásí sám: kdo ho přihlašuje z adminu, má výjimku domluvenou (záměr).
+     * Bez $prihlasujiciho (výpisy v adminu, report) se ptá jen na věk.
+     * Bez skutečného data narození (rychloregistrace má místo něj den registrace) nebo bez začátku aktivity
+     * (na tu se přihlásit nedá) nevíme, takže null.
+     */
+    public function getNesplnenyMinimalniVek(Uzivatel $ucastnik, ?Uzivatel $prihlasujici = null): ?int
+    {
+        if ($prihlasujici !== null && (int) $prihlasujici->id() !== (int) $ucastnik->id()) {
+            return null;
+        }
+        $zacatek = $this->zacatek();
+        // štítky až nakonec, jsou z nich jediný dotaz
+        if ($zacatek === null || !$ucastnik->isDatumNarozeniSkutecne()) {
+            return null;
+        }
+        $minimalniVek = $this->getMinimalniVek();
+        if ($minimalniVek === null) {
+            return null;
+        }
+        $vek = $ucastnik->vekKDatu($zacatek);
+
+        return $vek !== null && $vek < $minimalniVek
+            ? $minimalniVek
+            : null;
+    }
+
+    /**
+     * Upozornění před přihlášením, když účastníkovi v den aktivity ještě nebude její minimální věk
+     * (getNesplnenyMinimalniVek()), jinak null. U turnaje podle aktivity, na kterou se hlásí (první kolo), na věk
+     * dalších kol, na která ho přihlášení přihlásí také, se neupozorňuje (záměr, stačí první kolo). Jediný zdroj
+     * textu: dialog v Preactu (UpozorneniNaVekModal) ho dostane z API programu (getUpozorneniNaVekProPrihlasovatko())
+     * nebo ze stránky linie, stejný text ukáže i záložní confirm().
+     * Přihlásit se smí, šéf sekce o tom ale dostane e-mail (napisSefoviSekceOMladsimUcastnikovi()) a ozve se mu.
+     *
+     * @return array{nadpis: string, text: string, kontakt: string}|null kontakt je e-mail šéfa sekce, který je v textu
+     *                                                                     a dialog z něj udělá odkaz
+     */
+    public function getUpozorneniNaVek(Uzivatel $ucastnik, ?Uzivatel $prihlasujici = null): ?array
+    {
+        $mladsi = $this->getMladsiUcastnik($ucastnik, $prihlasujici);
+        if ($mladsi === null) {
+            return null;
+        }
+        $kontakt = $this->getKontaktSefaSekce();
+
+        return [
+            'nadpis'  => "Aktivita {$this->nazev()} je od {$mladsi->minimalniVek} let",
+            'text'    => "V den aktivity ti ještě nebude {$mladsi->minimalniVek}. Přihlásit se můžeš, {$kontakt->getKdo()} se to ale dozví"
+                         . ' a ozve se ti e-mailem. Když se nedomluvíte, může tě z aktivity odhlásit, sleduj proto e-mail.'
+                         . " Ozvat se můžeš i ty na {$kontakt->getEmail()}.",
+            'kontakt' => $kontakt->getEmail(),
+        ];
+    }
+
+    /**
+     * Upozornění na věk do API programu (aktivityUzivatel.php i odpověď na přihlášení či odhlášení aktivitaAkce.php),
+     * jen kde Přihlašovátko.tsx nabídne přihlášení: přihlašovatelná, účastník ji nevede a není na ní (nanejvýš ji
+     * sleduje). Jinde null, minulé ročníky tak štítky vůbec nenačtou.
+     *
+     * @param Uzivatel $prihlasujici přihlášený uživatel, v adminu za účastníka (pracovní uživatel) přihlašuje on
+     *
+     * @return array{nadpis: string, text: string, kontakt: string}|null
+     */
+    public function getUpozorneniNaVekProPrihlasovatko(Uzivatel $ucastnik, Uzivatel $prihlasujici): ?array
+    {
+        if (!in_array($this->stavPrihlaseni($ucastnik), [StavPrihlaseni::NEPRIHLASEN, StavPrihlaseni::SLEDUJICI], true)
+            || $this->organizuje($ucastnik)
+            || !$this->prihlasovatelnaProPrihlasujiciho($prihlasujici)
+        ) {
+            return null;
+        }
+
+        return $this->getUpozorneniNaVek($ucastnik, $prihlasujici);
+    }
+
+    /**
+     * Účastník s věkem v den aktivity, když mu ještě nebude minimální věk aktivity (getNesplnenyMinimalniVek()), jinak
+     * null. Bez $prihlasujiciho (výpisy v adminu, report) se ptá jen na věk.
+     */
+    public function getMladsiUcastnik(Uzivatel $ucastnik, ?Uzivatel $prihlasujici = null): ?MladsiUcastnikAktivity
+    {
+        $minimalniVek = $this->getNesplnenyMinimalniVek($ucastnik, $prihlasujici);
+
+        return $minimalniVek === null
+            ? null
+            : new MladsiUcastnikAktivity(
+                aktivita: $this,
+                ucastnik: $ucastnik,
+                vek: (int) $ucastnik->vekKDatu($this->zacatek()),
+                minimalniVek: $minimalniVek,
+            );
     }
 
     public function nastavTagy(array $tagy)
@@ -3728,14 +4091,20 @@ SQL,
     }
 
     /**
-     * Dá se na aktivitu přihlásit a zbývá na ní místo. S uživatelem se počítají jen místa pro jeho pohlaví,
-     * bez něj stačí místo pro kohokoli. Týmová aktivita se plní po týmech, stejně jako v obsazenostHtml().
+     * Dá se na aktivitu přihlásit a zbývá na ní místo, viz isVolno().
      */
     public function isVolnoKPrihlaseni(?Uzivatel $uzivatel = null): bool
     {
-        if (!$this->prihlasovatelna()) {
-            return false;
-        }
+        return $this->prihlasovatelna() && $this->isVolno($uzivatel);
+    }
+
+    /**
+     * Zbývá na aktivitě místo, ať se na ni zrovna dá přihlásit, nebo ne (mimo registraci, proběhlá). S uživatelem
+     * se počítají jen místa pro jeho pohlaví, bez něj stačí místo pro kohokoli. Týmová aktivita se plní po týmech,
+     * stejně jako v obsazenostHtml().
+     */
+    public function isVolno(?Uzivatel $uzivatel = null): bool
+    {
         if ($this->tymova() && $this->tymovaKapacita() !== null) {
             return $this->pocetPrihlasenychTymu() < $this->tymovaKapacita();
         }
@@ -3937,6 +4306,22 @@ SQL,
         dbQuery('UPDATE akce_seznam SET stav = $0 WHERE id_akce = ' . $this->id(), [$stav]);
         $this->a[Sql::STAV] = $stav;
         $this->stav = $stav;
+        $this->zalogujZmenuStavu($stav);
+    }
+
+    /**
+     * Stav zapsaný při uložení rovnou do akce_seznam (editace, import) jde do logu jako každá jiná změna stavu, ale jen
+     * když se opravdu změnil: import posílá stav i beze změny a online prezence bere každý řádek logu za změnu.
+     * Nová aktivita ve stavu nová do logu nejde, aktivita bez záznamu v logu je nová.
+     *
+     * @param int|null $puvodniStav null u nové aktivity
+     */
+    private function zalogujStavPoUlozeni(?int $puvodniStav): void
+    {
+        $stav = $this->idStavu();
+        if ($stav === null || $stav === $puvodniStav || ($puvodniStav === null && $stav === StavAktivity::NOVA)) {
+            return;
+        }
         $this->zalogujZmenuStavu($stav);
     }
 

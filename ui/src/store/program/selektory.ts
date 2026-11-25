@@ -54,8 +54,9 @@ export const useAktivityFiltrované = (aktivitaFiltr?: FiltrAktivit): Aktivita[]
   const mapaTagů = useMapováníTagů();
 
   const aktivity = useAktivity(aktivitaFiltr?.ročník);
+  const pohlavi = useÚčastníkPohlaví();
 
-  const aktivityFiltrované = filtrujAktivity(aktivity, filtr, mapaTagů);
+  const aktivityFiltrované = filtrujAktivity(aktivity, filtr, mapaTagů, pohlavi);
 
   return aktivityFiltrované;
 };
@@ -127,13 +128,14 @@ export const useTagyPočetAktivit = () => {
   const aktivity = useAktivity();
   const mapaTagů = useMapováníTagů();
   const filtr = useFiltrAktivitNeboZeStavu();
+  const pohlavi = useÚčastníkPohlaví();
 
   const tagSPočtemAktivit = tagy.map(tag => ({
     tagId: tag.id,
     počet: filtrujAktivity(aktivity, {
       ...filtr,
       filtrTagy: (filtr.filtrTagy ?? []).concat([tag.id]),
-    }, mapaTagů).length,
+    }, mapaTagů, pohlavi).length,
   }));
 
   return tagSPočtemAktivit;
@@ -152,6 +154,7 @@ export const useUživatelJeSefInfa = (): boolean => useProgramStore((s) => s.př
 
 export const useFiltryOtevřené = (): boolean => useProgramStore(s => s.všeobecné.filtryOtevřené);
 export const useOdhlasitModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.modalOdhlásitAktivitaId);
+export const useUpozorněníNaVěkModal = () => useProgramStore(s => s.všeobecné.modalUpozorněníNaVěk);
 export const useNastaveniTymuModalAktivitaId = (): number | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.aktivitaId);
 export const useNastaveniTymuModalNazevAktivity = (): string | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.nazevAktivity);
 export const useNastaveniTymuModalData = (): NastaveniTymuData | undefined => useProgramStore(s => s.všeobecné.nastaveniTymu?.data);

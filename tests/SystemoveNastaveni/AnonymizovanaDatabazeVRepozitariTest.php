@@ -39,6 +39,16 @@ class AnonymizovanaDatabazeVRepozitariTest extends AbstractTestDb
         'akce_stavy_log',
         'akce_typy',
         'akce_typy_hlavicky',
+        // lecture archive: published titles and YouTube ids, speakers without an account under the name the web shows;
+        // a speaker linked to an account gets a pseudonym (AnonymizovanaDatabaze::anonymizujData()), so the link
+        // tells no more than akce_organizatori with the public program
+        'archiv_prednasek',
+        'archiv_prednasek_klicove_slovo',
+        'archiv_prednasek_prednasejici',
+        'archiv_prednasek_prednaska_klicove_slovo',
+        'archiv_prednasek_prednaska_prednasejici',
+        // which cards the job after GC decided about, and its error when one failed
+        'archiv_prednasek_zpracovane_aktivity',
         'emailova_sablona',
         'hromadne_akce_log',
         'kategorie_sjednocenych_tagu',

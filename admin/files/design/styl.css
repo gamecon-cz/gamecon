@@ -362,11 +362,25 @@ body:has(.profilInfo) .sloupL {
   margin-right: 5px;
 }
 
-#submenu .adm_submenu_doplnek {
-  margin-right: 10px;
+/* Doplnek podmenu (u Aktivit nebezpečné „aktivovat hromadně“) stojí ve vlastním sloupci vpravo, odděleně
+   od navigace, ať se na něj neklikne místo vedlejší položky. */
+.submenu-obal-s-doplnkem {
+  display: flex;
+  align-items: flex-start;
 }
 
-.adm_submenu_item_ord_1::before {
+.submenu-obal-s-doplnkem #submenu {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.submenu-obal-s-doplnkem .adm_submenu_doplnek {
+  flex: 0 0 16%;
+  padding: 15px 0 10px;
+}
+
+.adm_submenu_item_ord_1::before,
+.submenuAktivovatVse::before {
   position: absolute;
   left: 0;
   top: 0;
@@ -402,7 +416,12 @@ body:has(.profilInfo) .sloupL {
 }
 
 .submenuAktivovatVse {
+  position: relative;
   margin: 0;
+}
+
+.submenuAktivovatVse::before {
+  content: 'Nešmatlat';
 }
 
 /* [type=submit] keeps the specificity above .tlacitko.tlacitko_isDanger, whose padding would otherwise win. */
@@ -434,6 +453,20 @@ body:has(.profilInfo) .sloupL {
   border-color: #833214;
   background: red;
   text-decoration: underline;
+}
+
+/* Stav korekce v přehledu aktivit */
+.korekce-stav {
+  font-size: 1.2em;
+  vertical-align: middle;
+}
+
+.korekce-stav_ok {
+  color: #2e7d32;
+}
+
+.korekce-stav_chybi {
+  color: #c62828;
 }
 
 .aktivityProgramovaLinie {
@@ -502,7 +535,8 @@ input, select, label, button, input[type=file] {
   cursor: pointer;
 }
 
-input[disabled], textarea[disabled], select[disabled], button[disabled]:not(.no-background-color) {
+/* :disabled u tlačítka jen drží specificitu, kterou pravidlo mělo, ať zašedne i tlačítko s třídou */
+input[disabled], textarea[disabled], select[disabled], button[disabled]:disabled {
   background-color: lightgray;
 }
 
@@ -993,6 +1027,17 @@ form table .orez img {
 
 a > .hinted {
   cursor: inherit
+}
+
+/* přihlášený mladší, než je věk aktivity (štítek „Věk: 15+“): Přehled aktivit, Seznam přihlášených */
+.mladsi-nez-vek-aktivity {
+  color: #c62828;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.mladsi-nez-vek-aktivity .hint {
+  font-weight: normal;
 }
 
 .hint {

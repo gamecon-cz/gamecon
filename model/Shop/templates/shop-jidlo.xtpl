@@ -28,7 +28,7 @@
             <!-- begin:checkbox -->
             <input type="checkbox" class="shopJidlo_checkbox" name="{pnName}" {selected}>
             <!-- begin:snidane -->
-            <span class="gc_tooltip shopJidlo_hotelTooltip" style="display:none">
+            <span class="gc_tooltip shopJidlo_hotelTooltip" tabindex="0" style="display:none">
                 <input type="checkbox" class="shopJidlo_checkbox shopJidlo_checkbox--hotel" checked disabled>
                 <span class="tooltip_obsah">Snídaně v ceně ubytování v hotelu</span>
 <!--            </span>-->

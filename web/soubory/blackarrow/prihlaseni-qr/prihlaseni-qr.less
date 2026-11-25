@@ -1,0 +1,109 @@
+// Přihlášení QR kódem: kód na přihlašovací stránce, stránka schválení na telefonu a čtečka v Nastavení.
+
+.prihlaseniQr_nadpis {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 24px;
+}
+
+.prihlaseniQr_kod {
+  display: block;
+  width: 240px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 24px;
+  transition: opacity 0.3s;
+}
+
+.prihlaseniQr-konec .prihlaseniQr_kod {
+  opacity: 0.1;
+}
+
+.prihlaseniQr_navod {
+  max-width: 520px;
+  padding-left: 20px;
+  line-height: 1.6;
+
+  li {
+    margin-bottom: 8px;
+  }
+}
+
+.prihlaseniQr_cislo {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 32px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
+.prihlaseniQr_zprava {
+  min-height: 1.6em;
+  margin: 16px 0 24px;
+  font-weight: bold;
+}
+
+.prihlaseniQr_tlacitko {
+  margin-top: 16px;
+}
+
+.prihlaseniQr_zarizeni {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 0 0 24px;
+
+  dt {
+    font-weight: bold;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.prihlaseniQr_varovani {
+  max-width: 520px;
+  margin: 0 0 24px;
+  font-weight: bold;
+}
+
+.prihlaseniQr_cisla {
+  display: flex;
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+.prihlaseniQr_volbaCisla.formular_sekundarni {
+  margin: 0;
+  min-width: 80px;
+  font-size: 24px;
+  letter-spacing: 0.05em;
+
+  @media (max-width: 900px) {
+    width: auto;
+    flex: 1;
+    margin: 0;
+  }
+}
+
+// čtečka v Nastavení
+.cteckaQr {
+  margin: 16px 0;
+  max-width: 400px;
+}
+
+.cteckaQr_video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background-color: #10111a;
+}
+
+.cteckaQr_zprava {
+  min-height: 1.6em;
+  margin: 12px 0;
+}

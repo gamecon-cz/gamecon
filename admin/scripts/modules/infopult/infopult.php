@@ -60,6 +60,7 @@ $x->assign([
     'prijelADatMaterialyDisabled' => "disabled",
     'gcOdjedDisabled' => "disabled",
     'odhlasDisabled' => "disabled",
+    'zrusitPrihlaseniDisabled' => '',
 ]);
 
 // ubytovani vypis
@@ -179,6 +180,24 @@ if ($uPracovni) {
             $x->assign('prijelADatMaterialyDisabled', '');
         } else if (!$uPracovni->gcOdjel()) {
             $x->assign('gcOdjedDisabled', '');
+        }
+    }
+    // vrátit jde jen poslední krok, ostatní infopulťáci tlačítko nevidí
+    if ($u->isOpravnenVracetStavNaGc()) {
+        if ($uPracovni->gcOdjel()) {
+            $x->parse('infopult.zrusitOdjezd');
+        } else if ($uPracovni->gcPritomen()) {
+            $x->parse('infopult.zrusitPrijezd');
+        } else if ($uPracovni->gcPrihlasen()) {
+            $prekazkyZruseniPrihlaseni = $uPracovni->getPrekazkyZruseniPrihlaseni();
+            if ($prekazkyZruseniPrihlaseni !== []) {
+                $x->assign([
+                    'zrusitPrihlaseniDisabled' => 'disabled',
+                    'prekazkyZruseniPrihlaseni' => implode(', ', $prekazkyZruseniPrihlaseni),
+                ]);
+                $x->parse('infopult.zrusitPrihlaseni.prekazky');
+            }
+            $x->parse('infopult.zrusitPrihlaseni');
         }
     }
     if ($uPracovni) {
