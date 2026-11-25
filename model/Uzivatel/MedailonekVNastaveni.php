@@ -109,6 +109,7 @@ final class MedailonekVNastaveni
             'oSobe' => htmlspecialchars($cekajici?->oSobe ?? $medailonek?->getOSobeMarkdown() ?? ''),
         ]);
         $this->parsujStav($template, $keSchvaleni, $medailonek);
+        $this->parsujNahledTextu($template, $cekajici, $medailonek);
         $template->parse($this->maStrankuVypravece()
             ? 'medailonek.stranka'
             : 'medailonek.budouciStranka');
@@ -143,6 +144,26 @@ final class MedailonekVNastaveni
                 : '');
             $template->parse('medailonek.schvaleno');
         }
+    }
+
+    /**
+     * Text, jak ho ukáže stránka vypravěče: odeslaný, dokud čeká na schválení, jinak zveřejněný. Markdown vypravěč píše
+     * naslepo (jedno odřádkování odstavec nerozdělí), takhle po odeslání vidí výsledek a může ho opravit dřív, než ho
+     * organizátor schválí. Bez textu žádný.
+     */
+    private function parsujNahledTextu(XTemplate $template, ?MedailonekKeSchvaleni $cekajici, ?Medailonek $medailonek): void
+    {
+        $html = $cekajici !== null
+            ? BezpecneHtml::zMarkdownu($cekajici->oSobe)
+            : (string) $medailonek?->oSobe();
+        if (trim($html) === '') {
+            return;
+        }
+        $template->assign('nahledTextu', $html);
+        $template->parse($cekajici !== null
+            ? 'medailonek.nahledTextu.ceka'
+            : 'medailonek.nahledTextu.zverejneny');
+        $template->parse('medailonek.nahledTextu');
     }
 
     private function getKeSchvaleni(): ?MedailonekKeSchvaleni

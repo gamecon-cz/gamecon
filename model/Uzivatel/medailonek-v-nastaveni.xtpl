@@ -68,5 +68,16 @@
     <input type="hidden" name="{postUlozit}" value="1">
     <button type="submit" class="formular_primarni">Poslat ke schválení</button>
   </form>
+
+  <!-- begin:nahledTextu -->
+  <h3 class="medailonekVNastaveni_nadpis">Náhled</h3>
+  <!-- begin:ceka -->
+  <p class="medailonekVNastaveni_napoveda">Takhle se odeslaný text ukáže na tvé stránce, až ho organizátor schválí.</p>
+  <!-- end:ceka -->
+  <!-- begin:zverejneny -->
+  <p class="medailonekVNastaveni_napoveda">Takhle je text teď na tvé stránce.</p>
+  <!-- end:zverejneny -->
+  <div class="medailonekVNastaveni_nahledTextu stranka_format">{nahledTextu}</div>
+  <!-- end:nahledTextu -->
 </section>
 <!-- end:medailonek -->

@@ -140,6 +140,8 @@ SQL,
         // profil Pána jeskyně z Mistrovství v DrD (skončilo v roce 2025) se na webu neupravuje
         self::assertStringNotContainsString('Profil Pána jeskyně', $nastaveni);
         self::assertStringNotContainsString('Čeká na schválení', $nastaveni);
+        // bez textu není co ukázat
+        self::assertStringNotContainsString('medailonekVNastaveni_nahledTextu', $nastaveni);
 
         // profil DrD, který mu dřív napsal organizátor v adminu, web nemění
         dbQuery(<<<'SQL'
@@ -176,6 +178,11 @@ SQL, [
         self::assertStringContainsString('Čeká na schválení', $nastaveni);
         // v textovém poli jako text, ne jako značka
         self::assertStringContainsString('&lt;script&gt;alert(&#039;medailonek&#039;)&lt;/script&gt;', $nastaveni);
+        // a pod ním náhled odeslaného textu, jak ho ukáže web
+        self::assertStringContainsString('Takhle se odeslaný text ukáže na tvé stránce, až ho organizátor schválí.', $nastaveni);
+        self::assertStringContainsString('<div class="medailonekVNastaveni_nahledTextu stranka_format"><p>Hraju <strong>RPG</strong>.</p>', $nastaveni);
+        self::assertStringNotContainsString("<script>alert('medailonek')", $nastaveni);
+        self::assertStringNotContainsString('href="javascript:', $nastaveni);
         self::assertStringNotContainsString('<strong>RPG</strong>', $this->stahniVerejnouStranku('web/' . self::ID_VEDOUCIHO)['telo']);
 
         // organizátor ho schválí na záložce Uživatel, kde s vypravěčem pracuje
@@ -200,7 +207,10 @@ SQL, [
             ],
             $this->medailonek(self::ID_VEDOUCIHO),
         );
-        self::assertStringContainsString('Schváleno', $this->nastaveni($relace));
+        $nastaveni = $this->nastaveni($relace);
+        self::assertStringContainsString('Schváleno', $nastaveni);
+        self::assertStringContainsString('Takhle je text teď na tvé stránce.', $nastaveni);
+        self::assertStringContainsString('<strong>RPG</strong>', $nastaveni);
 
         $stranka = $this->stahniVerejnouStranku('web/' . self::ID_VEDOUCIHO);
         self::assertSame(200, $stranka['status']);
