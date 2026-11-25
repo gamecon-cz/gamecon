@@ -219,6 +219,10 @@ SQL, [$idKostymu, $aktivita->id(), $ucastnik->id(), $rezervujici->id(), $this->t
     {
         dbBegin();
         try {
+            // Přihláška první, jako u rezervace: odhlášení ji maže, a rezervaci až kaskádou. Se zámkem jen rezervace
+            // by zrušení a odhlášení zamykaly v opačném pořadí (deadlock) a snímek transakce by vznikl dřív,
+            // než výměna, která na zrušení čeká, uvidí, že rezervace zmizela.
+            $this->zamkniPrihlaskuKeZmene($aktivita, $ucastnik);
             $rezervace = $this->rezervaceUcastnika($aktivita->id(), $ucastnik->id(), zamknout: true);
             if ($rezervace === null) {
                 dbCommit();
@@ -244,8 +248,9 @@ SQL, [$rezervace->getId()]);
     /**
      * @param bool $zamknout zamkne nalezenou rezervaci podle primárního klíče, a jen ji. Hledání podle aktivity
      *                       a účastníka nezamyká: zámek neexistujícího řádku v unikátním indexu je gap lock a dvě
-     *                       první rezervace na tutéž aktivitu by na sebe při INSERT čekaly (deadlock). Novou rezervaci
-     *                       téhož účastníka na tutéž aktivitu nikdo jiný nezapíše, rezervace drží zámek jeho přihlášky.
+     *                       první rezervace na tutéž aktivitu by na sebe při INSERT čekaly (deadlock). Rezervaci
+     *                       téhož účastníka na téže aktivitě nikdo jiný nezmění, volající už drží zámek jeho přihlášky
+     *                       (@see zamkniPrihlaskuKeZmene()), a snímek transakce tak vzniká až po něm.
      *                       Kostým rezervace se nezamyká: rezervace kostým zamyká jako první
      *                       (@see zamkniKostymKRezervaci()), a dvě výměny opačným směrem (K1 → K2 a K2 → K1) by tak
      *                       zamykaly oba kostýmy v opačném pořadí
@@ -325,12 +330,26 @@ SQL, [$idKostymu]);
      */
     private function zamkniPrihlasku(Aktivita $aktivita, \Uzivatel $ucastnik, \Uzivatel $rezervujici): void
     {
+        if ($this->zamkniPrihlaskuKeZmene($aktivita, $ucastnik) !== StavPrihlaseni::PRIHLASEN) {
+            throw new ChybaPujcovny($ucastnik->id() === $rezervujici->id() ? 'Kostým jde rezervovat jen na aktivitu, na kterou máš přihlášku (ne jako sledující).' : 'Účastník nemá na aktivitu přihlášku, kostým mu rezervovat nejde.');
+        }
+    }
+
+    /**
+     * Zámek přihlášky drží každá změna rezervace i odhlášení (to přihlášku maže a rezervaci smaže kaskáda), takže
+     * změny rezervací téhož účastníka na téže aktivitě jdou jedna po druhé, a ve stejném pořadí zámků.
+     *
+     * @return int|null stav přihlášky, null bez přihlášky
+     */
+    private function zamkniPrihlaskuKeZmene(Aktivita $aktivita, \Uzivatel $ucastnik): ?int
+    {
         $stav = dbOneCol(<<<'SQL'
 SELECT id_stavu_prihlaseni FROM akce_prihlaseni WHERE id_akce = $0 AND id_uzivatele = $1 FOR UPDATE
 SQL, [$aktivita->id(), $ucastnik->id()]);
-        if ($stav === null || (int) $stav !== StavPrihlaseni::PRIHLASEN) {
-            throw new ChybaPujcovny($ucastnik->id() === $rezervujici->id() ? 'Kostým jde rezervovat jen na aktivitu, na kterou máš přihlášku (ne jako sledující).' : 'Účastník nemá na aktivitu přihlášku, kostým mu rezervovat nejde.');
-        }
+
+        return $stav === null
+            ? null
+            : (int) $stav;
     }
 
     /**
@@ -348,7 +367,7 @@ SQL, [$aktivita->id(), $ucastnik->id()]);
 
     /**
      * Rezervaci na aktivitu po uzávěrce zruší nebo vymění už jen správce půjčovny. Aktivita bez začátku uzávěrku
-     * nemá, rezervaci na ni mění také jen on.
+     * nemá: rezervaci na ni zruší jen on, a vyměnit ji nejde vůbec (@see overAktivitu() chce začátek i konec).
      */
     public function isPoUzaverce(Aktivita $aktivita): bool
     {

@@ -338,6 +338,21 @@ SQL, [$aktivita->id()]);
         self::assertSame([], self::rezervaceAktivity($aktivita->id()));
     }
 
+    /**
+     * Zrušení zamyká přihlášku bez ohledu na její stav: „dorazil“ rezervaci nechává a správce ji pak zruší.
+     */
+    public function testSpravceZrusiRezervaciUcastnikaKteryDorazil(): void
+    {
+        [$aktivita, $ucastnik] = self::ucastnikNaAktivite();
+        $this->pujcovna()->rezervuj(self::vlozKostym(), $aktivita, $ucastnik, $ucastnik);
+        dbQuery(<<<'SQL'
+UPDATE akce_prihlaseni SET id_stavu_prihlaseni = $0 WHERE id_akce = $1 AND id_uzivatele = $2
+SQL, [StavPrihlaseni::PRIHLASEN_A_DORAZIL, $aktivita->id(), $ucastnik->id()]);
+
+        self::assertNotNull($this->pujcovna('2099-01-01 10:30:00')->zrus($aktivita, $ucastnik, jakoSpravce: true));
+        self::assertSame([], self::rezervaceAktivity($aktivita->id()));
+    }
+
     public function testUzaverkaJeDveHodinyPredZacatkem(): void
     {
         [$aktivita] = self::ucastnikNaAktivite();

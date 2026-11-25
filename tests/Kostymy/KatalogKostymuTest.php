@@ -186,6 +186,11 @@ class KatalogKostymuTest extends AbstractUzivatelTestDb
         $pouzitiObrazku = new class extends PouzitiObrazku {
             public string $pouzitySoubor = '';
 
+            /**
+             * prázdná = odkaz v kódu webu
+             */
+            public string $adresaOdkazu = 'web/stranky';
+
             public function kdeJsouPouzity(array $absolutniCesty): array
             {
                 $pouziti = [];
@@ -193,7 +198,7 @@ class KatalogKostymuTest extends AbstractUzivatelTestDb
                     $pouziti[$absolutniCesta] = basename($absolutniCesta) === $this->pouzitySoubor
                         ? [[
                             'popis' => 'stránka Kostýmy na webu',
-                            'url'   => 'web/stranky',
+                            'url'   => $this->adresaOdkazu,
                         ]]
                         : [];
                 }
@@ -216,6 +221,14 @@ class KatalogKostymuTest extends AbstractUzivatelTestDb
             self::fail('Kostým s fotkou z textu webu neměl jít smazat');
         } catch (ChybaPujcovny $chyba) {
             self::assertStringContainsString('stránka Kostýmy na webu', $chyba->getMessage());
+            self::assertStringContainsString('Nejdřív prosím odkaz odstraň.', $chyba->getMessage());
+        }
+        $pouzitiObrazku->adresaOdkazu = '';
+        try {
+            $katalog->smaz($idKostymu);
+            self::fail('Kostým s fotkou z kódu webu neměl jít smazat');
+        } catch (ChybaPujcovny $chyba) {
+            self::assertStringContainsString('Odkaz je v kódu webu', $chyba->getMessage());
         }
 
         self::assertCount(2, $katalog->dej($idKostymu)?->getFotky() ?? []);

@@ -225,6 +225,9 @@ class ImporterUcastnikuNaAktivitu
                     $prihlasenyUzivatel,
                     $odhlasujici,
                     'hromadny-import-ucastniku-na-aktivitu',
+                    // jako u smazání aktivity: e-mail o volném místě by odešel hned, i když import později spadne
+                    // a odhlášení vrátí
+                    Aktivita::NEPOSILAT_MAILY_SLEDUJICIM,
                 );
                 $odhlasenoCelkem++;
             }
