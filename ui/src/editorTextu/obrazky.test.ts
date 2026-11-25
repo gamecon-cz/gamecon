@@ -95,6 +95,28 @@ describe('místo nahrávaného obrázku', () => {
     expect(state.doc.toString()).toBe('Text ')
   })
 
+  it('obrázky vložené rychle po sobě na stejné místo přijdou v pořadí, v jakém se vložily', () => {
+    const DRUHY = '![](soubory/obsah/blog/x/obrazek-2.avif)'
+    let state = sMistem('Text ', 5)
+    state = state.update({ effects: pridejMisto.of({ id: 2, pozice: 5, popis: 'obrazek.png' }) }).state
+
+    state = state.update(vlozNaMisto(state, 1, OBRAZEK)).state
+    expect(poziceMista(state, 2)).toBe(5 + OBRAZEK.length)
+    state = state.update(vlozNaMisto(state, 2, DRUHY)).state
+
+    expect(state.doc.toString()).toBe(`Text ${OBRAZEK}${DRUHY}`)
+  })
+
+  it('když se mezitím smaže text kolem místa, obrázek přijde na začátek smazaného úseku', () => {
+    let state = sMistem('První. Odstavec s obrázkem. Konec.', 17)
+    state = state.update({ changes: { from: 7, to: 27, insert: 'Nový odstavec.' } }).state
+
+    expect(poziceMista(state, 1)).toBe(7)
+    state = state.update(vlozNaMisto(state, 1, OBRAZEK)).state
+
+    expect(state.doc.toString()).toBe(`První. ${OBRAZEK}Nový odstavec. Konec.`)
+  })
+
   it('když se nic nenahrálo, jen zmizí', () => {
     let state = sMistem('Text ', 5)
 
