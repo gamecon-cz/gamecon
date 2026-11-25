@@ -339,7 +339,8 @@ SQL, [$aktivita->id()]);
     }
 
     /**
-     * Zrušení zamyká přihlášku bez ohledu na její stav: „dorazil“ rezervaci nechává a správce ji pak zruší.
+     * „Dorazil“ rezervaci nechává a správce ji pak zruší: zrušení přihlášku jen zamkne, její stav nekontroluje
+     * (to dělá rezervace, kterou „dorazil“ neprojde).
      */
     public function testSpravceZrusiRezervaciUcastnikaKteryDorazil(): void
     {

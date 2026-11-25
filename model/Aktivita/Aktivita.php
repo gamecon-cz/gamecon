@@ -2075,9 +2075,20 @@ SQL
         $idUzivatele = $u->id();
         $prihlasenOd = $this->prihlasenOd($u) ?? $this->systemoveNastaveni->ted(); // prihlasenOd by tady mělo být vždy, ale pro jistotu...
         // Rezervaci kostýmu smaže s přihláškou cizí klíč a nic neohlásí, e-mail se proto řídí stavem před smazáním.
+        // Čte se pod zámkem přihlášky, který drží každá změna rezervace, takže je to ta, kterou smaže kaskáda.
         $pujcovnaKostymu = PujcovnaKostymu::zSystemovehoNastaveni($this->systemoveNastaveni);
-        $rezervaceKostymu = $pujcovnaKostymu->rezervaceUcastnika($idAktivity, $idUzivatele);
-        dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
+        dbBegin();
+        try {
+            dbQuery(<<<'SQL'
+SELECT 1 FROM akce_prihlaseni WHERE id_akce = $0 AND id_uzivatele = $1 FOR UPDATE
+SQL, [$idAktivity, $idUzivatele]);
+            $rezervaceKostymu = $pujcovnaKostymu->rezervaceUcastnika($idAktivity, $idUzivatele);
+            dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
+            dbCommit();
+        } catch (\Throwable $chyba) {
+            dbRollback();
+            throw $chyba;
+        }
         $this->dejPrezenci()->zalogujOdhlaseni($u, $odhlasujici, $zdrojOdhlaseni);
         if ($this->systemoveNastaveni->kontrolovatPokutuZaOdhlaseni()
             && !($params & self::BEZ_POKUT)
