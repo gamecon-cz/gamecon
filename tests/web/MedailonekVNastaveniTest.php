@@ -249,7 +249,6 @@ SQL, [
         ]);
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertSame($odeslano, $this->odeslano(self::ID_PANA_JESKYNE));
-        self::assertStringContainsString('Text medailonku je odeslaný ke schválení.', $this->nastaveni($relace));
         // formulář ukazuje text, který čeká
         self::assertStringContainsString('O mně ![](soubory/obsah/mapa.png)</textarea>', $this->nastaveni($relace));
         // organizátor ho najde i v detailu medailonku, a v seznamu medailonků je vidět, že čeká
@@ -358,6 +357,7 @@ SQL, [
         self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
         self::assertNull($this->medailonek(self::ID_ORGANIZATORA));
         self::assertSame(404, $this->stahniVerejnouStranku('web/' . self::ID_ORGANIZATORA)['status']);
+        self::assertStringContainsString('Text je prázdný, není co poslat ke schválení.', $this->nastaveni($relace));
 
         $odpoved = $this->odesliZNastaveni($relace, [
             FotkaUzivatele::POST_AKCE   => FotkaUzivatele::AKCE_NAHRAT,
