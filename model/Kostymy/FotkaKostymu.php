@@ -35,13 +35,14 @@ final class FotkaKostymu
     }
 
     /**
-     * Zmenšenina přes @see \Nahled (cache), a když ji nejde udělat, původní soubor.
+     * Zmenšenina přes @see \Nahled (cache), a když ji nejde udělat (soubor, který ImageMagick nepřečte,
+     * nezapisovatelná cache), původní soubor.
      */
     public function getUrlNahledu(int $sirka, int $vyska): string
     {
         try {
             return \Nahled::zeSouboru($this->getCesta())->pokryjOrez($sirka, $vyska)->url();
-        } catch (\RuntimeException) {
+        } catch (\Exception) {
             return $this->getUrl();
         }
     }
@@ -55,7 +56,7 @@ final class FotkaKostymu
     {
         try {
             return \Nahled::zeSouboru($this->getCesta())->pokryjOrez($sirka, $vyska)->jakoJpeg()->url();
-        } catch (\RuntimeException) {
+        } catch (\Exception) {
             return $this->getUrl();
         }
     }

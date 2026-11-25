@@ -186,14 +186,19 @@ class KatalogKostymuTest extends AbstractUzivatelTestDb
         $pouzitiObrazku = new class extends PouzitiObrazku {
             public string $pouzitySoubor = '';
 
-            public function kdeJePouzity(string $absolutniCesta): array
+            public function kdeJsouPouzity(array $absolutniCesty): array
             {
-                return $this->pouzitySoubor !== '' && basename($absolutniCesta) === $this->pouzitySoubor
-                    ? [[
-                        'popis' => 'stránka Kostýmy na webu',
-                        'url'   => 'web/stranky',
-                    ]]
-                    : [];
+                $pouziti = [];
+                foreach ($absolutniCesty as $absolutniCesta) {
+                    $pouziti[$absolutniCesta] = basename($absolutniCesta) === $this->pouzitySoubor
+                        ? [[
+                            'popis' => 'stránka Kostýmy na webu',
+                            'url'   => 'web/stranky',
+                        ]]
+                        : [];
+                }
+
+                return $pouziti;
             }
         };
         $katalog = new KatalogKostymu(new NahravaniObrazku(
@@ -216,5 +221,26 @@ class KatalogKostymuTest extends AbstractUzivatelTestDb
         self::assertCount(2, $katalog->dej($idKostymu)?->getFotky() ?? []);
         self::assertFileExists($this->koren . '/' . $prvni->getSoubor());
         self::assertFileExists($this->koren . '/' . $druha->getSoubor());
+    }
+
+    /**
+     * Na betě a preview s databází z ostré fotky v databázi jsou, soubory a jejich adresář ne.
+     */
+    public function testKostymSFotkouBezSouboruJdeSmazat(): void
+    {
+        $katalog = new KatalogKostymu(new NahravaniObrazku(
+            $this->koren . '/neexistuje',
+            formaty: [NahravaniObrazku::JPG, NahravaniObrazku::PNG],
+        ));
+        $idKostymu = $this->ulozKostym();
+        dbInsert('kostym_foto', [
+            'id_kostymu' => $idKostymu,
+            'soubor'     => $idKostymu . '-0123456789abcdef.avif',
+            'poradi'     => 1,
+        ]);
+
+        $katalog->smaz($idKostymu);
+
+        self::assertNull($katalog->dej($idKostymu));
     }
 }

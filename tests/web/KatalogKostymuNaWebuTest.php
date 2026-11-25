@@ -29,6 +29,11 @@ class KatalogKostymuNaWebuTest extends AbstractTestWeb
     private const int ID_LARPU_BEZ_CASU = 9872;
 
     /**
+     * larp zítra, daleko před uzávěrkou; účastník na něj má Šátek
+     */
+    private const int ID_LARPU_ZITRA = 9873;
+
+    /**
      * @var list<string>
      */
     private array $kUklidu = [];
@@ -53,7 +58,8 @@ VALUES (901, 'Elfí plášť', 'Zelený', 'm', '', 'unisex', 'Fantasy', 'k_dispo
        (902, 'Rytířská zbroj', '', 'l', '', 'pansky', 'Historie', 'v_oprave', ''),
        (903, 'Roztrhaný kabát', '', 'xl', '', 'pansky', 'Historie', 'vyrazeny', ''),
        (904, 'Klobouk', '', 'm', '', 'unisex', 'Historie', 'k_dispozici', ''),
-       (905, 'Šerpa', '', 'm', '', 'unisex', 'Historie', 'k_dispozici', '')
+       (905, 'Šerpa', '', 'm', '', 'unisex', 'Historie', 'k_dispozici', ''),
+       (906, 'Šátek', '', 'm', '', 'unisex', 'Historie', 'k_dispozici', '')
 SQL,
                 [
                     <<<'SQL'
@@ -68,7 +74,8 @@ SQL,
 INSERT INTO akce_seznam(id_akce, nazev_akce, url_akce, typ, rok, stav, popis, cena, kapacita, kapacita_f, kapacita_m,
                         teamova, zacatek, konec)
 VALUES ($0, 'Larp za hodinu', 'test-kostymy-larp-za-hodinu', $2, $3, 1, 'Popis', 0, 10, 0, 0, 0, $4, $5),
-       ($1, 'Larp bez času', 'test-kostymy-larp-bez-casu', $2, $3, 1, 'Popis', 0, 10, 0, 0, 0, NULL, NULL)
+       ($1, 'Larp bez času', 'test-kostymy-larp-bez-casu', $2, $3, 1, 'Popis', 0, 10, 0, 0, 0, NULL, NULL),
+       ($6, 'Larp zítra', 'test-kostymy-larp-zitra', $2, $3, 1, 'Popis', 0, 10, 0, 0, 0, $7, $8)
 SQL,
                     [
                         self::ID_LARPU_ZA_HODINU,
@@ -77,19 +84,23 @@ SQL,
                         ROCNIK,
                         date('Y-m-d H:i:s', time() + 3600),
                         date('Y-m-d H:i:s', time() + 3 * 3600),
+                        self::ID_LARPU_ZITRA,
+                        date('Y-m-d H:i:s', time() + 24 * 3600),
+                        date('Y-m-d H:i:s', time() + 26 * 3600),
                     ],
                 ],
                 [
                     <<<'SQL'
-INSERT INTO akce_prihlaseni(id_akce, id_uzivatele, id_stavu_prihlaseni) VALUES ($0, $2, $3), ($1, $2, $3)
+INSERT INTO akce_prihlaseni(id_akce, id_uzivatele, id_stavu_prihlaseni) VALUES ($0, $2, $3), ($1, $2, $3), ($4, $2, $3)
 SQL,
-                    [self::ID_LARPU_ZA_HODINU, self::ID_LARPU_BEZ_CASU, self::ID_UCASTNIKA, StavPrihlaseni::PRIHLASEN],
+                    [self::ID_LARPU_ZA_HODINU, self::ID_LARPU_BEZ_CASU, self::ID_UCASTNIKA, StavPrihlaseni::PRIHLASEN, self::ID_LARPU_ZITRA],
                 ],
                 [
                     <<<'SQL'
-INSERT INTO kostym_rezervace(id_kostymu, id_akce, id_uzivatele, rezervovano) VALUES (901, $0, $2, NOW()), (904, $1, $2, NOW())
+INSERT INTO kostym_rezervace(id_kostymu, id_akce, id_uzivatele, rezervovano)
+VALUES (901, $0, $2, NOW()), (904, $1, $2, NOW()), (906, $3, $2, NOW())
 SQL,
-                    [self::ID_LARPU_ZA_HODINU, self::ID_LARPU_BEZ_CASU, self::ID_UCASTNIKA],
+                    [self::ID_LARPU_ZA_HODINU, self::ID_LARPU_BEZ_CASU, self::ID_UCASTNIKA, self::ID_LARPU_ZITRA],
                 ],
             ],
         );
@@ -196,6 +207,9 @@ SQL, [$zverejnit ? '1' : '0']);
         self::assertStringContainsString('Larp za hodinu', $telo);
         self::assertStringNotContainsString('/kostymy/901', $telo, 'Detail kostýmu před zveřejněním neexistuje');
         self::assertStringNotContainsString('vidíš ho jen jako správce', $telo);
+        self::assertStringContainsString('Zrušit ho můžeš do uzávěrky', $telo, 'Larp zítra jde zrušit');
+        self::assertStringNotContainsString('Vyměnit za jiný', $telo, 'Vyměnit jde jen ve zveřejněném katalogu');
+        self::assertStringNotContainsString('Zrušit nebo vyměnit ho můžeš', $telo);
     }
 
     /**
@@ -224,8 +238,17 @@ SQL, [$zverejnit ? '1' : '0']);
 
         $telo = $this->stahniVerejnou($relace, $this->cestaWebu() . '/kostymy/905');
 
-        self::assertStringNotContainsString('name="idAktivity"', $telo);
-        self::assertStringContainsString('po uzávěrce vymění jen půjčovna', $telo);
+        self::assertStringContainsString('value="' . self::ID_LARPU_ZITRA . '"', $telo, 'Před uzávěrkou výměnu nabídne');
+        self::assertStringNotContainsString('value="' . self::ID_LARPU_ZA_HODINU . '"', $telo);
+        // Šátek má na larp zítra, na larp za hodinu už ho nevymění
+        self::assertStringContainsString(
+            'po uzávěrce vymění jen půjčovna',
+            $this->stahniVerejnou($relace, $this->cestaWebu() . '/kostymy/906'),
+        );
+
+        $katalog = $this->stahniVerejnou($relace, $this->cestaWebu() . '/kostymy');
+        self::assertStringContainsString('Larp zítra', $katalog, 'Před uzávěrkou filtr aktivitu nabízí');
+        self::assertStringNotContainsString('Larp za hodinu', $katalog, 'Po uzávěrce by výměna neprošla');
     }
 
     /**

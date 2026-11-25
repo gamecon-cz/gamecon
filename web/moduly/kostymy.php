@@ -88,9 +88,14 @@ $parametryKostymu = static fn (Kostym $kostym): string => htmlspecialchars(implo
 ])));
 
 if ($castAdresy === null) {
-    // katalog s filtrem; po výběru vlastní aktivity jen kostýmy volné v jejím čase
+    // katalog s filtrem; po výběru vlastní aktivity jen kostýmy volné v jejím čase. Aktivita, na kterou účastník
+    // kostým už má, jen do uzávěrky: potom by výměna neprošla.
     $aktivityUcastnika = $u
-        ? $pujcovnaKostymu->aktivityKRezervaci($u)
+        ? array_values(array_filter(
+            $pujcovnaKostymu->aktivityKRezervaci($u),
+            static fn (Aktivita $aktivita): bool => !$pujcovnaKostymu->isPoUzaverce($aktivita)
+                || $pujcovnaKostymu->rezervaceUcastnika($aktivita->id(), $u->id()) === null,
+        ))
         : [];
     $idVybraneAktivity = (int) get('aktivita');
     $vybranaAktivita = current(array_filter(
@@ -235,8 +240,13 @@ if ($castAdresy === 'moje') {
             $uzaverka = $zacatek->modify(sprintf('-%d hours', $nastaveniPujcovny->getUzaverkaHodinPredZacatkem()));
             // vydaný kostým se nemění, dokud se nevrátí
             if ($rezervace['id_vydeje'] === null && $systemoveNastaveni->ted() <= $uzaverka) {
-                $t->assign('uzaverka', htmlspecialchars(FormatPujcovny::denACas($uzaverka->format('Y-m-d H:i:s'))));
-                // vyměnit jde jen v katalogu
+                $t->assign([
+                    'uzaverka'         => htmlspecialchars(FormatPujcovny::denACas($uzaverka->format('Y-m-d H:i:s'))),
+                    // vyměnit jde jen v katalogu
+                    'coJdeDoUzaverky' => $zverejnenyKatalog
+                        ? 'Zrušit nebo vyměnit'
+                        : 'Zrušit',
+                ]);
                 if ($zverejnenyKatalog) {
                     $t->parse('kostymy.moje.rezervace.zmenit.vymenit');
                 }

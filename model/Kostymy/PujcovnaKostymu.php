@@ -191,17 +191,20 @@ SQL, [$idKostymu, $aktivita->id(), $ucastnik->id(), $rezervujici->id(), $this->t
 
     /**
      * E-mail půjčovny jde až po zapsané změně, a ta platí, i když ho nejde odeslat (pošta, nevyplněná šablona).
-     * Chyba proto skončí ve výjimkovači, ne u účastníka ani v transakci, ve které změna proběhla.
+     * Chyba proto skončí ve výjimkovači, a když nejde zapsat ani tam, v logu PHP; ne u účastníka ani v transakci,
+     * ve které změna proběhla.
      */
     private function posliBezChyby(callable $posli, string $coSePosila): void
     {
         try {
             $posli();
         } catch (\Throwable $chyba) {
-            Vyjimkovac::vytvorZGlobals()->zaloguj(new \RuntimeException(
-                "E-mail půjčovny kostýmů {$coSePosila} se nepodařilo odeslat",
-                previous: $chyba,
-            ));
+            $zprava = "E-mail půjčovny kostýmů {$coSePosila} se nepodařilo odeslat";
+            try {
+                Vyjimkovac::vytvorZGlobals()->zaloguj(new \RuntimeException($zprava, previous: $chyba));
+            } catch (\Throwable $chybaVyjimkovace) {
+                error_log("{$zprava}: {$chyba->getMessage()} (výjimkovač: {$chybaVyjimkovace->getMessage()})");
+            }
         }
     }
 
@@ -239,21 +242,30 @@ SQL, [$rezervace->getId()]);
     }
 
     /**
-     * @param bool $zamknout zamkne jen řádek rezervace, ne kostým: rezervace kostým zamyká jako první
-     *                       (@see zamkniKostymKRezervaci()), a se zámkem jejího kostýmu by dvě výměny opačným směrem
-     *                       (K1 → K2 a K2 → K1) zamykaly oba kostýmy v opačném pořadí a jedna by skončila deadlockem
+     * @param bool $zamknout zamkne nalezenou rezervaci podle primárního klíče, a jen ji. Hledání podle aktivity
+     *                       a účastníka nezamyká: zámek neexistujícího řádku v unikátním indexu je gap lock a dvě
+     *                       první rezervace na tutéž aktivitu by na sebe při INSERT čekaly (deadlock). Novou rezervaci
+     *                       téhož účastníka na tutéž aktivitu nikdo jiný nezapíše, rezervace drží zámek jeho přihlášky.
+     *                       Kostým rezervace se nezamyká: rezervace kostým zamyká jako první
+     *                       (@see zamkniKostymKRezervaci()), a dvě výměny opačným směrem (K1 → K2 a K2 → K1) by tak
+     *                       zamykaly oba kostýmy v opačném pořadí
      */
     public function rezervaceUcastnika(int $idAktivity, int $idUzivatele, bool $zamknout = false): ?RezervaceKostymu
     {
-        $zamek = $zamknout
-            ? 'FOR UPDATE'
-            : '';
-        $radek = dbOneLine(<<<SQL
+        $radek = dbOneLine(<<<'SQL'
 SELECT kostym_rezervace.id, kostym_rezervace.id_kostymu, kostym_rezervace.id_akce, kostym_rezervace.id_uzivatele
 FROM kostym_rezervace
 WHERE kostym_rezervace.id_akce = $0 AND kostym_rezervace.id_uzivatele = $1
-{$zamek}
 SQL, [$idAktivity, $idUzivatele]);
+        if ($radek && $zamknout) {
+            // co se s ní mezitím stalo (výměna, zrušení), ukáže až čtení se zámkem
+            $radek = dbOneLine(<<<'SQL'
+SELECT kostym_rezervace.id, kostym_rezervace.id_kostymu, kostym_rezervace.id_akce, kostym_rezervace.id_uzivatele
+FROM kostym_rezervace
+WHERE kostym_rezervace.id = $0
+FOR UPDATE
+SQL, [$radek['id']]);
+        }
         if (! $radek) {
             return null;
         }
@@ -326,29 +338,40 @@ SQL, [$aktivita->id(), $ucastnik->id()]);
      */
     private function overUzaverku(Aktivita $aktivita, string $coSeDela): void
     {
+        if ($aktivita->zacatek() === null) {
+            throw new ChybaPujcovny(sprintf('Aktivita nemá určený začátek, kostým na ni jde %s už jen v půjčovně.', $coSeDela));
+        }
         if ($this->isPoUzaverce($aktivita)) {
             throw new ChybaPujcovny(sprintf('Kostým jde %s nejpozději %d h před začátkem aktivity. Potom už jen v půjčovně.', $coSeDela, $this->nastaveni->getUzaverkaHodinPredZacatkem()));
         }
     }
 
     /**
-     * Rezervaci na aktivitu (s určeným začátkem) po uzávěrce zruší nebo vymění už jen správce půjčovny.
+     * Rezervaci na aktivitu po uzávěrce zruší nebo vymění už jen správce půjčovny. Aktivita bez začátku uzávěrku
+     * nemá, rezervaci na ni mění také jen on.
      */
     public function isPoUzaverce(Aktivita $aktivita): bool
     {
-        $uzaverka = \DateTimeImmutable::createFromInterface($aktivita->zacatek())
+        $zacatek = $aktivita->zacatek();
+        if ($zacatek === null) {
+            return true;
+        }
+        $uzaverka = \DateTimeImmutable::createFromInterface($zacatek)
             ->modify(sprintf('-%d hours', $this->nastaveni->getUzaverkaHodinPredZacatkem()));
 
         return $this->systemoveNastaveni->ted() > $uzaverka;
     }
 
     /**
+     * Čte poslední stav se zámkem, ne snímek transakce: ten vznikl hledáním rezervace ještě před čekáním na její
+     * zámek, a výdej, na který se čekalo, by v něm chyběl.
+     *
      * @throws ChybaPujcovny
      */
     private function overZeNeniVydany(RezervaceKostymu $rezervace, string $coSeDela): void
     {
         $vydany = dbOneCol(<<<'SQL'
-SELECT 1 FROM kostym_vydej WHERE id_rezervace = $0 AND vraceno IS NULL LIMIT 1
+SELECT 1 FROM kostym_vydej WHERE id_rezervace = $0 AND vraceno IS NULL LIMIT 1 LOCK IN SHARE MODE
 SQL, [$rezervace->getId()]);
         if ($vydany) {
             throw new ChybaPujcovny(sprintf('Kostým %s je už vydaný. Než ho půjde %s, musí se vrátit do půjčovny.', $rezervace->getNazevKostymu(), $coSeDela));

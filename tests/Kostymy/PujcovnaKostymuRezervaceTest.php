@@ -317,6 +317,27 @@ SQL, [$aktivita->id()]),
         self::assertSame([], self::rezervaceAktivity($aktivita->id()));
     }
 
+    public function testRezervaciNaAktivituBezZacatkuZrusiJenSpravce(): void
+    {
+        [$aktivita, $ucastnik] = self::ucastnikNaAktivite();
+        $this->pujcovna()->rezervuj(self::vlozKostym(), $aktivita, $ucastnik, $ucastnik);
+        dbQuery(<<<'SQL'
+UPDATE akce_seznam SET zacatek = NULL, konec = NULL WHERE id_akce = $0
+SQL, [$aktivita->id()]);
+        $aktivitaBezCasu = self::aktivita($aktivita->id());
+
+        try {
+            $this->pujcovna()->zrus($aktivitaBezCasu, $ucastnik);
+            self::fail('Účastník neměl rezervaci na aktivitu bez začátku zrušit');
+        } catch (ChybaPujcovny $chyba) {
+            self::assertStringContainsString('nemá určený začátek', $chyba->getMessage());
+        }
+        self::assertTrue($this->pujcovna()->isPoUzaverce($aktivitaBezCasu));
+
+        self::assertNotNull($this->pujcovna()->zrus($aktivitaBezCasu, $ucastnik, jakoSpravce: true));
+        self::assertSame([], self::rezervaceAktivity($aktivita->id()));
+    }
+
     public function testUzaverkaJeDveHodinyPredZacatkem(): void
     {
         [$aktivita] = self::ucastnikNaAktivite();
@@ -406,29 +427,19 @@ SQL, [$aktivita->id()]),
     }
 
     /**
-     * Klíče, které nejsou „vlastní“, berou hodnotu z výchozích. Bez nich by byla prázdná a půjčovna vypnutá.
+     * Migrace zakládá nastavení s `vlastni = 0`, platí tedy výchozí hodnoty. Bez nich by odškrtnutí „vlastní“
+     * definovalo konstantu prázdnou a půjčovnu vypnulo; hodnoty v migraci mají být tytéž.
      */
     public function testVychoziHodnotyNastaveniOdpovidajiMigraci(): void
     {
+        $hodnotyZMigrace = dbFetchPairs(<<<'SQL'
+SELECT klic, hodnota FROM systemove_nastaveni WHERE skupina = 'Půjčovna kostýmů'
+SQL);
+
+        self::assertCount(7, $hodnotyZMigrace);
         $systemoveNastaveni = SystemoveNastaveni::zGlobals();
-        $nastaveni = NastaveniPujcovny::zSystemovehoNastaveni(new class($systemoveNastaveni) extends SystemoveNastaveni {
-            public function __construct(
-                private readonly SystemoveNastaveni $original,
-            ) {
-            }
-
-            public function dejHodnotu(string $klic, bool $hledatTakeVOdvozenych = true)
-            {
-                return $this->original->dejVychoziHodnotu($klic);
-            }
-        });
-
-        self::assertFalse($nastaveni->isKatalogZverejnen());
-        self::assertSame([TypAktivity::LARP], $nastaveni->getTypyAktivit());
-        self::assertSame(0, $nastaveni->getLimitNaOsobu());
-        self::assertSame(60, $nastaveni->getCasNaVymenuMinut());
-        self::assertSame(60, $nastaveni->getVydejMinutPredZacatkem());
-        self::assertSame(60, $nastaveni->getVraceniMinutPoKonci());
-        self::assertSame(2, $nastaveni->getUzaverkaHodinPredZacatkem());
+        foreach ($hodnotyZMigrace as $klic => $hodnotaZMigrace) {
+            self::assertSame((string) $hodnotaZMigrace, $systemoveNastaveni->dejVychoziHodnotu((string) $klic), (string) $klic);
+        }
     }
 }

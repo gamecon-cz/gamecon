@@ -3723,7 +3723,7 @@ HTML
             }
 
             dbCommit();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             dbRollback();
             throw $e;
         }

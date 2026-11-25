@@ -7,6 +7,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Kostymy\PujcovnaKostymu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\SheetInterface;
@@ -142,53 +143,62 @@ class ImporterUcastnikuNaAktivitu
             }
         }
 
-        dbBegin();
         try {
-            // nejdříve odhlásíme, abychom získali místo pro nová přihlášení
-            foreach ($idUcastnikuPodleAktivit as $idUcastnikuPodleAktivity) {
-                $aktivita        = $idUcastnikuPodleAktivity['aktivita'];
-                $idUcastniku     = $idUcastnikuPodleAktivity['ucastnici'];
-                $odhlasenoCelkem += $this->odhlasNeuvedeneUcastniky(
-                    $idUcastniku,
-                    $aktivita,
-                    $importujici,
-                );
-            }
-
-            foreach ($ucastniciPlusAktivity as $ucastnikPlusAktivita) {
-                $ucastnik = $ucastnikPlusAktivita['ucastnik'];
-                assert($ucastnik instanceof \Uzivatel);
-                $aktivita = $ucastnikPlusAktivita['aktivita'];
-                assert($aktivita instanceof Aktivita);
-                // todo(tym): tym ??
+            // E-maily o uvolněných kostýmech až po commitu, rollback importu vrátí i rezervace.
+            PujcovnaKostymu::sOznamenimUvolneniPoZmene(function () use (
+                $idUcastnikuPodleAktivit,
+                $ucastniciPlusAktivity,
+                $importujici,
+                &$odhlasenoCelkem,
+                &$prihlasenoCelkem,
+            ): void {
+                dbBegin();
                 try {
-                    if ($aktivita->prihlas(
-                        uzivatel: $ucastnik,
-                        prihlasujici: $importujici,
-                        parametry: Aktivita::INTERNI,
-                        hlaskyVeTretiOsobe: true,
-                    )) {
-                        $prihlasenoCelkem++;
+                    // nejdříve odhlásíme, abychom získali místo pro nová přihlášení
+                    foreach ($idUcastnikuPodleAktivit as $idUcastnikuPodleAktivity) {
+                        $aktivita        = $idUcastnikuPodleAktivity['aktivita'];
+                        $idUcastniku     = $idUcastnikuPodleAktivity['ucastnici'];
+                        $odhlasenoCelkem += $this->odhlasNeuvedeneUcastniky(
+                            $idUcastniku,
+                            $aktivita,
+                            $importujici,
+                        );
                     }
-                } catch (\Chyba $chyba) {
-                    throw new \Chyba(sprintf(
-                        "Nepodařilo se přihlásit uživatele %s na aktivitu '%s' z řádku %d: %s",
-                        $ucastnik->jmenoVolitelnyNick(),
-                        $aktivita->nazev(),
-                        $ucastnikPlusAktivita['radek'],
-                        $chyba->getMessage(),
-                    ));
-                }
-            }
 
-            dbCommit();
-        } catch (\Throwable $e) {
-            dbRollback();
-            if ($e instanceof \Chyba) {
-                $chyby[] = $e->getMessage();
-            } else {
-                throw $e;
-            }
+                    foreach ($ucastniciPlusAktivity as $ucastnikPlusAktivita) {
+                        $ucastnik = $ucastnikPlusAktivita['ucastnik'];
+                        assert($ucastnik instanceof \Uzivatel);
+                        $aktivita = $ucastnikPlusAktivita['aktivita'];
+                        assert($aktivita instanceof Aktivita);
+                        // todo(tym): tym ??
+                        try {
+                            if ($aktivita->prihlas(
+                                uzivatel: $ucastnik,
+                                prihlasujici: $importujici,
+                                parametry: Aktivita::INTERNI,
+                                hlaskyVeTretiOsobe: true,
+                            )) {
+                                $prihlasenoCelkem++;
+                            }
+                        } catch (\Chyba $chyba) {
+                            throw new \Chyba(sprintf(
+                                "Nepodařilo se přihlásit uživatele %s na aktivitu '%s' z řádku %d: %s",
+                                $ucastnik->jmenoVolitelnyNick(),
+                                $aktivita->nazev(),
+                                $ucastnikPlusAktivita['radek'],
+                                $chyba->getMessage(),
+                            ));
+                        }
+                    }
+
+                    dbCommit();
+                } catch (\Throwable $e) {
+                    dbRollback();
+                    throw $e;
+                }
+            });
+        } catch (\Chyba $chyba) {
+            $chyby[] = $chyba->getMessage();
         }
 
         return [
