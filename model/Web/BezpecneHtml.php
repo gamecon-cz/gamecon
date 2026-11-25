@@ -11,8 +11,7 @@ use Symfony\Component\Filesystem\Filesystem;
  * HTML z textu, který si na web píše uživatel sám (medailonek vypravěče). Markdown propouští i HTML zapsané v textu,
  * takže by do stránky šel vložit skript; tady z výsledku zůstanou jen značky a atributy, které Markdown sám vytváří
  * a které nic nespustí. Odkaz jen na http(s), e-mail, telefon nebo relativní adresu (ven s `rel="nofollow ugc"`),
- * obrázek jen ze souborů webu (`soubory/…`, bez parametrů). Totéž pro živý náhled v adminu dělá
- * admin/files/bezpecny-nahled-markdownu.js podle @see getPravidlaProNahled()
+ * obrázek jen ze souborů webu (`soubory/…`, bez parametrů). Náhled pro editor v adminu jde přes @see zMarkdownuBezKese()
  *
  * Výstup se skládá znovu ze seznamu povolených značek, ne mazáním zakázaných: co seznam nezná, nepropadne, i když na
  * to nikdo nepomyslel.
@@ -113,12 +112,29 @@ final class BezpecneHtml
      */
     public static function zMarkdownu(?string $markdown): string
     {
+        return self::preved($markdown, true);
+    }
+
+    /**
+     * Jako @see zMarkdownu(), jen bez keše: živý náhled v editoru adminu, ve kterém by jinak zůstala každá rozepsaná
+     * verze textu
+     */
+    public static function zMarkdownuBezKese(?string $markdown): string
+    {
+        return self::preved($markdown, false);
+    }
+
+    private static function preved(?string $markdown, bool $sKesi): string
+    {
         if ($markdown === null || trim($markdown) === '') {
             return '';
         }
         if (self::isPrilisVnoreny($markdown)) {
             // Markdown by na tom spotřeboval stovky MB a stránku shodil, ukáže se jako prostý text
             return '<p>' . str_replace("\n", "<br>\n", self::escapuj(trim(str_replace("\r\n", "\n", $markdown)))) . "</p>\n";
+        }
+        if (! $sKesi) {
+            return self::vycisti(markdownNoCache($markdown));
         }
         $adresarKese = SPEC . '/bezpecne-html/' . self::getOtiskPravidel();
         $soubor = $adresarKese . '/' . hash('sha256', $markdown) . '.html';
@@ -221,11 +237,11 @@ final class BezpecneHtml
     }
 
     /**
-     * Pravidla pro živý náhled v prohlížeči (admin/files/bezpecny-nahled-markdownu.js), ať je jen jedna jejich verze.
+     * Pravidla čištění v jednom poli, pro otisk v klíči keše @see getOtiskPravidel()
      *
      * @return array{znacky: array<string, list<string>>, prazdne: list<string>, bezObsahu: list<string>, schemataOdkazu: list<string>, schemataObrazku: list<string>, domenaGameconu: string, hostWebu: string, zakladWebu: string, relOdkazuVen: string}
      */
-    public static function getPravidlaProNahled(): array
+    private static function getPravidla(): array
     {
         return [
             'znacky'          => self::POVOLENE_ZNACKY,
@@ -249,7 +265,7 @@ final class BezpecneHtml
     private static function getOtiskPravidel(): string
     {
         return self::$otiskPravidel ??= hash('sha256', implode("\n", [
-            json_encode(self::getPravidlaProNahled(), JSON_THROW_ON_ERROR),
+            json_encode(self::getPravidla(), JSON_THROW_ON_ERROR),
             self::VERZE_KODU,
             (string) hash_file('sha256', (string) (new \ReflectionClass(\Smartyp::class))->getFileName()),
             \Michelf\MarkdownExtra::MARKDOWNLIB_VERSION,

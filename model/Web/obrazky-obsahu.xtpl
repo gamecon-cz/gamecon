@@ -1,9 +1,10 @@
 <!-- begin:obrazkyObsahu -->
-<details class="obrazky-obsahu" open>
+<details class="obrazky-obsahu" open data-editor-textu-obrazky="{accept}">
   <summary>Obrázky</summary>
 
   <p class="tip">
-    Obrázek vložíš do textu Markdownem <code>![popis](soubory/obsah/…)</code>,
+    Obrázek vložíš do textu nejsnáz ze schránky (Ctrl+V), přetažením do editoru nebo tlačítkem Obrázek nad ním: nahraje
+    se sem a odkaz na něj se zapíše na místo kurzoru. Ručně ho zapíšeš Markdownem <code>![popis](soubory/obsah/…)</code>,
     nebo v HTML jako <code>&lt;img src="soubory/obsah/…"&gt;</code>. Povolené jsou {limit}.
   </p>
   <p class="tip">

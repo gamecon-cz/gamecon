@@ -19,6 +19,15 @@ final class NahledMarkdownu
     }
 
     /**
+     * Totéž pro text, který si píše uživatel sám (medailonek): jen vyčištěné HTML jako na webu, jinak by se skript
+     * z textu spustil organizátorovi, který ho v adminu upravuje
+     */
+    public static function zTextuOdUzivatele(string $text): string
+    {
+        return self::obrazkyNaWebu(BezpecneHtml::zMarkdownuBezKese($text));
+    }
+
+    /**
      * Administrace má `<base>` na svůj adresář, takže by se obrázek `soubory/…` z textu v náhledu hledal tam, ne na webu.
      */
     public static function obrazkyNaWebu(string $html): string

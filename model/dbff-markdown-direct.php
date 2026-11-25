@@ -1,10 +1,18 @@
 <?php
 
+use Gamecon\Web\EditorTextuPozadavek;
 use Gamecon\Web\NahledMarkdownu;
 use Gamecon\XTemplate\XTemplate;
 
+/**
+ * Text v Markdownu (sloupec s komentářem `markdown`) s editorem a náhledem vedle něj: stránky, novinky a blog,
+ * medailonky. Editor je CodeMirror z `ui/src/editorTextu` a náhled mu vykresluje server (@see EditorTextuPozadavek),
+ * stejně jako web. Modul, který pole zobrazuje, musí na začátku volat @see EditorTextuPozadavek::obslouzPokudJe().
+ */
 class DbffMarkdownDirect extends DbFormField
 {
+    private const SKRIPT_EDITORU = 'files/ui/editor-textu.js';
+
     function display()
     {
         return self::CUSTOM;
@@ -16,16 +24,24 @@ class DbffMarkdownDirect extends DbFormField
         $t->assign([
             //'pnOldId' => $this->postName('oldVal'),
             //'oldId'   => $this->value(),
-            'pnText'  => $this->postName(),
-            'text'    => htmlspecialchars($this->value()),
-            'mdText'  => NahledMarkdownu::obrazkyNaWebu($this->nahledHtml()),
-            'urlWebu' => json_encode(URL_WEBU, JSON_THROW_ON_ERROR),
-            'bezpecnyNahled' => $this->pravidlaBezpecnehoNahledu() === null
-                ? ''
-                : ' data-bezpecny-nahled="' . htmlspecialchars(json_encode($this->pravidlaBezpecnehoNahledu(), JSON_THROW_ON_ERROR)) . '"',
+            'pnText'        => $this->postName(),
+            'text'          => htmlspecialchars($this->value()),
+            'mdText'        => NahledMarkdownu::obrazkyNaWebu($this->nahledHtml()),
+            'skriptEditoru' => htmlspecialchars(self::adresaSkriptuEditoru()),
+            'odUzivatele'   =>$this->isTextOdUzivatele() ? ' data-editor-textu-od-uzivatele' : '',
         ]);
         $t->parse('md');
         return $t->text('md');
+    }
+
+    /**
+     * S otiskem obsahu, ať prohlížeč po nasazení nového editoru nepoužije starý z cache
+     */
+    private static function adresaSkriptuEditoru(): string
+    {
+        $soubor = ADMIN . '/' . self::SKRIPT_EDITORU;
+
+        return self::SKRIPT_EDITORU . (is_file($soubor) ? '?version=' . md5_file($soubor) : '');
     }
 
     /**
@@ -37,13 +53,12 @@ class DbffMarkdownDirect extends DbFormField
     }
 
     /**
-     * Pravidla, podle kterých živý náhled v prohlížeči čistí HTML; null = HTML z textu projde celé (text píše organizátor)
-     *
-     * @return array<string, mixed>|null
+     * Píše text uživatel sám, ne organizátor? Náhled pak ukáže jen vyčištěné HTML, i ten, který si editor načítá při
+     * psaní (pole dostane `data-editor-textu-od-uzivatele`, @see EditorTextuPozadavek); jinak HTML z textu projde celé.
      */
-    protected function pravidlaBezpecnehoNahledu(): ?array
+    protected function isTextOdUzivatele(): bool
     {
-        return null;
+        return false;
     }
 
     function loadPost(): void
