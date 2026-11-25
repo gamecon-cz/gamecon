@@ -130,6 +130,18 @@ class AnonymizovanyUzivatel
             $mysqli,
         );
 
+        // Text medailonku z Nastavení na webu: čekající by jedno kliknutí ve schvalování vrátilo na web a schválený
+        // řádek drží text, jak ho vypravěč poslal, @see MedailonekKeSchvaleni
+        dbQuery(
+            <<<'SQL'
+DELETE FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
+SQL,
+            [
+                0 => $idUzivatele,
+            ],
+            $mysqli,
+        );
+
         // Anonymizuj časy rolí
         dbQuery(
             q: "UPDATE uzivatele_role SET posazen = '1970-01-01 01:01:01' WHERE id_uzivatele = $idUzivatele",

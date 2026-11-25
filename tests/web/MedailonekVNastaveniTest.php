@@ -240,6 +240,16 @@ SQL, [
             ],
             $this->keSchvaleni(self::ID_PANA_JESKYNE),
         );
+        // stejný text poslaný znovu (dvojklik) čeká dál od původního času: organizátorovi, který ho má otevřený, by
+        // jinak schválení odmítlo, jako by vypravěč poslal jiný text
+        $odeslano = $this->odeslano(self::ID_PANA_JESKYNE);
+        $odpoved = $this->odesliZNastaveni($relace, [
+            MedailonekVNastaveni::POST_ULOZIT => 1,
+            MedailonekVNastaveni::POST_O_SOBE => "O mně ![](soubory/obsah/mapa.png)\r\n",
+        ]);
+        self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
+        self::assertSame($odeslano, $this->odeslano(self::ID_PANA_JESKYNE));
+        self::assertStringContainsString('Text medailonku je odeslaný ke schválení.', $this->nastaveni($relace));
         // formulář ukazuje text, který čeká
         self::assertStringContainsString('O mně ![](soubory/obsah/mapa.png)</textarea>', $this->nastaveni($relace));
         // organizátor ho najde i v detailu medailonku, a v seznamu medailonků je vidět, že čeká
@@ -329,7 +339,7 @@ SQL, [
     }
 
     /**
-     * Organizátor bez aktivit stránku /<id> nemá, s fotkou nebo textem si ji založí.
+     * Organizátor bez aktivit stránku /<id> nemá, s fotkou nebo textem si ji založí. Odesláním prázdného textu ne.
      *
      * @test
      */
@@ -340,6 +350,14 @@ SQL, [
         $nastaveni = $this->nastaveni($relace);
         self::assertStringContainsString('id="medailonek"', $nastaveni);
         self::assertStringContainsString('Po prvním uložení je najdou', $nastaveni);
+
+        $odpoved = $this->odesliZNastaveni($relace, [
+            MedailonekVNastaveni::POST_ULOZIT => 1,
+            MedailonekVNastaveni::POST_O_SOBE => '',
+        ]);
+        self::assertSame(303, $odpoved['kod'], $odpoved['telo']);
+        self::assertNull($this->medailonek(self::ID_ORGANIZATORA));
+        self::assertSame(404, $this->stahniVerejnouStranku('web/' . self::ID_ORGANIZATORA)['status']);
 
         $odpoved = $this->odesliZNastaveni($relace, [
             FotkaUzivatele::POST_AKCE   => FotkaUzivatele::AKCE_NAHRAT,
