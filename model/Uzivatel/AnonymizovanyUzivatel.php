@@ -110,6 +110,20 @@ class AnonymizovanyUzivatel
             $mysqli,
         );
 
+        // Text medailonku z Nastavení na webu: čekající by jedno kliknutí ve schvalování vrátilo na web a schválený
+        // řádek drží text, jak ho vypravěč poslal, @see MedailonekKeSchvaleni. Maže se před vyprázdněním medailonku:
+        // schválení, které běží souběžně, pak řádek buď nenajde, nebo ho drží zamčený a medailonek se vyprázdní až po
+        // něm. Opačně by schválení stihlo zapsat text do už vyprázdněného medailonku.
+        dbQuery(
+            <<<'SQL'
+DELETE FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
+SQL,
+            [
+                0 => $idUzivatele,
+            ],
+            $mysqli,
+        );
+
         // Anonymizuj medailonek
         $medailonkyData       = self::vytvorAnonymniMedailonkoveDaje();
         $medailonkyValues     = [];
@@ -127,18 +141,6 @@ class AnonymizovanyUzivatel
         dbQuery(
             "UPDATE medailonky SET $medailonkySet WHERE id_uzivatele = $idUzivatele",
             $medailonkyValues,
-            $mysqli,
-        );
-
-        // Text medailonku z Nastavení na webu: čekající by jedno kliknutí ve schvalování vrátilo na web a schválený
-        // řádek drží text, jak ho vypravěč poslal, @see MedailonekKeSchvaleni
-        dbQuery(
-            <<<'SQL'
-DELETE FROM medailonky_ke_schvaleni WHERE id_uzivatele = $0
-SQL,
-            [
-                0 => $idUzivatele,
-            ],
             $mysqli,
         );
 

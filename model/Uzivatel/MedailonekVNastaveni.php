@@ -183,6 +183,9 @@ final class MedailonekVNastaveni
                 'Text medailonku je odeslaný ke schválení. Na webu se ukáže, až ho schválí organizátor.',
                 \Chyba::OZNAMENI,
             );
+        } elseif ($this->getMedailonek() === null) {
+            // kdo medailonek ještě nemá, poslal prázdný text, a stránku mu založí až text nebo fotka
+            \Chyba::nastav('Text je prázdný, není co poslat ke schválení.', \Chyba::OZNAMENI);
         } else {
             \Chyba::nastav('Text je stejný jako na webu, nic nečeká na schválení.', \Chyba::OZNAMENI);
         }
