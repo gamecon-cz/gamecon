@@ -61,7 +61,9 @@ class PujcovnaKostymuRozpusteniTymuTest extends AbstractUzivatelTestDb
 
         AktivitaTym::najdi($idTymu)->smazat();
 
-        self::assertSame('0', (string) dbOneCol('SELECT COUNT(*) FROM akce_prihlaseni WHERE id_akce = $0', [$idAktivity]));
+        self::assertSame('0', (string) dbOneCol(<<<'SQL'
+SELECT COUNT(*) FROM akce_prihlaseni WHERE id_akce = $0
+SQL, [$idAktivity]));
         self::assertSame([], self::rezervaceAktivity($idAktivity));
     }
 }

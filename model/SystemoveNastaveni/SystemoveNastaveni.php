@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\SystemoveNastaveni;
 
 use Composer\Autoload\ClassLoader;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
@@ -764,6 +765,14 @@ SQL;
                                                                                         ->formatDb(),
                 Klic::HROMADNE_ODHLASOVANI_3                          => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
                                                                                         ->formatDb(),
+                // půjčovna kostýmů, viz docs/generated/pujcovna-kostymu.md
+                Klic::KOSTYMY_KATALOG_ZVEREJNEN                       => '0',
+                Klic::KOSTYMY_TYPY_AKTIVIT                            => (string)TypAktivity::LARP,
+                Klic::KOSTYMY_LIMIT_NA_OSOBU                          => '0',
+                Klic::KOSTYMY_CAS_NA_VYMENU_MINUT                     => '60',
+                Klic::KOSTYMY_VYDEJ_MINUT_PRED_ZACATKEM               => '60',
+                Klic::KOSTYMY_VRACENI_MINUT_PO_KONCI                  => '60',
+                Klic::KOSTYMY_UZAVERKA_HODIN_PRED_ZACATKEM            => '2',
             ];
         }
 

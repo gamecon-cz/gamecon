@@ -88,15 +88,22 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
      */
     private static function vlozRezervaciKostymu(): void
     {
-        dbQuery("INSERT INTO akce_seznam SET nazev_akce = 'Larp s kostýmy', rok = 2026, typ = 2");
+        dbQuery(<<<'SQL'
+            INSERT INTO akce_seznam SET nazev_akce = 'Larp s kostýmy', rok = 2026, typ = 2
+            SQL);
         $idAktivity = dbInsertId();
-        dbQuery("INSERT INTO akce_prihlaseni SET id_akce = {$idAktivity}, id_uzivatele = 100, id_stavu_prihlaseni = 0");
+        dbQuery(<<<'SQL'
+            INSERT INTO akce_prihlaseni SET id_akce = $0, id_uzivatele = 100, id_stavu_prihlaseni = 0
+            SQL, [$idAktivity]);
         dbQuery(<<<'SQL'
             INSERT INTO kostym SET nazev = 'Plášť', popis = '', velikost = 'm', miry = '', strih = 'unisex', kategorie = '',
                 stav = 'k_dispozici', interni_poznamka = 'Daroval Jan Novák'
             SQL);
         $idKostymu = dbInsertId();
-        dbQuery("INSERT INTO kostym_rezervace SET id_kostymu = {$idKostymu}, id_akce = {$idAktivity}, id_uzivatele = 100, rezervoval = 100, rezervovano = NOW()");
+        dbQuery(<<<'SQL'
+            INSERT INTO kostym_rezervace SET id_kostymu = $0, id_akce = $1, id_uzivatele = 100, rezervoval = 100,
+                rezervovano = NOW()
+            SQL, [$idKostymu, $idAktivity]);
     }
 
     /**
@@ -353,7 +360,12 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             );
         }
 
-        $interniPoznamkyResult = mysqli_query($connection, sprintf('SELECT interni_poznamka FROM `%s`.kostym', self::$anonymniDatabaze));
+        $interniPoznamkyResult = mysqli_query($connection, sprintf(
+            <<<'SQL'
+                SELECT interni_poznamka FROM `%s`.kostym
+                SQL,
+            self::$anonymniDatabaze,
+        ));
         foreach (array_column(mysqli_fetch_all($interniPoznamkyResult, MYSQLI_ASSOC), 'interni_poznamka') as $interniPoznamka) {
             self::assertSame('', $interniPoznamka, 'Interní poznámka kostýmu by měla být prázdná');
         }

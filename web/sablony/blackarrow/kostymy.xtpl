@@ -123,6 +123,7 @@
         </form>
         <!-- end: formular -->
         <!-- begin: obsazeny --><p>V čase tvých aktivit je kostým už rezervovaný.</p><!-- end: obsazeny -->
+        <!-- begin: poUzaverce --><p>Na aktivitu, na kterou už máš jiný kostým, ho po uzávěrce vymění jen půjčovna.</p><!-- end: poUzaverce -->
         <!-- begin: zadnaAktivita --><p>Kostým jde rezervovat na larp, na který máš přihlášku a který ještě nezačal. Takový teď nemáš.</p><!-- end: zadnaAktivita -->
       </div>
       <!-- end: rezervace -->
@@ -136,7 +137,7 @@
   <!-- end: detail -->
 
   <!-- begin: moje -->
-  <a class="kostymy_zpet" href="{adresaPujcovny}">Půjčovna kostýmů</a>
+  <!-- begin: zpet --><a class="kostymy_zpet" href="{adresaPujcovny}">Půjčovna kostýmů</a><!-- end: zpet -->
   <h1>Moje kostýmy</h1>
   <!-- begin: nevraceny -->
   <p class="kostymy_upozorneni">Kostým {nazevKostymu} máš ještě u sebe, vrať ho prosím do půjčovny do {vratitDo}.</p>
@@ -144,22 +145,24 @@
   <div class="kostymy_moje">
     <!-- begin: rezervace -->
     <article class="kostymy_mojeRezervace">
-      <a class="kostymy_obrazek" href="{adresaPujcovny}/{idKostymu}" tabindex="-1" aria-hidden="true">
+      <a class="kostymy_obrazek" {odkazKostymu} tabindex="-1" aria-hidden="true">
         <!-- begin: fotka --><img src="{nahledFotky}" alt="" loading="lazy"><!-- end: fotka -->
         <!-- begin: bezFotky --><span class="kostymy_bezFotky">bez fotky</span><!-- end: bezFotky -->
       </a>
       <div class="kostymy_mojeText">
-        <h2><a href="{adresaPujcovny}/{idKostymu}">{nazevKostymu}</a></h2>
+        <h2><a {odkazKostymu}>{nazevKostymu}</a></h2>
         <p class="kostymy_mojeAktivita">{nazevAktivity}<br><span>{casAktivity}</span></p>
         <!-- begin: vydany --><p class="kostymy_stitek kostymy_stitek-vydany">Máš ho vyzvednutý</p><!-- end: vydany -->
       </div>
+      <!-- begin: casy -->
       <dl class="kostymy_mojeCasy">
         <div><dt>Vyzvednout od</dt><dd>{vyzvednutiOd}</dd></div>
         <div><dt>Vrátit do</dt><dd>{vratitDo}</dd></div>
       </dl>
+      <!-- end: casy -->
       <!-- begin: zmenit -->
       <div class="kostymy_mojeAkce">
-        <a class="kostymy_tlacitko" href="{adresaPujcovny}?aktivita={idAktivity}">Vyměnit za jiný</a>
+        <!-- begin: vymenit --><a class="kostymy_tlacitko" href="{adresaPujcovny}?aktivita={idAktivity}">Vyměnit za jiný</a><!-- end: vymenit -->
         <form method="post" onsubmit="return confirm('Zrušit rezervaci kostýmu?')">
           <input type="hidden" name="akceKostymu" value="zrusit">
           <input type="hidden" name="idAktivity" value="{idAktivity}">
@@ -172,7 +175,7 @@
     </article>
     <!-- end: rezervace -->
   </div>
-  <!-- begin: zadna --><p class="kostymy_prazdno">Letos nemáš rezervovaný žádný kostým. <a href="{adresaPujcovny}">Vyber si v katalogu.</a></p><!-- end: zadna -->
+  <!-- begin: zadna --><p class="kostymy_prazdno">Letos nemáš rezervovaný žádný kostým.<!-- begin: vyberVKatalogu --> <a href="{adresaPujcovny}">Vyber si v katalogu.</a><!-- end: vyberVKatalogu --></p><!-- end: zadna -->
   <!-- end: moje -->
 </div>
 <!-- end: kostymy -->

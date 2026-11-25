@@ -45,4 +45,18 @@ final class FotkaKostymu
             return $this->getUrl();
         }
     }
+
+    /**
+     * Zmenšenina pro `og:image` v JPEG: sociální sítě a chatovací aplikace AVIF nezobrazí a náhled z cache
+     * (mimo WWW) @see \Gamecon\Web\Info::obrazekProSocialniSite() nepřevede. Původní soubor, když náhled nejde
+     * udělat, převede.
+     */
+    public function getUrlNahleduProSocialniSite(int $sirka, int $vyska): string
+    {
+        try {
+            return \Nahled::zeSouboru($this->getCesta())->pokryjOrez($sirka, $vyska)->jakoJpeg()->url();
+        } catch (\RuntimeException) {
+            return $this->getUrl();
+        }
+    }
 }

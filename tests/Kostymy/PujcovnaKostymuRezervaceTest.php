@@ -71,7 +71,9 @@ class PujcovnaKostymuRezervaceTest extends AbstractUzivatelTestDb
                 'rezervoval'  => (string) $ucastnik->id(),
                 'rezervovano' => '2099-01-01 06:00:00',
             ],
-            dbOneLine('SELECT id_kostymu, rezervoval, rezervovano FROM kostym_rezervace WHERE id_akce = $0', [$aktivita->id()]),
+            dbOneLine(<<<'SQL'
+SELECT id_kostymu, rezervoval, rezervovano FROM kostym_rezervace WHERE id_akce = $0
+SQL, [$aktivita->id()]),
         );
     }
 
@@ -315,6 +317,14 @@ class PujcovnaKostymuRezervaceTest extends AbstractUzivatelTestDb
         self::assertSame([], self::rezervaceAktivity($aktivita->id()));
     }
 
+    public function testUzaverkaJeDveHodinyPredZacatkem(): void
+    {
+        [$aktivita] = self::ucastnikNaAktivite();
+
+        self::assertFalse($this->pujcovna('2099-01-01 08:00:00')->isPoUzaverce($aktivita));
+        self::assertTrue($this->pujcovna('2099-01-01 08:00:01')->isPoUzaverce($aktivita));
+    }
+
     public function testNovouRezervaciUzaverkaNehlida(): void
     {
         [$aktivita, $ucastnik] = self::ucastnikNaAktivite();
@@ -347,7 +357,9 @@ class PujcovnaKostymuRezervaceTest extends AbstractUzivatelTestDb
 
         self::assertSame(
             (string) $spravce->id(),
-            dbOneCol('SELECT rezervoval FROM kostym_rezervace WHERE id_akce = $0', [$aktivita->id()]),
+            dbOneCol(<<<'SQL'
+SELECT rezervoval FROM kostym_rezervace WHERE id_akce = $0
+SQL, [$aktivita->id()]),
         );
     }
 
@@ -383,6 +395,33 @@ class PujcovnaKostymuRezervaceTest extends AbstractUzivatelTestDb
     public function testNastaveniSeCteZeSystemovehoNastaveni(): void
     {
         $nastaveni = NastaveniPujcovny::zSystemovehoNastaveni(SystemoveNastaveni::zGlobals());
+
+        self::assertFalse($nastaveni->isKatalogZverejnen());
+        self::assertSame([TypAktivity::LARP], $nastaveni->getTypyAktivit());
+        self::assertSame(0, $nastaveni->getLimitNaOsobu());
+        self::assertSame(60, $nastaveni->getCasNaVymenuMinut());
+        self::assertSame(60, $nastaveni->getVydejMinutPredZacatkem());
+        self::assertSame(60, $nastaveni->getVraceniMinutPoKonci());
+        self::assertSame(2, $nastaveni->getUzaverkaHodinPredZacatkem());
+    }
+
+    /**
+     * Klíče, které nejsou „vlastní“, berou hodnotu z výchozích. Bez nich by byla prázdná a půjčovna vypnutá.
+     */
+    public function testVychoziHodnotyNastaveniOdpovidajiMigraci(): void
+    {
+        $systemoveNastaveni = SystemoveNastaveni::zGlobals();
+        $nastaveni = NastaveniPujcovny::zSystemovehoNastaveni(new class($systemoveNastaveni) extends SystemoveNastaveni {
+            public function __construct(
+                private readonly SystemoveNastaveni $original,
+            ) {
+            }
+
+            public function dejHodnotu(string $klic, bool $hledatTakeVOdvozenych = true)
+            {
+                return $this->original->dejVychoziHodnotu($klic);
+            }
+        });
 
         self::assertFalse($nastaveni->isKatalogZverejnen());
         self::assertSame([TypAktivity::LARP], $nastaveni->getTypyAktivit());

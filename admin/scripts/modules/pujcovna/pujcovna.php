@@ -40,7 +40,8 @@ if ($akceKatalogu !== '') {
                 oznameniPresmeruj('Kostým je uložený.', $adresaKatalogu . '?id=' . $idUlozenehoKostymu);
                 break;
             case 'smazat':
-                $katalogKostymu->smaz($idKostymuZFormulare);
+                // soubor fotky, který nejde smazat, ohlásí po smazání kostýmu, proto návrat na katalog
+                NahravaniObrazku::sOhlasenimChyby(fn () => $katalogKostymu->smaz($idKostymuZFormulare), $adresaKatalogu);
                 oznameniPresmeruj('Kostým je smazaný.', $adresaKatalogu);
                 break;
             case 'nahratFotku':

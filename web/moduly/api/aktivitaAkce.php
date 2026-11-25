@@ -63,7 +63,7 @@ if ($aktivitaId) {
         // Za účastníka, ne za operátora: UI to zapíše do jeho programu.
         $jeOrganizator = $aktivita->organizuje($uPracovni);
         // místnosti stejně jako aktivityUzivatel.php: vidí je organizátor a ten, kdo aktivitu vede
-        $seznamLokaci = $u->jeOrganizator() || $jeOrganizator
+        $seznamLokaci = $jeOrganizator || $u->jeOrganizator()
             ? array_map(static fn (Lokace $lokace) => $lokace->apiLokace(), $aktivita->seznamLokaci())
             : [];
 

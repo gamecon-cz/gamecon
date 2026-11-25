@@ -168,7 +168,9 @@ class AnonymizovanaDatabaze
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.uzivatele_role SET `posazen` = '1970-01-01 01:01:01' WHERE TRUE");
         mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.akce_prihlaseni_log SET `kdy` = '1970-01-01 01:01:01' WHERE TRUE");
         // the costume rental's internal notes may name people (who brought it, who damaged it)
-        mysqli_query($dbConnectionAnonymDb, "UPDATE `{$db}`.kostym SET `interni_poznamka` = '' WHERE TRUE");
+        mysqli_query($dbConnectionAnonymDb, <<<SQL
+            UPDATE `{$db}`.kostym SET `interni_poznamka` = '' WHERE TRUE
+            SQL);
     }
 
     private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb)

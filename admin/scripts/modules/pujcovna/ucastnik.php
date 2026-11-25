@@ -9,6 +9,7 @@ use Gamecon\Kostymy\PrehledyPujcovny;
 use Gamecon\Kostymy\PujcovnaKostymu;
 use Gamecon\Kostymy\StavPriVraceniKostymuEnum;
 use Gamecon\Kostymy\VydejKostymu;
+use Gamecon\Kostymy\VysledekRezervaceKostymuEnum;
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -40,8 +41,12 @@ if ($akceVydeje !== '' && $ucastnikPujcovny !== null) {
             case 'rezervovat':
                 $aktivitaRezervace = Aktivita::zId((int) post('idAktivity'))
                     ?? throw new ChybaPujcovny('Aktivita neexistuje.');
-                $pujcovnaKostymu->rezervuj((int) post('idKostymu'), $aktivitaRezervace, $ucastnikPujcovny, $u, jakoSpravce: true);
-                oznameniPresmeruj('Kostým je rezervovaný, účastníkovi odešel e-mail.', $adresaVydeje . '?id=' . $ucastnikPujcovny->id());
+                $vysledekRezervace = $pujcovnaKostymu->rezervuj((int) post('idKostymu'), $aktivitaRezervace, $ucastnikPujcovny, $u, jakoSpravce: true);
+                oznameniPresmeruj(match ($vysledekRezervace) {
+                    VysledekRezervaceKostymuEnum::NOVA       => 'Kostým je rezervovaný, účastníkovi posíláme e-mail.',
+                    VysledekRezervaceKostymuEnum::VYMENENA   => 'Kostým je vyměněný, účastníkovi posíláme e-mail.',
+                    VysledekRezervaceKostymuEnum::BEZE_ZMENY => 'Tenhle kostým už účastník na aktivitu rezervovaný má.',
+                }, $adresaVydeje . '?id=' . $ucastnikPujcovny->id());
                 break;
             case 'zrusit':
                 $aktivitaRezervace = Aktivita::zId((int) post('idAktivity'))
