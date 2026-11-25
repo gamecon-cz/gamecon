@@ -437,8 +437,8 @@ final class HodnoceniTurnaje
 
     /**
      * Skupiny turnaje s body po kategoriích a celkem, seřazené od nejlepší. Počítají se jen hodnocení kol, která
-     * skupina hraje (`akce_tym_akce`); hodnocení kola, ve kterém už není, zůstane jen v přehledu hodnocení. Pořadí je
-     * podle celkového součtu, stejný součet dělí místo (2.–3.). Skupina, které chybí hodnocení některého kola, je
+     * skupina hraje (`akce_tym_akce`); hodnocení kola, ve kterém už není, zůstane jen v přehledu hodnocení. Pořadí určí
+     * `getKlicPoradi()`, při shodě všeho skupiny dělí místo (2.–3.). Skupina, které chybí hodnocení některého kola, je
      * neúplná, ale pořadí dostane taky.
      *
      * @return list<array{idTymu: int, nazevTymu: string, nazevTurnaje: string, souctyKategorii: array<int, int>, celkem: int, hodnocenoKol: int, kol: int, uplna: bool, poradiOd: int, poradiDo: int}>
@@ -493,19 +493,39 @@ final class HodnoceniTurnaje
             ];
         }
 
-        usort($vysledky, static fn (array $a, array $b): int => [$b['celkem'], $a['nazevTymu'], $a['idTymu']]
-                                                               <=> [$a['celkem'], $b['nazevTymu'], $b['idTymu']]);
-        $pocetPodleCelku = array_count_values(array_column($vysledky, 'celkem'));
+        // název a id jen ustálí pořadí řádků se sdíleným místem
+        usort($vysledky, static fn (array $a, array $b): int => [...self::getKlicPoradi($b), $a['nazevTymu'], $a['idTymu']]
+                                                               <=> [...self::getKlicPoradi($a), $b['nazevTymu'], $b['idTymu']]);
+        $klice = array_map(
+            static fn (array $vysledek): string => implode(' ', self::getKlicPoradi($vysledek)),
+            $vysledky,
+        );
+        $pocetPodleKlice = array_count_values($klice);
         $poradiOd = 1;
-        foreach ($vysledky as $index => $vysledek) {
-            if ($index > 0 && $vysledky[$index - 1]['celkem'] !== $vysledek['celkem']) {
+        foreach ($klice as $index => $klic) {
+            if ($index > 0 && $klice[$index - 1] !== $klic) {
                 $poradiOd = $index + 1;
             }
             $vysledky[$index]['poradiOd'] = $poradiOd;
-            $vysledky[$index]['poradiDo'] = $poradiOd + $pocetPodleCelku[$vysledek['celkem']] - 1;
+            $vysledky[$index]['poradiDo'] = $poradiOd + $pocetPodleKlice[$klic] - 1;
         }
 
         return $vysledky;
+    }
+
+    /**
+     * Podle čeho se skupiny řadí, každé od největšího (pravidla orga turnaje): celkový součet, při shodě nejvíc bodů
+     * v jedné kategorii, pak body v nejslabší kategorii. Kategorie se porovnávají součtem za všechna počítaná kola.
+     *
+     * @param array{celkem: int, souctyKategorii: array<int, int>} $vysledek
+     *
+     * @return array{int, int, int}
+     */
+    private static function getKlicPoradi(array $vysledek): array
+    {
+        $soucty = $vysledek['souctyKategorii'] ?: [0];
+
+        return [$vysledek['celkem'], max($soucty), min($soucty)];
     }
 
     /**

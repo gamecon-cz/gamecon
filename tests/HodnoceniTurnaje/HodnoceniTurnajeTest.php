@@ -20,7 +20,7 @@ use Symfony\Component\Clock\MockClock;
  * Hodnocení skupin turnaje D&D: vypravěč hodnotí skupiny z kola, které vede, od jeho začátku a dokud org hodnocení
  * neuzavře; hodnocení je jedno na skupinu a kolo, cizí přepíše jen org turnaje a cizí hodnoty vypravěč nevidí. Org
  * zadává nové hodnocení za vypravěče kola. Výsledky sčítají body po kategoriích jen za kola, která skupina hraje,
- * stejný součet dělí místo. Kritéria z editoru se ukládají podle id: přejmenování a přeřazení hodnocení nechá, co by
+ * shodu celku rozhodne nejlepší, pak nejslabší kategorie, shoda ve všem dělí místo. Kritéria z editoru se ukládají podle id: přejmenování a přeřazení hodnocení nechá, co by
  * smazalo hodnoty, chce potvrzení. Soubor se páruje podle názvů.
  */
 class HodnoceniTurnajeTest extends AbstractTestDb
@@ -529,13 +529,13 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         self::assertSame($idKriteriaB, $prejmenovanaKategorie->kategorie[1]->kriteria[0]->id);
     }
 
-    public function testVysledkySectouKategorieASdileneMisto(): void
+    public function testVysledkySectouKategorieAShoduCelkuRozhodneNejlepsiKategorie(): void
     {
         $hodnoceni = $this->vytvorHodnoceniSeSablonou();
         // Para Bola: 1. kolo 5+4 a 3, 2. kolo 1+1 a 1 → hraní 11, řešení 4, celkem 15, 2 ze 3 kol
         $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 4, 3]), $this->vypravecA, false);
         $hodnoceni->ulozHodnoceni($this->druheKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [1, 1, 1]), $this->vypravecB, false);
-        // Ovečky: jediné kolo druhého běhu 5+5 a 5 → celkem 15, úplné
+        // Ovečky: jediné kolo druhého běhu 5+5 a 5 → hraní 10, řešení 5, celkem 15, úplné
         $hodnoceni->ulozHodnoceni(
             $this->druhyBehPrvniKolo,
             $this->ovecky,
@@ -550,25 +550,58 @@ class HodnoceniTurnajeTest extends AbstractTestDb
         $idHrani = $sablona->kategorie[0]->id;
         $idReseni = $sablona->kategorie[1]->id;
 
-        self::assertSame(['Ovečky', 'Para Bola', 'Tým č. ' . $this->bezNazvu], array_column($vysledky, 'nazevTymu'));
+        // celkem stejně, Para Bola má lepší nejlepší kategorii (11 proti 10), přednost nemá úplnost ani běh
+        self::assertSame(['Para Bola', 'Ovečky', 'Tým č. ' . $this->bezNazvu], array_column($vysledky, 'nazevTymu'));
         self::assertSame([15, 15, 0], array_column($vysledky, 'celkem'));
-        self::assertSame([1, 1, 3], array_column($vysledky, 'poradiOd'));
-        self::assertSame([2, 2, 3], array_column($vysledky, 'poradiDo'));
+        self::assertSame([1, 2, 3], array_column($vysledky, 'poradiOd'));
+        self::assertSame([1, 2, 3], array_column($vysledky, 'poradiDo'));
         self::assertSame([
             $idHrani  => 11,
             $idReseni => 4,
-        ], $vysledky[1]['souctyKategorii']);
+        ], $vysledky[0]['souctyKategorii']);
         self::assertSame([
             $idHrani  => 0,
             $idReseni => 0,
         ], $vysledky[2]['souctyKategorii']);
-        self::assertSame([1, 2, 0], array_column($vysledky, 'hodnocenoKol'));
-        self::assertSame([1, 3, 3], array_column($vysledky, 'kol'));
-        self::assertSame([true, false, false], array_column($vysledky, 'uplna'));
-        self::assertSame(['D&D turnaj 2. běh', 'D&D turnaj 1. běh', 'D&D turnaj 1. běh'], array_column($vysledky, 'nazevTurnaje'));
+        self::assertSame([2, 1, 0], array_column($vysledky, 'hodnocenoKol'));
+        self::assertSame([3, 1, 3], array_column($vysledky, 'kol'));
+        self::assertSame([false, true, false], array_column($vysledky, 'uplna'));
+        self::assertSame(['D&D turnaj 1. běh', 'D&D turnaj 2. běh', 'D&D turnaj 1. běh'], array_column($vysledky, 'nazevTurnaje'));
 
         self::assertSame('1.–2.', HodnoceniTurnaje::getPopisPoradi(1, 2));
         self::assertSame('3.', HodnoceniTurnaje::getPopisPoradi(3, 3));
+    }
+
+    public function testShoduCelkuINejlepsiKategorieRozhodneNejslabsiKategorieJinakDeliMisto(): void
+    {
+        $hodnoceni = $this->vytvorHodnoceni();
+        $hodnoceni->ulozSablonu(ParserSablonyHodnoceni::rozeber(<<<'TEXT'
+            Škála: 1 2 3 4 5
+            # Hraní rolí
+            ## Postavy
+            # Řešení
+            ## Nápaditost
+            # Boj
+            ## Taktika
+            TEXT), $this->org);
+        // všechny celkem 9 a nejlepší kategorie 5; nejslabší: bez názvu 2, Para Bola a Ovečky 1
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->paraBola, $this->getHodnoty($hodnoceni, [5, 1, 3]), $this->vypravecA, false);
+        $hodnoceni->ulozHodnoceni($this->prvniKolo, $this->bezNazvu, $this->getHodnoty($hodnoceni, [2, 5, 2]), $this->vypravecB, false);
+        $hodnoceni->ulozHodnoceni(
+            $this->druhyBehPrvniKolo,
+            $this->ovecky,
+            $this->getHodnoty($hodnoceni, [1, 3, 5]),
+            $this->vypravecDruhehoBehu,
+            false,
+        );
+
+        $vysledky = $hodnoceni->getVysledky();
+
+        // shodné ve všem jsou mezi sebou podle názvu, to pořadí neurčuje
+        self::assertSame(['Tým č. ' . $this->bezNazvu, 'Ovečky', 'Para Bola'], array_column($vysledky, 'nazevTymu'));
+        self::assertSame([9, 9, 9], array_column($vysledky, 'celkem'));
+        self::assertSame([1, 2, 2], array_column($vysledky, 'poradiOd'));
+        self::assertSame([1, 3, 3], array_column($vysledky, 'poradiDo'));
     }
 
     public function testExportVysledkuAVsechHodnoceni(): void

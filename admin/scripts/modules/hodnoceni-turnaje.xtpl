@@ -46,8 +46,8 @@
     <ul>
       <li>Vyber kolo a v něm skupinu, kterou jsi vedl(a). V nabídce jsou všechny skupiny kola, protože kdo vedl kterou,
         systém neví.</li>
-      <li>U každého kritéria vyber hodnotu ze škály {skala}. Vyšší je lepší, pořadí skupin jde podle součtu. Uložit jde,
-        až mají hodnotu všechna kritéria.</li>
+      <li>U každého kritéria vyber hodnotu ze škály {skala}. Vyšší je lepší, pořadí skupin jde podle součtu (při shodě
+        podle nejlepší, pak nejslabší kategorie). Uložit jde, až mají hodnotu všechna kritéria.</li>
       <li>Hodnotit jde od začátku kola. Své hodnocení můžeš měnit, dokud ho org turnaje neuzavře.</li>
       <li>Skupina má v každém kole jedno hodnocení. Když ji už ohodnotil jiný vypravěč kola, uvidíš jen kdo, ne jeho
         hodnoty.</li>
@@ -164,8 +164,8 @@
       <!-- end:radek -->
     </table>
   </div>
-  <p class="hodnoceni-poznamka">Pořadí je podle celkového součtu, stejný součet dělí místo. ⚠️ = skupině chybí hodnocení
-    některého kola.</p>
+  <p class="hodnoceni-poznamka">Pořadí je podle celkového součtu. Při shodě rozhodne víc bodů v nejlepší kategorii, pak
+    víc bodů v nejslabší kategorii. Kdo se shoduje ve všem, dělí místo. ⚠️ = skupině chybí hodnocení některého kola.</p>
   <!-- end:vysledky -->
 </section>
 
