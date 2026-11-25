@@ -107,30 +107,29 @@ CREATE TABLE IF NOT EXISTS `kostym_vydej` (
   COLLATE=utf8mb4_czech_ci
 SQL);
 
-// Nastavení: `vlastni = 1`, protože klíče nemají záznam v SystemoveNastaveni::dejVychoziHodnoty(),
-// jinak by se konstanta při bootu definovala prázdná.
+// Nastavení: výchozí hodnoty jsou v SystemoveNastaveni::dejVychoziHodnoty(), tady stejné, a tak `vlastni = 0`.
 $this->q(<<<'SQL'
 INSERT IGNORE INTO systemove_nastaveni (klic, hodnota, vlastni, datovy_typ, nazev, popis, skupina, poradi,
                                         pouze_pro_cteni, rocnik_nastaveni)
-VALUES ('KOSTYMY_KATALOG_ZVEREJNEN', '0', 1, 'boolean', 'Katalog kostýmů je zveřejněný',
+VALUES ('KOSTYMY_KATALOG_ZVEREJNEN', '0', 0, 'boolean', 'Katalog kostýmů je zveřejněný',
         'Zapne veřejnou stránku /kostymy a rezervace kostýmů účastníky. Správa půjčovny v adminu funguje i bez toho.',
         'Půjčovna kostýmů', 1, 0, -1),
-       ('KOSTYMY_TYPY_AKTIVIT', '2', 1, 'text', 'Na jaké typy aktivit jde půjčit kostým',
+       ('KOSTYMY_TYPY_AKTIVIT', '2', 0, 'text', 'Na jaké typy aktivit jde půjčit kostým',
         'ID typů aktivit oddělená čárkou (2 = larp, 4 = RPG, …).',
         'Půjčovna kostýmů', 2, 0, -1),
-       ('KOSTYMY_LIMIT_NA_OSOBU', '0', 1, 'integer', 'Kolik kostýmů si jeden člověk rezervuje za ročník',
+       ('KOSTYMY_LIMIT_NA_OSOBU', '0', 0, 'integer', 'Kolik kostýmů si jeden člověk rezervuje za ročník',
         'Nejvýš tolik rezervací kostýmů na aktivity jednoho ročníku. 0 = bez limitu. Správce půjčovny v adminu limit nehlídá.',
         'Půjčovna kostýmů', 3, 0, -1),
-       ('KOSTYMY_CAS_NA_VYMENU_MINUT', '60', 1, 'integer', 'Čas na výměnu kostýmu mezi rezervacemi (minuty)',
+       ('KOSTYMY_CAS_NA_VYMENU_MINUT', '60', 0, 'integer', 'Čas na výměnu kostýmu mezi rezervacemi (minuty)',
         'Kolik minut po konci aktivity zůstane kostým volný, než ho může mít další rezervace.',
         'Půjčovna kostýmů', 4, 0, -1),
-       ('KOSTYMY_VYDEJ_MINUT_PRED_ZACATKEM', '60', 1, 'integer', 'Kdy nejdřív jde vydat kostým (minuty před začátkem)',
+       ('KOSTYMY_VYDEJ_MINUT_PRED_ZACATKEM', '60', 0, 'integer', 'Kdy nejdřív jde vydat kostým (minuty před začátkem)',
         'Kolik minut před začátkem aktivity si účastník může kostým vyzvednout.',
         'Půjčovna kostýmů', 5, 0, -1),
-       ('KOSTYMY_VRACENI_MINUT_PO_KONCI', '60', 1, 'integer', 'Dokdy se vrací kostým (minuty po konci)',
+       ('KOSTYMY_VRACENI_MINUT_PO_KONCI', '60', 0, 'integer', 'Dokdy se vrací kostým (minuty po konci)',
         'Kolik minut po konci aktivity má účastník na vrácení kostýmu. Potom je kostým v přehledu nevrácených.',
         'Půjčovna kostýmů', 6, 0, -1),
-       ('KOSTYMY_UZAVERKA_HODIN_PRED_ZACATKEM', '2', 1, 'integer', 'Dokdy jde zrušit nebo vyměnit kostým (hodiny před začátkem)',
+       ('KOSTYMY_UZAVERKA_HODIN_PRED_ZACATKEM', '2', 0, 'integer', 'Dokdy jde zrušit nebo vyměnit kostým (hodiny před začátkem)',
         'Potom už rezervaci kostýmu zruší nebo vymění jen správce půjčovny v adminu.',
         'Půjčovna kostýmů', 7, 0, -1)
 SQL);

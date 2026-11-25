@@ -7,6 +7,7 @@ namespace Gamecon\Kostymy;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Vyjimkovac\Vyjimkovac;
 
 /**
  * Rezervace kostýmů na aktivity, viz docs/generated/pujcovna-kostymu.md
@@ -40,6 +41,13 @@ final class PujcovnaKostymu
             OR (akce_seznam.zacatek < $3 + INTERVAL $4 MINUTE AND $2 < akce_seznam.konec + INTERVAL $4 MINUTE))
 ))
 SQL;
+
+    /**
+     * E-maily o rezervacích uvolněných během @see sOznamenimUvolneniPoZmene(), null = posílat hned.
+     *
+     * @var list<\Closure(): void>|null
+     */
+    private static ?array $odlozenaOznameniUvolneni = null;
 
     private readonly EmailyPujcovny $emaily;
 
@@ -118,11 +126,14 @@ SQL, [$idKostymu, $aktivita->id(), $ucastnik->id(), $rezervujici->id(), $this->t
             throw $throwable;
         }
 
-        $this->emaily->posliPotvrzeni(
-            $this->rezervaceUcastnika($aktivita->id(), $ucastnik->id()),
-            $aktivita,
-            $ucastnik,
-        );
+        // znovu z databáze kvůli názvu kostýmu; mezitím ji mohlo zrušit odhlášení z aktivity
+        $rezervace = $this->rezervaceUcastnika($aktivita->id(), $ucastnik->id());
+        if ($rezervace !== null) {
+            $this->posliBezChyby(
+                fn () => $this->emaily->posliPotvrzeni($rezervace, $aktivita, $ucastnik),
+                sprintf('s potvrzením rezervace účastníkovi %d na aktivitu %d', $ucastnik->id(), $aktivita->id()),
+            );
+        }
 
         return $stavajici !== null
             ? VysledekRezervaceKostymuEnum::VYMENENA
@@ -135,7 +146,63 @@ SQL, [$idKostymu, $aktivita->id(), $ucastnik->id(), $rezervujici->id(), $this->t
      */
     public function oznamUvolneni(RezervaceKostymu $rezervace, Aktivita $aktivita, \Uzivatel $ucastnik): void
     {
-        $this->emaily->posliUvolneni($rezervace, $aktivita, $ucastnik);
+        $posli = fn () => $this->posliBezChyby(
+            fn () => $this->emaily->posliUvolneni($rezervace, $aktivita, $ucastnik),
+            sprintf('o uvolnění rezervace účastníkovi %d na aktivitě %d', $ucastnik->id(), $aktivita->id()),
+        );
+        if (self::$odlozenaOznameniUvolneni !== null) {
+            self::$odlozenaOznameniUvolneni[] = $posli;
+
+            return;
+        }
+        $posli();
+    }
+
+    /**
+     * Provede $zmena a e-maily o rezervacích, které při ní uvolní @see oznamUvolneni(), pošle až po ní. Pro změnu
+     * v transakci, třeba smazání aktivity, které odhlásí všechny přihlášené: e-mail nesmí odejít o rezervaci, kterou
+     * rollback vrátí. Když $zmena spadne, nepošle žádný.
+     *
+     * @template T
+     *
+     * @param callable(): T $zmena
+     *
+     * @return T
+     */
+    public static function sOznamenimUvolneniPoZmene(callable $zmena): mixed
+    {
+        if (self::$odlozenaOznameniUvolneni !== null) {
+            // vnořená změna, e-maily pošle ta vnější
+            return $zmena();
+        }
+        self::$odlozenaOznameniUvolneni = [];
+        try {
+            $vysledek = $zmena();
+            $odlozenaOznameni = self::$odlozenaOznameniUvolneni;
+        } finally {
+            self::$odlozenaOznameniUvolneni = null;
+        }
+        foreach ($odlozenaOznameni as $posli) {
+            $posli();
+        }
+
+        return $vysledek;
+    }
+
+    /**
+     * E-mail půjčovny jde až po zapsané změně, a ta platí, i když ho nejde odeslat (pošta, nevyplněná šablona).
+     * Chyba proto skončí ve výjimkovači, ne u účastníka ani v transakci, ve které změna proběhla.
+     */
+    private function posliBezChyby(callable $posli, string $coSePosila): void
+    {
+        try {
+            $posli();
+        } catch (\Throwable $chyba) {
+            Vyjimkovac::vytvorZGlobals()->zaloguj(new \RuntimeException(
+                "E-mail půjčovny kostýmů {$coSePosila} se nepodařilo odeslat",
+                previous: $chyba,
+            ));
+        }
     }
 
     /**
@@ -159,7 +226,9 @@ SQL, [$idKostymu, $aktivita->id(), $ucastnik->id(), $rezervujici->id(), $this->t
                 $this->overUzaverku($aktivita, 'zrušit');
                 $this->overZeNeniVydany($rezervace, 'zrušit');
             }
-            dbQuery('DELETE FROM kostym_rezervace WHERE id = $0', [$rezervace->getId()]);
+            dbQuery(<<<'SQL'
+DELETE FROM kostym_rezervace WHERE id = $0
+SQL, [$rezervace->getId()]);
             dbCommit();
         } catch (\Throwable $throwable) {
             dbRollback();
@@ -169,23 +238,30 @@ SQL, [$idKostymu, $aktivita->id(), $ucastnik->id(), $rezervujici->id(), $this->t
         return $rezervace;
     }
 
+    /**
+     * @param bool $zamknout zamkne jen řádek rezervace, ne kostým: rezervace kostým zamyká jako první
+     *                       (@see zamkniKostymKRezervaci()), a se zámkem jejího kostýmu by dvě výměny opačným směrem
+     *                       (K1 → K2 a K2 → K1) zamykaly oba kostýmy v opačném pořadí a jedna by skončila deadlockem
+     */
     public function rezervaceUcastnika(int $idAktivity, int $idUzivatele, bool $zamknout = false): ?RezervaceKostymu
     {
         $zamek = $zamknout
             ? 'FOR UPDATE'
             : '';
         $radek = dbOneLine(<<<SQL
-SELECT kostym_rezervace.id, kostym_rezervace.id_kostymu, kostym.nazev AS nazev_kostymu,
-       kostym_rezervace.id_akce, kostym_rezervace.id_uzivatele
+SELECT kostym_rezervace.id, kostym_rezervace.id_kostymu, kostym_rezervace.id_akce, kostym_rezervace.id_uzivatele
 FROM kostym_rezervace
-JOIN kostym ON kostym.id = kostym_rezervace.id_kostymu
 WHERE kostym_rezervace.id_akce = $0 AND kostym_rezervace.id_uzivatele = $1
 {$zamek}
 SQL, [$idAktivity, $idUzivatele]);
+        if (! $radek) {
+            return null;
+        }
+        $radek['nazev_kostymu'] = dbOneCol(<<<'SQL'
+SELECT nazev FROM kostym WHERE id = $0
+SQL, [$radek['id_kostymu']]);
 
-        return $radek
-            ? RezervaceKostymu::zRadku($radek)
-            : null;
+        return RezervaceKostymu::zRadku($radek);
     }
 
     /**
@@ -217,7 +293,9 @@ SQL, [$idAktivity, $idUzivatele]);
      */
     private function zamkniKostymKRezervaci(int $idKostymu): void
     {
-        $stav = dbOneCol('SELECT stav FROM kostym WHERE id = $0 FOR UPDATE', [$idKostymu]);
+        $stav = dbOneCol(<<<'SQL'
+SELECT stav FROM kostym WHERE id = $0 FOR UPDATE
+SQL, [$idKostymu]);
         if ($stav === null) {
             throw new ChybaPujcovny('Kostým neexistuje.');
         }
@@ -248,11 +326,20 @@ SQL, [$aktivita->id(), $ucastnik->id()]);
      */
     private function overUzaverku(Aktivita $aktivita, string $coSeDela): void
     {
-        $uzaverka = \DateTimeImmutable::createFromInterface($aktivita->zacatek())
-            ->modify(sprintf('-%d hours', $this->nastaveni->getUzaverkaHodinPredZacatkem()));
-        if ($this->systemoveNastaveni->ted() > $uzaverka) {
+        if ($this->isPoUzaverce($aktivita)) {
             throw new ChybaPujcovny(sprintf('Kostým jde %s nejpozději %d h před začátkem aktivity. Potom už jen v půjčovně.', $coSeDela, $this->nastaveni->getUzaverkaHodinPredZacatkem()));
         }
+    }
+
+    /**
+     * Rezervaci na aktivitu (s určeným začátkem) po uzávěrce zruší nebo vymění už jen správce půjčovny.
+     */
+    public function isPoUzaverce(Aktivita $aktivita): bool
+    {
+        $uzaverka = \DateTimeImmutable::createFromInterface($aktivita->zacatek())
+            ->modify(sprintf('-%d hours', $this->nastaveni->getUzaverkaHodinPredZacatkem()));
+
+        return $this->systemoveNastaveni->ted() > $uzaverka;
     }
 
     /**
@@ -299,10 +386,10 @@ SQL, [$ucastnik->id(), $this->systemoveNastaveni->rocnik()]);
      */
     private function overVolnoKostymu(int $idKostymu, Aktivita $aktivita, ?int $idVlastniRezervace): void
     {
-        $kolize = dbOneCol(
-            'SELECT ' . self::KOLIZE_KOSTYMU . ' FROM kostym WHERE kostym.id = $0',
-            $this->parametryKolize($idKostymu, $aktivita, $idVlastniRezervace),
-        );
+        $kolizeKostymu = self::KOLIZE_KOSTYMU;
+        $kolize = dbOneCol(<<<SQL
+SELECT {$kolizeKostymu} FROM kostym WHERE kostym.id = $0
+SQL, $this->parametryKolize($idKostymu, $aktivita, $idVlastniRezervace));
         if ($kolize) {
             throw new ChybaPujcovny(sprintf('Kostým je v čase aktivity už rezervovaný (počítá se i %d minut na výměnu mezi aktivitami).', $this->nastaveni->getCasNaVymenuMinut()));
         }
@@ -413,11 +500,11 @@ SQL, [$ucastnik->id(), StavPrihlaseni::PRIHLASEN, $typy, $this->tedDb(), $this->
         // výpis $0 (jeden kostým) nepoužívá a dbQueryAssemble() by bez něj číslování posunul o jedno
         unset($parametry[0]);
         $parametry[5] = StavKostymuEnum::K_DISPOZICI->value;
+        $kolizeKostymu = self::KOLIZE_KOSTYMU;
 
-        return array_map('intval', dbFetchColumn(
-            'SELECT kostym.id FROM kostym WHERE kostym.stav = $5 AND NOT ' . self::KOLIZE_KOSTYMU,
-            $parametry,
-        ));
+        return array_map('intval', dbFetchColumn(<<<SQL
+SELECT kostym.id FROM kostym WHERE kostym.stav = $5 AND NOT {$kolizeKostymu}
+SQL, $parametry));
     }
 
     /**

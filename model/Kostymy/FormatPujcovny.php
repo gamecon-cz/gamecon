@@ -49,13 +49,21 @@ final class FormatPujcovny
     /**
      * @param list<int|string> $ids
      *
-     * @return array<int, \Uzivatel> podle ID
+     * @return array<int, \Uzivatel> podle ID v pořadí $ids (třeba podle jména z hledání), \Uzivatel::zIds() řadí
+     *                               podle ID; kdo neexistuje, chybí
      */
     public static function uzivatelePodleId(array $ids): array
     {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        $nalezeni = [];
+        foreach (\Uzivatel::zIds($ids) as $uzivatel) {
+            $nalezeni[(int) $uzivatel->id()] = $uzivatel;
+        }
         $uzivatele = [];
-        foreach (\Uzivatel::zIds(array_values(array_unique(array_map('intval', $ids)))) as $uzivatel) {
-            $uzivatele[(int) $uzivatel->id()] = $uzivatel;
+        foreach ($ids as $id) {
+            if (isset($nalezeni[$id])) {
+                $uzivatele[$id] = $nalezeni[$id];
+            }
         }
 
         return $uzivatele;

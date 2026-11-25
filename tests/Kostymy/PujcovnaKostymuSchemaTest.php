@@ -24,7 +24,9 @@ class PujcovnaKostymuSchemaTest extends AbstractUzivatelTestDb
         self::vlozPrihlasku($idAktivity, $ucastnik->id());
         self::vlozRezervaci(self::vlozKostym(), $idAktivity, $ucastnik->id());
 
-        dbQuery('DELETE FROM akce_prihlaseni WHERE id_akce = $0 AND id_uzivatele = $1', [$idAktivity, $ucastnik->id()]);
+        dbQuery(<<<'SQL'
+DELETE FROM akce_prihlaseni WHERE id_akce = $0 AND id_uzivatele = $1
+SQL, [$idAktivity, $ucastnik->id()]);
 
         self::assertSame([], self::rezervaceAktivity($idAktivity));
     }
@@ -38,9 +40,13 @@ class PujcovnaKostymuSchemaTest extends AbstractUzivatelTestDb
         $idRezervace = self::vlozRezervaci($idKostymu, $idAktivity, $ucastnik->id());
         $idVydeje = self::vlozVydej($idKostymu, $idRezervace, $idAktivity, $ucastnik->id());
 
-        dbQuery('DELETE FROM akce_prihlaseni WHERE id_akce = $0 AND id_uzivatele = $1', [$idAktivity, $ucastnik->id()]);
+        dbQuery(<<<'SQL'
+DELETE FROM akce_prihlaseni WHERE id_akce = $0 AND id_uzivatele = $1
+SQL, [$idAktivity, $ucastnik->id()]);
 
-        $vydej = dbOneLine('SELECT id_rezervace, id_akce, id_uzivatele, vraceno FROM kostym_vydej WHERE id = $0', [$idVydeje]);
+        $vydej = dbOneLine(<<<'SQL'
+SELECT id_rezervace, id_akce, id_uzivatele, vraceno FROM kostym_vydej WHERE id = $0
+SQL, [$idVydeje]);
         self::assertNull($vydej['id_rezervace']);
         self::assertSame((string) $idAktivity, $vydej['id_akce']);
         self::assertSame((string) $ucastnik->id(), $vydej['id_uzivatele']);
@@ -90,7 +96,9 @@ class PujcovnaKostymuSchemaTest extends AbstractUzivatelTestDb
         self::vlozRezervaci($idKostymu, $idAktivity, $ucastnik->id());
 
         $this->expectException(\DbException::class);
-        dbQuery('DELETE FROM kostym WHERE id = $0', [$idKostymu]);
+        dbQuery(<<<'SQL'
+DELETE FROM kostym WHERE id = $0
+SQL, [$idKostymu]);
     }
 
     public function testSmazanimKostymuZmiziJehoFotky(): void
@@ -102,9 +110,13 @@ class PujcovnaKostymuSchemaTest extends AbstractUzivatelTestDb
             'poradi'     => 1,
         ]);
 
-        dbQuery('DELETE FROM kostym WHERE id = $0', [$idKostymu]);
+        dbQuery(<<<'SQL'
+DELETE FROM kostym WHERE id = $0
+SQL, [$idKostymu]);
 
-        self::assertSame('0', (string) dbOneCol('SELECT COUNT(*) FROM kostym_foto WHERE id_kostymu = $0', [$idKostymu]));
+        self::assertSame('0', (string) dbOneCol(<<<'SQL'
+SELECT COUNT(*) FROM kostym_foto WHERE id_kostymu = $0
+SQL, [$idKostymu]));
     }
 
     public function testSloucenimSeRezervacePreneseSPrihlaskou(): void
@@ -132,7 +144,9 @@ class PujcovnaKostymuSchemaTest extends AbstractUzivatelTestDb
                 'id_rezervace' => (string) $idRezervace,
                 'id_uzivatele' => (string) $novy->id(),
             ],
-            dbOneLine('SELECT id_rezervace, id_uzivatele FROM kostym_vydej WHERE id = $0', [$idVydeje]),
+            dbOneLine(<<<'SQL'
+SELECT id_rezervace, id_uzivatele FROM kostym_vydej WHERE id = $0
+SQL, [$idVydeje]),
         );
     }
 
@@ -168,7 +182,9 @@ class PujcovnaKostymuSchemaTest extends AbstractUzivatelTestDb
                 'id_rezervace' => null,
                 'id_uzivatele' => (string) $novy->id(),
             ],
-            dbOneLine('SELECT id_rezervace, id_uzivatele FROM kostym_vydej WHERE id = $0', [$idVydeje]),
+            dbOneLine(<<<'SQL'
+SELECT id_rezervace, id_uzivatele FROM kostym_vydej WHERE id = $0
+SQL, [$idVydeje]),
         );
     }
 
@@ -189,7 +205,9 @@ class PujcovnaKostymuSchemaTest extends AbstractUzivatelTestDb
         self::assertSame([], self::rezervaceAktivity($idAktivity));
         self::assertSame(
             [(string) $novy->id()],
-            dbFetchColumn('SELECT id_uzivatele FROM akce_prihlaseni WHERE id_akce = $0', [$idAktivity]),
+            dbFetchColumn(<<<'SQL'
+SELECT id_uzivatele FROM akce_prihlaseni WHERE id_akce = $0
+SQL, [$idAktivity]),
         );
     }
 }

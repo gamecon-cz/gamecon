@@ -70,6 +70,7 @@ SQL;
 
     /**
      * Rezervace na aktivity, které začínají v příštích hodinách (a ty, které už začaly, ale kostým se nevydal).
+     * Rezervace jedné aktivity jdou za sebou i u souběžných běhů téhož larpu, výdejní list je seskupí pod nadpis.
      *
      * @return list<RadekRezervace>
      */
@@ -81,7 +82,7 @@ SQL;
 
 WHERE akce_seznam.zacatek < $1
     AND akce_seznam.konec > $0
-ORDER BY akce_seznam.zacatek, akce_seznam.nazev_akce, kostym.nazev
+ORDER BY akce_seznam.zacatek, akce_seznam.nazev_akce, akce_seznam.id_akce, kostym.nazev
 SQL, [
             $ted->format('Y-m-d H:i:s'),
             $ted->modify(sprintf('+%d hours', $hodin))->format('Y-m-d H:i:s'),
@@ -157,14 +158,15 @@ SQL, [
      */
     public function jeUcastnikPujcovny(int $idUzivatele): bool
     {
-        return (bool) dbOneCol(
-            'SELECT 1 FROM uzivatele_hodnoty WHERE uzivatele_hodnoty.id_uzivatele = $0 AND ' . self::UCASTNIK_PUJCOVNY,
-            [
-                0 => $idUzivatele,
-                2 => $this->systemoveNastaveni->rocnik(),
-                3 => $this->nastaveni->getTypyAktivit() ?: [0],
-            ],
-        );
+        $ucastnikPujcovny = self::UCASTNIK_PUJCOVNY;
+
+        return (bool) dbOneCol(<<<SQL
+SELECT 1 FROM uzivatele_hodnoty WHERE uzivatele_hodnoty.id_uzivatele = $0 AND {$ucastnikPujcovny}
+SQL, [
+            0 => $idUzivatele,
+            2 => $this->systemoveNastaveni->rocnik(),
+            3 => $this->nastaveni->getTypyAktivit() ?: [0],
+        ]);
     }
 
     /**

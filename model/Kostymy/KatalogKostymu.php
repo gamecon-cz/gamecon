@@ -6,6 +6,7 @@ namespace Gamecon\Kostymy;
 
 use Gamecon\Web\NahranyObrazek;
 use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\PouzitiObrazku;
 
 /**
  * Katalog kostýmů a jejich fotky. Fotky ukládá @see NahravaniObrazku (typ z obsahu, zmenšení, AVIF/WebP, bez metadat)
@@ -61,7 +62,9 @@ SQL, $parametry));
 
     public function dej(int $idKostymu): ?Kostym
     {
-        return $this->sFotkami(dbFetchAll('SELECT * FROM kostym WHERE id = $0', [$idKostymu]))[0] ?? null;
+        return $this->sFotkami(dbFetchAll(<<<'SQL'
+SELECT * FROM kostym WHERE id = $0
+SQL, [$idKostymu]))[0] ?? null;
     }
 
     /**
@@ -122,9 +125,11 @@ SQL));
 
     /**
      * Smazat jde jen kostým, který nikdy nikdo nerezervoval ani si nepůjčil. Jinak se vyřadí (stav „vyřazený“),
-     * aby zůstala historie výdejů.
+     * aby zůstala historie výdejů. Fotku, na kterou odkazuje text webu, smazat nejde, a tak ani kostým; kontroluje se
+     * předem u všech, aby kostým nepřišel jen o část fotek.
      *
      * @throws ChybaPujcovny
+     * @throws \Gamecon\Web\NahravaniObrazkuException soubor fotky nejde smazat, kostým už smazaný je
      */
     public function smaz(int $idKostymu): void
     {
@@ -136,10 +141,24 @@ SQL, [$idKostymu]);
         if ($pouzity) {
             throw new ChybaPujcovny('Kostým má rezervace nebo záznamy o výdeji. Místo smazání ho vyřaď.');
         }
+        $nahravani = $this->nahravaniFotek();
+        foreach ($kostym->getFotky() as $fotka) {
+            $pouziti = $nahravani->kdeJePouzity($nahravani->cestaKSouboru($fotka->getSoubor()));
+            if ($pouziti !== []) {
+                throw new ChybaPujcovny(sprintf(
+                    'Na fotku kostýmu %s odkazuje %s. Nejdřív prosím odkaz odstraň.',
+                    $fotka->getSoubor(),
+                    PouzitiObrazku::popis($pouziti),
+                ));
+            }
+        }
+        // řádky fotek smaže cizí klíč, soubory až po kostýmu: když některý smazat nepůjde, zůstane jen soubor navíc
+        dbQuery(<<<'SQL'
+DELETE FROM kostym WHERE id = $0
+SQL, [$idKostymu]);
         foreach ($kostym->getFotky() as $fotka) {
             $this->smazSouborFotky($fotka);
         }
-        dbQuery('DELETE FROM kostym WHERE id = $0', [$idKostymu]);
     }
 
     /**
@@ -168,12 +187,16 @@ SQL, [$idKostymu, $soubor]);
      */
     public function smazFotku(int $idKostymu, int $idFotky): void
     {
-        $soubor = dbOneCol('SELECT soubor FROM kostym_foto WHERE id = $0 AND id_kostymu = $1', [$idFotky, $idKostymu]);
+        $soubor = dbOneCol(<<<'SQL'
+SELECT soubor FROM kostym_foto WHERE id = $0 AND id_kostymu = $1
+SQL, [$idFotky, $idKostymu]);
         if ($soubor === null) {
             throw new ChybaPujcovny('Fotka neexistuje.');
         }
         $this->smazSouborFotky(new FotkaKostymu($idFotky, (string) $soubor));
-        dbQuery('DELETE FROM kostym_foto WHERE id = $0', [$idFotky]);
+        dbQuery(<<<'SQL'
+DELETE FROM kostym_foto WHERE id = $0
+SQL, [$idFotky]);
     }
 
     /**

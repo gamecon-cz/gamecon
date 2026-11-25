@@ -6,6 +6,7 @@ namespace Gamecon\Tests\Kostymy;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Kostymy\ChybaPujcovny;
+use Gamecon\Kostymy\FormatPujcovny;
 use Gamecon\Kostymy\PrehledyPujcovny;
 use Gamecon\Kostymy\StavKostymuEnum;
 use Gamecon\Kostymy\StavPriVraceniKostymuEnum;
@@ -73,7 +74,9 @@ class PujcovnaKostymuVydejTest extends AbstractUzivatelTestDb
                 'vydano'       => '2099-01-01 09:00:00',
                 'vydal'        => (string) $this->spravce->id(),
             ],
-            dbOneLine('SELECT id_rezervace, vydano, vydal FROM kostym_vydej WHERE id = $0', [$idVydeje]),
+            dbOneLine(<<<'SQL'
+SELECT id_rezervace, vydano, vydal FROM kostym_vydej WHERE id = $0
+SQL, [$idVydeje]),
         );
     }
 
@@ -95,14 +98,18 @@ class PujcovnaKostymuVydejTest extends AbstractUzivatelTestDb
 
         self::vydejKostymu('2099-01-01 14:30:00')->vrat($idVydeje, $this->spravce, StavPriVraceniKostymuEnum::POSKOZENY, ' utržený rukáv ');
 
-        self::assertSame(StavKostymuEnum::V_OPRAVE->value, dbOneCol('SELECT stav FROM kostym WHERE id = $0', [$idKostymu]));
+        self::assertSame(StavKostymuEnum::V_OPRAVE->value, dbOneCol(<<<'SQL'
+SELECT stav FROM kostym WHERE id = $0
+SQL, [$idKostymu]));
         self::assertSame(
             [
                 'vraceno'          => '2099-01-01 14:30:00',
                 'stav_pri_vraceni' => 'poskozeny',
                 'poznamka'         => 'utržený rukáv',
             ],
-            dbOneLine('SELECT vraceno, stav_pri_vraceni, poznamka FROM kostym_vydej WHERE id = $0', [$idVydeje]),
+            dbOneLine(<<<'SQL'
+SELECT vraceno, stav_pri_vraceni, poznamka FROM kostym_vydej WHERE id = $0
+SQL, [$idVydeje]),
         );
         self::assertSame(
             [(string) $idDalsiRezervace],
@@ -117,7 +124,9 @@ class PujcovnaKostymuVydejTest extends AbstractUzivatelTestDb
 
         self::vydejKostymu('2099-01-01 14:30:00')->vrat($idVydeje, $this->spravce, StavPriVraceniKostymuEnum::V_PORADKU);
 
-        self::assertSame(StavKostymuEnum::K_DISPOZICI->value, dbOneCol('SELECT stav FROM kostym WHERE id = $0', [$idKostymu]));
+        self::assertSame(StavKostymuEnum::K_DISPOZICI->value, dbOneCol(<<<'SQL'
+SELECT stav FROM kostym WHERE id = $0
+SQL, [$idKostymu]));
         $this->expectException(ChybaPujcovny::class);
         $this->expectExceptionMessage('Kostým už je vrácený.');
         self::vydejKostymu('2099-01-01 14:31:00')->vrat($idVydeje, $this->spravce, StavPriVraceniKostymuEnum::V_PORADKU);
@@ -147,7 +156,9 @@ class PujcovnaKostymuVydejTest extends AbstractUzivatelTestDb
         $prehledy = self::prehledy('2099-01-01 06:00:00');
         self::assertSame([], $prehledy->konfliktyRezervaci());
 
-        dbQuery('UPDATE akce_seznam SET zacatek = $0 WHERE id_akce = $1', ['2099-01-01 14:30:00', $idDruheAktivity]);
+        dbQuery(<<<'SQL'
+UPDATE akce_seznam SET zacatek = $0 WHERE id_akce = $1
+SQL, ['2099-01-01 14:30:00', $idDruheAktivity]);
 
         $konflikty = $prehledy->konfliktyRezervaci();
         self::assertCount(1, $konflikty);
@@ -179,6 +190,42 @@ class PujcovnaKostymuVydejTest extends AbstractUzivatelTestDb
             [(string) $idBrzke, (string) $idPozdni],
             array_column(self::prehledy('2099-01-01 13:00:00')->vydejniList(4), 'id_rezervace'),
             'Probíhající aktivita na listu zůstane, dokud neskončí',
+        );
+    }
+
+    /**
+     * Výdejní list začíná nový nadpis s každou změnou aktivity, takže rezervace souběžných běhů téhož larpu
+     * (stejný začátek i název) nesmí jít napřeskáčku podle názvu kostýmu.
+     */
+    public function testVydejniListDrziRezervaceAktivityPohromade(): void
+    {
+        $prvniBeh = self::vlozAktivitu();
+        $druhyBeh = self::vlozAktivitu();
+        dbQuery(<<<'SQL'
+UPDATE akce_seznam SET nazev_akce = 'Souběžný larp' WHERE id_akce IN ($0)
+SQL, [[$prvniBeh, $druhyBeh]]);
+        foreach ([[$prvniBeh, 'B'], [$druhyBeh, 'A'], [$prvniBeh, 'D'], [$druhyBeh, 'C']] as [$idAktivity, $nazevKostymu]) {
+            $ucastnik = self::prihlasenyUzivatel();
+            self::vlozPrihlasku($idAktivity, $ucastnik->id());
+            self::vlozRezervaci(self::vlozKostym($nazevKostymu), $idAktivity, $ucastnik->id());
+        }
+
+        $vydejniList = self::prehledy('2099-01-01 08:00:00')->vydejniList(4);
+
+        self::assertSame(
+            [[(string) $prvniBeh, 'B'], [(string) $prvniBeh, 'D'], [(string) $druhyBeh, 'A'], [(string) $druhyBeh, 'C']],
+            array_map(static fn (array $radek): array => [$radek['id_akce'], $radek['nazev_kostymu']], $vydejniList),
+        );
+    }
+
+    public function testUcastniciPodleIdZustanouVPoradiHledani(): void
+    {
+        $prvni = self::prihlasenyUzivatel();
+        $druhy = self::prihlasenyUzivatel();
+
+        self::assertSame(
+            [$druhy->id(), $prvni->id()],
+            array_keys(FormatPujcovny::uzivatelePodleId([$druhy->id(), $prvni->id(), $druhy->id()])),
         );
     }
 }

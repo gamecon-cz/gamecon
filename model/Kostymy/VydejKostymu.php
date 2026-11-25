@@ -46,7 +46,9 @@ SQL, [$idRezervace]);
                 throw new ChybaPujcovny('Rezervace neexistuje, účastník se mezitím mohl z aktivity odhlásit.');
             }
             $idKostymu = (int) $rezervace['id_kostymu'];
-            $stav = StavKostymuEnum::from((string) dbOneCol('SELECT stav FROM kostym WHERE id = $0 FOR UPDATE', [$idKostymu]));
+            $stav = StavKostymuEnum::from((string) dbOneCol(<<<'SQL'
+SELECT stav FROM kostym WHERE id = $0 FOR UPDATE
+SQL, [$idKostymu]));
             if (! $stav->isRezervovatelny()) {
                 throw new ChybaPujcovny(sprintf('Kostým je %s, vydat ho nejde.', $stav->getNazev()));
             }
@@ -88,7 +90,9 @@ SQL, [
     {
         dbBegin();
         try {
-            $vydej = dbOneLine('SELECT id_kostymu, vraceno FROM kostym_vydej WHERE id = $0 FOR UPDATE', [$idVydeje]);
+            $vydej = dbOneLine(<<<'SQL'
+SELECT id_kostymu, vraceno FROM kostym_vydej WHERE id = $0 FOR UPDATE
+SQL, [$idVydeje]);
             if (! $vydej) {
                 throw new ChybaPujcovny('Výdej neexistuje.');
             }
@@ -99,7 +103,9 @@ SQL, [
 UPDATE kostym_vydej SET vraceno = $0, prijal = $1, stav_pri_vraceni = $2, poznamka = $3 WHERE id = $4
 SQL, [$this->tedDb(), $prijal->id(), $stavPriVraceni->value, trim($poznamka), $idVydeje]);
             if ($stavPriVraceni === StavPriVraceniKostymuEnum::POSKOZENY) {
-                dbQuery('UPDATE kostym SET stav = $0 WHERE id = $1', [StavKostymuEnum::V_OPRAVE->value, $vydej['id_kostymu']]);
+                dbQuery(<<<'SQL'
+UPDATE kostym SET stav = $0 WHERE id = $1
+SQL, [StavKostymuEnum::V_OPRAVE->value, $vydej['id_kostymu']]);
             }
             dbCommit();
         } catch (\Throwable $throwable) {

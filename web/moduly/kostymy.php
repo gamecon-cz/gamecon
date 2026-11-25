@@ -11,6 +11,7 @@ use Gamecon\Kostymy\PujcovnaKostymu;
 use Gamecon\Kostymy\StavKostymuEnum;
 use Gamecon\Kostymy\StrihKostymuEnum;
 use Gamecon\Kostymy\VelikostKostymuEnum;
+use Gamecon\Kostymy\VysledekRezervaceKostymuEnum;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
@@ -33,12 +34,15 @@ $nastaveniPujcovny = $pujcovnaKostymu->getNastaveni();
 $katalogKostymu = new KatalogKostymu();
 $adresaPujcovny = URL_WEBU . '/kostymy';
 
-// nezveřejněný katalog si prohlédne jen správce půjčovny, rezervovat v něm nejde
-if (!$nastaveniPujcovny->isKatalogZverejnen() && !$u?->maPravo(Pravo::ADMINISTRACE_PUJCOVNA_KOSTYMU)) {
-    throw new Nenalezeno();
-}
 $castAdresy = $url->cast(1);
 if ($url->cast(2) !== null) {
+    throw new Nenalezeno();
+}
+// Nezveřejněný katalog si prohlédne jen správce půjčovny, rezervovat v něm nejde. Vlastní rezervace ale vidí každý:
+// správce rezervuje za účastníky i před zveřejněním a e-mail i program je posílají sem.
+$zverejnenyKatalog = $nastaveniPujcovny->isKatalogZverejnen();
+$katalogPristupny = $zverejnenyKatalog || $u?->maPravo(Pravo::ADMINISTRACE_PUJCOVNA_KOSTYMU);
+if (!$katalogPristupny && $castAdresy !== 'moje') {
     throw new Nenalezeno();
 }
 
@@ -51,8 +55,12 @@ if ($akceKostymu !== '') {
         $aktivitaRezervace = Aktivita::zId((int) post('idAktivity'), false, $systemoveNastaveni)
             ?? throw new ChybaPujcovny('Aktivita neexistuje.');
         if ($akceKostymu === 'rezervovat') {
-            $pujcovnaKostymu->rezervuj((int) post('idKostymu'), $aktivitaRezervace, $u, $u);
-            oznameniPresmeruj('Kostým máš rezervovaný, potvrzení ti přišlo e-mailem.', $adresaPujcovny . '/moje');
+            $vysledekRezervace = $pujcovnaKostymu->rezervuj((int) post('idKostymu'), $aktivitaRezervace, $u, $u);
+            oznameniPresmeruj(match ($vysledekRezervace) {
+                VysledekRezervaceKostymuEnum::NOVA       => 'Kostým máš rezervovaný, potvrzení ti posíláme e-mailem.',
+                VysledekRezervaceKostymuEnum::VYMENENA   => 'Kostým máš vyměněný, potvrzení ti posíláme e-mailem.',
+                VysledekRezervaceKostymuEnum::BEZE_ZMENY => 'Tenhle kostým už na aktivitu rezervovaný máš.',
+            }, $adresaPujcovny . '/moje');
         }
         if ($akceKostymu === 'zrusit') {
             $pujcovnaKostymu->zrus($aktivitaRezervace, $u);
@@ -69,7 +77,7 @@ $t->assign([
     'casNaVraceni'    => $nastaveniPujcovny->getVraceniMinutPoKonci(),
     'uzaverkaHodin'   => $nastaveniPujcovny->getUzaverkaHodinPredZacatkem(),
 ]);
-if (!$nastaveniPujcovny->isKatalogZverejnen()) {
+if ($katalogPristupny && !$zverejnenyKatalog) {
     $t->parse('kostymy.nezverejneny');
 }
 
@@ -190,17 +198,20 @@ if ($castAdresy === 'moje') {
     $this->info()->nazev('Moje kostýmy');
     $prehledyPujcovny = new PrehledyPujcovny($systemoveNastaveni, $nastaveniPujcovny);
     $mojeRezervace = $prehledyPujcovny->rezervaceUcastnika($u->id());
+    if ($katalogPristupny) {
+        $t->parse('kostymy.moje.zpet');
+    }
     foreach ($mojeRezervace as $rezervace) {
-        $zacatek = new DateTimeImmutable($rezervace['zacatek']);
-        $konec = new DateTimeImmutable($rezervace['konec']);
         $t->assign([
-            'idKostymu'    => (int) $rezervace['id_kostymu'],
-            'nazevKostymu' => htmlspecialchars($rezervace['nazev_kostymu']),
-            'idAktivity'   => (int) $rezervace['id_akce'],
+            'idKostymu'     => (int) $rezervace['id_kostymu'],
+            // před zveřejněním katalogu detail kostýmu neexistuje
+            'odkazKostymu'  => $katalogPristupny
+                ? 'href="' . htmlspecialchars($adresaPujcovny . '/' . (int) $rezervace['id_kostymu']) . '"'
+                : '',
+            'nazevKostymu'  => htmlspecialchars($rezervace['nazev_kostymu']),
+            'idAktivity'    => (int) $rezervace['id_akce'],
             'nazevAktivity' => htmlspecialchars($rezervace['nazev_akce']),
-            'casAktivity'  => htmlspecialchars(FormatPujcovny::casAktivity($rezervace['zacatek'], $rezervace['konec'])),
-            'vyzvednutiOd' => htmlspecialchars(FormatPujcovny::denACas($zacatek->modify(sprintf('-%d minutes', $nastaveniPujcovny->getVydejMinutPredZacatkem()))->format('Y-m-d H:i:s'))),
-            'vratitDo'     => htmlspecialchars(FormatPujcovny::denACas($konec->modify(sprintf('+%d minutes', $nastaveniPujcovny->getVraceniMinutPoKonci()))->format('Y-m-d H:i:s'))),
+            'casAktivity'   => htmlspecialchars(FormatPujcovny::casAktivity($rezervace['zacatek'], $rezervace['konec'])),
         ]);
         $fotka = $katalogKostymu->dej((int) $rezervace['id_kostymu'])?->getHlavniFotka();
         if ($fotka !== null) {
@@ -209,18 +220,37 @@ if ($castAdresy === 'moje') {
         } else {
             $t->parse('kostymy.moje.rezervace.bezFotky');
         }
-        $uzaverka = $zacatek->modify(sprintf('-%d hours', $nastaveniPujcovny->getUzaverkaHodinPredZacatkem()));
         if ($rezervace['id_vydeje'] !== null) {
             $t->parse('kostymy.moje.rezervace.vydany');
-        } elseif ($systemoveNastaveni->ted() <= $uzaverka) {
-            $t->assign('uzaverka', htmlspecialchars(FormatPujcovny::denACas($uzaverka->format('Y-m-d H:i:s'))));
-            $t->parse('kostymy.moje.rezervace.zmenit');
-        } elseif ($systemoveNastaveni->ted() < $zacatek) {
-            $t->parse('kostymy.moje.rezervace.poUzaverce');
+        }
+        // aktivita, která přišla o čas, nemá čas vyzvednutí ani uzávěrku; změnu pak zařídí půjčovna
+        if ($rezervace['zacatek'] !== null && $rezervace['konec'] !== null) {
+            $zacatek = new DateTimeImmutable($rezervace['zacatek']);
+            $konec = new DateTimeImmutable($rezervace['konec']);
+            $t->assign([
+                'vyzvednutiOd' => htmlspecialchars(FormatPujcovny::denACas($zacatek->modify(sprintf('-%d minutes', $nastaveniPujcovny->getVydejMinutPredZacatkem()))->format('Y-m-d H:i:s'))),
+                'vratitDo'     => htmlspecialchars(FormatPujcovny::denACas($konec->modify(sprintf('+%d minutes', $nastaveniPujcovny->getVraceniMinutPoKonci()))->format('Y-m-d H:i:s'))),
+            ]);
+            $t->parse('kostymy.moje.rezervace.casy');
+            $uzaverka = $zacatek->modify(sprintf('-%d hours', $nastaveniPujcovny->getUzaverkaHodinPredZacatkem()));
+            // vydaný kostým se nemění, dokud se nevrátí
+            if ($rezervace['id_vydeje'] === null && $systemoveNastaveni->ted() <= $uzaverka) {
+                $t->assign('uzaverka', htmlspecialchars(FormatPujcovny::denACas($uzaverka->format('Y-m-d H:i:s'))));
+                // vyměnit jde jen v katalogu
+                if ($zverejnenyKatalog) {
+                    $t->parse('kostymy.moje.rezervace.zmenit.vymenit');
+                }
+                $t->parse('kostymy.moje.rezervace.zmenit');
+            } elseif ($rezervace['id_vydeje'] === null && $systemoveNastaveni->ted() < $zacatek) {
+                $t->parse('kostymy.moje.rezervace.poUzaverce');
+            }
         }
         $t->parse('kostymy.moje.rezervace');
     }
     if ($mojeRezervace === []) {
+        if ($zverejnenyKatalog) {
+            $t->parse('kostymy.moje.zadna.vyberVKatalogu');
+        }
         $t->parse('kostymy.moje.zadna');
     }
     foreach ($prehledyPujcovny->nevraceneUcastnika($u->id()) as $nevraceny) {
@@ -245,7 +275,7 @@ if ($kostym === null || $kostym->getStav() === StavKostymuEnum::VYRAZENY) {
 $this->info()->nazev($kostym->getNazev() . ' – půjčovna kostýmů');
 $hlavniFotka = $kostym->getHlavniFotka();
 if ($hlavniFotka !== null) {
-    $this->info()->obrazek($hlavniFotka->getUrlNahledu(1200, 630));
+    $this->info()->obrazek($hlavniFotka->getUrlNahleduProSocialniSite(1200, 630));
 }
 $kDispozici = $kostym->getStav() === StavKostymuEnum::K_DISPOZICI;
 $t->assign([
@@ -296,10 +326,12 @@ foreach (['miry', 'kategorie'] as $volitelnyUdaj) {
 
 if (!$u) {
     $t->parse('kostymy.detail.neprihlaseny');
-} elseif ($kDispozici) {
+} elseif ($kDispozici && $zverejnenyKatalog) {
+    // správce si nezveřejněný katalog jen prohlíží, rezervace by stejně neprošla
     $aktivityKRezervaci = $pujcovnaKostymu->aktivityKRezervaci($u);
     $volneAktivity = [];
     $obsazeneAktivity = 0;
+    $aktivityPoUzaverce = 0;
     foreach ($aktivityKRezervaci as $aktivitaKRezervaci) {
         $rezervaceNaAktivitu = $pujcovnaKostymu->rezervaceUcastnika($aktivitaKRezervaci->id(), $u->id());
         if ($rezervaceNaAktivitu?->getIdKostymu() === $kostym->getId()) {
@@ -308,6 +340,9 @@ if (!$u) {
                 'casAktivity'   => htmlspecialchars($aktivitaKRezervaci->denCasSkutecny()),
             ]);
             $t->parse('kostymy.detail.rezervace.uzMa');
+        } elseif ($rezervaceNaAktivitu !== null && $pujcovnaKostymu->isPoUzaverce($aktivitaKRezervaci)) {
+            // jiný kostým na ni už vyměnit nejde, rezervace by neprošla
+            $aktivityPoUzaverce++;
         } elseif (in_array($kostym->getId(), $pujcovnaKostymu->volneKostymy($aktivitaKRezervaci, $u), true)) {
             $volneAktivity[] = [$aktivitaKRezervaci, $rezervaceNaAktivitu];
         } else {
@@ -338,8 +373,13 @@ if (!$u) {
         $t->parse('kostymy.detail.rezervace.formular');
     } elseif ($aktivityKRezervaci === []) {
         $t->parse('kostymy.detail.rezervace.zadnaAktivita');
-    } elseif ($obsazeneAktivity > 0) {
-        $t->parse('kostymy.detail.rezervace.obsazeny');
+    } else {
+        if ($obsazeneAktivity > 0) {
+            $t->parse('kostymy.detail.rezervace.obsazeny');
+        }
+        if ($aktivityPoUzaverce > 0) {
+            $t->parse('kostymy.detail.rezervace.poUzaverce');
+        }
     }
     $t->parse('kostymy.detail.rezervace');
 }

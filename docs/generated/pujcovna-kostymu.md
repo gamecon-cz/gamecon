@@ -14,11 +14,11 @@ TL;DR: Půjčovna larpových kostýmů (Trello 1510): veřejný katalog na `/kos
 
 ## Datový model
 
-- `kostym`: název, popis, velikost (`VelikostKostymuEnum`, pevný seznam kvůli filtru), míry (volný text), střih, kategorie (volný text s nabídkou použitých), stav (`k_dispozici` / `v_oprave` / `vyrazeny`), interní poznámka, pořadí. Smazat jde jen kostým bez rezervací a výdejů, jinak se vyřadí.
+- `kostym`: název, popis, velikost (`VelikostKostymuEnum`, pevný seznam kvůli filtru), míry (volný text), střih, kategorie (volný text s nabídkou použitých), stav (`k_dispozici` / `v_oprave` / `vyrazeny`), interní poznámka, pořadí. Smazat jde jen kostým bez rezervací a výdejů, jinak se vyřadí, a bez fotky, na kterou odkazuje text webu (kontroluje se u všech fotek předem, soubory se mažou až po řádku kostýmu).
 - `kostym_foto`: soubor v `web/soubory/systemove/kostymy/<id kostýmu>-<náhodný kód>.<přípona>`, pořadí (první je hlavní). Řádky mizí kaskádou s kostýmem, soubory maže kód.
 - `kostym_rezervace`: kostým, `id_akce`, `id_uzivatele`, kdo a kdy rezervoval. `UNIQUE (id_akce, id_uzivatele)` = jeden kostým na osobu a aktivitu. Cizí klíč `(id_akce, id_uzivatele)` → `akce_prihlaseni` s `ON DELETE CASCADE ON UPDATE CASCADE`. Čas se nekopíruje, bere se z aktivity, takže přesun aktivity posune i rezervaci.
 - `kostym_vydej`: kdo, kdy vydal a přijal, stav při vrácení, poznámka. Na rezervaci `ON DELETE SET NULL` a navíc vlastní `id_akce`, z jejíhož konce se počítá termín vrácení i po zániku rezervace.
-- Nastavení skupiny „Půjčovna kostýmů“ (`vlastni = 1`, všechny ročníky): `KOSTYMY_KATALOG_ZVEREJNEN`, `KOSTYMY_TYPY_AKTIVIT` (ID oddělená čárkou), `KOSTYMY_LIMIT_NA_OSOBU`, `KOSTYMY_CAS_NA_VYMENU_MINUT`, `KOSTYMY_VYDEJ_MINUT_PRED_ZACATKEM`, `KOSTYMY_VRACENI_MINUT_PO_KONCI`, `KOSTYMY_UZAVERKA_HODIN_PRED_ZACATKEM`.
+- Nastavení skupiny „Půjčovna kostýmů“ (všechny ročníky, výchozí hodnoty v `SystemoveNastaveni::dejVychoziHodnoty()`, bez nich by odškrtnutí „vlastní“ definovalo konstantu prázdnou a vypnulo půjčovnu): `KOSTYMY_KATALOG_ZVEREJNEN`, `KOSTYMY_TYPY_AKTIVIT` (ID oddělená čárkou), `KOSTYMY_LIMIT_NA_OSOBU`, `KOSTYMY_CAS_NA_VYMENU_MINUT`, `KOSTYMY_VYDEJ_MINUT_PRED_ZACATKEM`, `KOSTYMY_VRACENI_MINUT_PO_KONCI`, `KOSTYMY_UZAVERKA_HODIN_PRED_ZACATKEM`.
 - Právo 115 `ADMINISTRACE_PUJCOVNA_KOSTYMU` (je v `PristupDoAdminu::PRAVA`), trvalá role 31 „Správce půjčovny kostýmů“ (kategorie běžná).
 
 ## Pravidla (záměr)
@@ -28,10 +28,11 @@ TL;DR: Půjčovna larpových kostýmů (Trello 1510): veřejný katalog na `/kos
 - Jeden kostým na osobu a aktivitu, limit na osobu za ročník (0 = bez limitu). Zrušit nebo vyměnit jde do uzávěrky (výchozí 2 h před začátkem), novou rezervaci do začátku.
 - Správce půjčovny v adminu rezervuje a mění za kohokoli přihlášeného; neplatí pro něj uzávěrka, limit ani zveřejnění katalogu, ostatní pravidla ano.
 - Výdej nejdřív 60 min před začátkem a do konce aktivity, vrácení do 60 min po konci; potom je kostým mezi nevrácenými. Poškozený kostým se při vrácení přepne do opravy.
-- Odhlášení z aktivity rezervaci uvolní (cizí klíč) a `odhlas()` pošle e-mail; e-mail dostanou i účastníci smazané aktivity a odhlášení z GameConu. „Nedorazil“ v prezenci, zrušený náhradník, rozpuštění týmu a slučování uživatelů rezervaci uvolní bez e-mailu. Potvrzení „dorazil“ přihlášku jen přepíše a rezervace zůstane.
+- Odhlášení z aktivity rezervaci uvolní (cizí klíč) a `odhlas()` pošle e-mail; e-mail dostanou i účastníci smazané aktivity (až po commitu smazání, `PujcovnaKostymu::sOznamenimUvolneniPoZmene()`, když smazání spadne, žádný) a odhlášení z GameConu. E-mail půjčovny, který nejde odeslat, změnu neshodí ani nevrátí, skončí ve výjimkovači. „Nedorazil“ v prezenci, zrušený náhradník, rozpuštění týmu a slučování uživatelů rezervaci uvolní bez e-mailu. Potvrzení „dorazil“ přihlášku jen přepíše a rezervace zůstane.
 - Přesun aktivity se kvůli kostýmu neblokuje; vzniklý překryv ukáže správci stránka Konflikty.
 - Zdarma, bez kauce, bez napojení na finance.
-- Nezveřejněný katalog je 404 pro všechny kromě správce půjčovny (vidí ho s upozorněním, rezervovat nejde). Odkazy v menu webu a v programu se ukážou až se zveřejněným katalogem. Do sitemapy se dostane až zveřejněný, `/kostymy/moje` má v `robots.txt` `Disallow`. Filtry nejsou součástí kanonické adresy.
+- Nezveřejněný katalog je 404 pro všechny kromě správce půjčovny (vidí ho s upozorněním, rezervovat nejde, detail kostýmu proto formulář rezervace nemá). `/kostymy/moje` vidí každý přihlášený i před zveřejněním, jen bez odkazů do katalogu a bez výměny: správce rezervuje za účastníky i předtím a e-mail i program na ni odkazují. Odkazy v menu webu a odkaz do katalogu v programu se ukážou až se zveřejněným katalogem.
+- Po uzávěrce detail kostýmu nenabídne aktivitu, na kterou má účastník jiný kostým (výměna by neprošla). Do sitemapy se dostane až zveřejněný, `/kostymy/moje` má v `robots.txt` `Disallow`. Filtry nejsou součástí kanonické adresy.
 - Výdej najde (a stránka účastníka ukáže) jen toho, kdo je letos přihlášený na aktivitu povoleného typu nebo má kostým u sebe, ne kohokoli (vydala by e-mail a telefon).
 
 ## Gotchas
@@ -43,6 +44,7 @@ TL;DR: Půjčovna larpových kostýmů (Trello 1510): veřejný katalog na `/kos
 - `dbQueryAssemble()` posune číslování parametrů o jedno, když pole má klíč 0 a dotaz `$0` nepoužívá (`volneKostymy` proto klíč 0 maže).
 - Kompilátor LESS na webu počítá `1 / -1` jako dělení: `grid-column: ~'1 / -1'`.
 - Konstanty nastavení nejde v testu předefinovat, testy si skládají `NastaveniPujcovny` samy a „teď“ dávají přes `SystemoveNastaveni::zGlobals(ROCNIK, new DateTimeImmutableStrict(…))`.
+- **Pořadí zámků:** rezervace zamyká nejdřív kostým, na který rezervuje, a pak jen řádek stávající rezervace, ne její kostým (`rezervaceUcastnika(zamknout: true)` název kostýmu dočítá zvlášť). Se zámkem přes JOIN by dvě výměny opačným směrem (K1 → K2 a K2 → K1) skončily deadlockem.
 - Limit na osobu nic nezamyká: dvě souběžné rezervace téhož člověka na různé aktivity ho můžou o jednu překročit.
 - Program ukazuje jen dny GameConu, aktivita mimo ně (třeba testovací) v programu nebude, i když `aktivityUzivatel` pole `kostym` pošle. Změna rezervace mimo program se v něm projeví po načtení stránky, v online prezenci také.
 - Fotky leží pod `web/soubory/systemove/*/*`, které už chrání nasazení (`getRsyncProtectedPaths()`) i `.gitignore`.
@@ -50,7 +52,7 @@ TL;DR: Půjčovna larpových kostýmů (Trello 1510): veřejný katalog na `/kos
 
 ## Vzhled
 
-- (záměr) Web je stavěný hlavně na telefon: do 600 px má katalog dva sloupce a rezervace i fotka detailu jdou od kraje ke kraji, do 800 px je detail v jednom sloupci. Fotky jsou na výšku 3:4 (kostým na ramínku), náhledy dělá `FotkaKostymu::getUrlNahledu()` s ořezem; kostým bez fotky má v CSS zástupné ramínko. Celé fotky ukáže baguetteBox jako u přihlášky.
+- (záměr) Web je stavěný hlavně na telefon: do 600 px má katalog dva sloupce a rezervace i fotka detailu jdou od kraje ke kraji, do 800 px je detail v jednom sloupci. Fotky jsou na výšku 3:4 (kostým na ramínku), náhledy dělá `FotkaKostymu::getUrlNahledu()` s ořezem; kostým bez fotky má v CSS zástupné ramínko. Celé fotky ukáže baguetteBox jako u přihlášky. `og:image` detailu je náhled v JPEG (`FotkaKostymu::getUrlNahleduProSocialniSite()`): AVIF sociální sítě nezobrazí a náhled z cache `Info` nepřevede.
 - Aktivita k rezervaci je přepínač s kartou, ne `<select>`: na telefonu select uřízl dovětek „vymění …“. Předvybraná je aktivita z `?aktivita=` (přechod z katalogu nebo programu), jinak první volná.
 - Admin Výdej a vrácení (`ucastnik.xtpl`): v moderním vzhledu pod 640 px jsou řádky tabulek `.pujcovna-karty` karty s popisky z `data-popisek` (u výdejního pultu z telefonu). Pravidla jsou pod `.vzhled-moderni`, klasický vzhled se nemění. Tlačítka zůstávají bez třídy, moderní vzhled stylizuje jen `button` bez třídy (a pár vyjmenovaných).
 

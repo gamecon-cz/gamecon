@@ -3660,6 +3660,20 @@ HTML
      */
     public function smaz(Uzivatel $mazajici)
     {
+        // Odhlášení přihlášených uvolní jejich kostýmy. E-mail o tom odejde až po commitu: ne o rezervaci, kterou
+        // rollback vrátí, a výpadek pošty smazání neshodí.
+        PujcovnaKostymu::sOznamenimUvolneniPoZmene(fn () => $this->smazZDatabaze($mazajici));
+
+        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
+        $this->touchDirtyFlag(ProgramStaticFileType::POPISY);
+        $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
+
+        // invalidace aktuální instance
+        $this->reset();
+    }
+
+    private function smazZDatabaze(Uzivatel $mazajici): void
+    {
         dbBegin();
         try {
             foreach ($this->prihlaseni() as $u) {
@@ -3713,13 +3727,6 @@ HTML
             dbRollback();
             throw $e;
         }
-
-        $this->touchDirtyFlag(ProgramStaticFileType::AKTIVITY);
-        $this->touchDirtyFlag(ProgramStaticFileType::POPISY);
-        $this->touchDirtyFlag(ProgramStaticFileType::OBSAZENOSTI);
-
-        // invalidace aktuální instance
-        $this->reset();
     }
 
     /**

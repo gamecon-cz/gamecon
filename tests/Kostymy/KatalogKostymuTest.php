@@ -12,6 +12,7 @@ use Gamecon\Kostymy\StrihKostymuEnum;
 use Gamecon\Kostymy\VelikostKostymuEnum;
 use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Web\NahravaniObrazku;
+use Gamecon\Web\PouzitiObrazku;
 use Symfony\Component\Filesystem\Filesystem;
 
 class KatalogKostymuTest extends AbstractUzivatelTestDb
@@ -175,5 +176,45 @@ class KatalogKostymuTest extends AbstractUzivatelTestDb
         $this->expectException(ChybaPujcovny::class);
         $this->expectExceptionMessage('Místo smazání ho vyřaď.');
         $this->katalog()->smaz($rezervovany);
+    }
+
+    /**
+     * Fotku, na kterou odkazuje text webu, smazat nejde. Kostým se pak nesmaže vůbec, ani nepřijde o jiné fotky.
+     */
+    public function testKostymSFotkouZTextuWebuNejdeSmazat(): void
+    {
+        $pouzitiObrazku = new class extends PouzitiObrazku {
+            public string $pouzitySoubor = '';
+
+            public function kdeJePouzity(string $absolutniCesta): array
+            {
+                return $this->pouzitySoubor !== '' && basename($absolutniCesta) === $this->pouzitySoubor
+                    ? [[
+                        'popis' => 'stránka Kostýmy na webu',
+                        'url'   => 'web/stranky',
+                    ]]
+                    : [];
+            }
+        };
+        $katalog = new KatalogKostymu(new NahravaniObrazku(
+            $this->koren,
+            $pouzitiObrazku,
+            formaty: [NahravaniObrazku::JPG, NahravaniObrazku::PNG],
+        ));
+        $idKostymu = $this->ulozKostym();
+        $prvni = $katalog->pridejFotku($idKostymu, $this->nahranaFotka());
+        $druha = $katalog->pridejFotku($idKostymu, $this->nahranaFotka());
+        $pouzitiObrazku->pouzitySoubor = $druha->getSoubor();
+
+        try {
+            $katalog->smaz($idKostymu);
+            self::fail('Kostým s fotkou z textu webu neměl jít smazat');
+        } catch (ChybaPujcovny $chyba) {
+            self::assertStringContainsString('stránka Kostýmy na webu', $chyba->getMessage());
+        }
+
+        self::assertCount(2, $katalog->dej($idKostymu)?->getFotky() ?? []);
+        self::assertFileExists($this->koren . '/' . $prvni->getSoubor());
+        self::assertFileExists($this->koren . '/' . $druha->getSoubor());
     }
 }
