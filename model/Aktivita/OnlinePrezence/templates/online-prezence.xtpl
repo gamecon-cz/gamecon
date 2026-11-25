@@ -178,6 +178,12 @@
             <span>Program</span>
             <i class="fa-solid fa-external-link"></i>
           </a>
+          <!-- begin:hodnoceniTurnaje -->
+          <a href="{urlHodnoceniTurnaje}" class="zobrazit-v-programu" title="Ohodnotit skupiny, které jsi v kole vedl(a)">
+            <i class="fa-solid fa-ranking-star"></i>
+            <span>Hodnocení skupin</span>
+          </a>
+          <!-- end:hodnoceniTurnaje -->
                         <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání viditelnosti prezence"
                               class="float-end">
             <button id="tlacitkoPrepinaniViditelnostiPrezence{idAktivity}"

@@ -1,0 +1,201 @@
+/* Hodnocení turnaje (admin/scripts/modules/hodnoceni-turnaje.php). Jen rozložení: barvy dědí z klasického
+   i moderního vzhledu, takže fungují i v tmavém. */
+
+.hodnoceni-turnaje .hodnoceni-info,
+.hodnoceni-turnaje .hodnoceni-poznamka {
+  opacity: .8;
+}
+
+.hodnoceni-turnaje .hodnoceni-poznamka {
+  font-size: .9em;
+}
+
+.hodnoceni-navod {
+  max-width: 50em;
+  margin: .5em 0 1em;
+}
+
+.hodnoceni-navod summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.hodnoceni-navod ol,
+.hodnoceni-navod ul {
+  margin: .5em 0;
+  padding-left: 1.5em;
+}
+
+.hodnoceni-navod li {
+  margin: .25em 0;
+}
+
+.hodnoceni-navod pre {
+  display: inline-block;
+  margin: .5em 0 0;
+  padding: .5em 1em;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+
+.hodnoceni-vyber-formular {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5em 1.5em;
+  margin-bottom: 1em;
+}
+
+.hodnoceni-vyber-formular label {
+  display: flex;
+  flex-direction: column;
+  gap: .25em;
+  max-width: 100%;
+}
+
+.hodnoceni-vyber-formular select {
+  max-width: 100%;
+}
+
+.hodnoceni-formular .hodnoceni-zakaz {
+  font-weight: bold;
+}
+
+.hodnoceni-kategorie {
+  margin: 0 0 1em;
+  padding: .5em 1em .75em;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+
+.hodnoceni-kategorie legend {
+  font-weight: bold;
+  padding: 0 .3em;
+}
+
+.hodnoceni-kriterium {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  padding: .3em 0;
+  max-width: 40em;
+}
+
+.hodnoceni-kriterium select {
+  min-width: 4em;
+}
+
+.hodnoceni-tabulka {
+  overflow-x: auto;
+}
+
+.hodnoceni-turnaje .hodnoceni-cislo {
+  text-align: right;
+}
+
+.hodnoceni-turnaje .hodnoceni-neuplna td {
+  opacity: .7;
+}
+
+.hodnoceni-akce {
+  white-space: nowrap;
+}
+
+.hodnoceni-akce form {
+  display: inline;
+  margin-left: .5em;
+}
+
+.hodnoceni-uzavreni {
+  margin-top: 1em;
+}
+
+.hodnoceni-za-vypravece {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25em .75em;
+  margin-bottom: 1em;
+}
+
+.hodnoceni-editor-skala {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25em .75em;
+  margin-bottom: 1em;
+  font-weight: bold;
+}
+
+.hodnoceni-editor-skala input {
+  font-weight: normal;
+}
+
+.hodnoceni-editor-kategorie {
+  max-width: 45em;
+  margin: 0 0 1em;
+  padding: .5em 1em .75em;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+
+.hodnoceni-editor-kriteria {
+  margin: .5em 0;
+  padding-left: 2em;
+}
+
+.hodnoceni-editor-radek {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25em .5em;
+  padding: .15em 0;
+}
+
+.hodnoceni-editor-radek input[type=text] {
+  flex: 1 1 15em;
+  min-width: 0;
+}
+
+.hodnoceni-editor-nazev-kategorie {
+  font-weight: bold;
+}
+
+.hodnoceni-editor-tlacitka {
+  display: inline-flex;
+  gap: .25em;
+}
+
+.hodnoceni-editor-nove {
+  padding: 0 .4em;
+  border: 1px solid currentColor;
+  border-radius: 1em;
+  font-size: .8em;
+  opacity: .8;
+}
+
+.hodnoceni-upozorneni,
+.hodnoceni-potvrzeni {
+  max-width: 45em;
+  margin: .5em 0 1em;
+  padding: .5em 1em;
+  border: 2px solid currentColor;
+  border-radius: 6px;
+}
+
+.hodnoceni-potvrzeni ul {
+  margin: 0 0 .5em;
+  padding-left: 1.25em;
+}
+
+.hodnoceni-nacteni {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5em 1em;
+}
+
+.hodnoceni-turnaje ul.hodnoceni-poznamka {
+  max-width: 50em;
+  padding-left: 1.25em;
+}

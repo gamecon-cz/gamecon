@@ -1,0 +1,363 @@
+<!-- begin:hodnoceni -->
+<link rel="stylesheet" href="files/design/hodnoceni-turnaje.css?version={cssVerze}">
+
+<div class="hodnoceni-turnaje">
+
+<h2>Hodnocení turnaje D&amp;D {rok}</h2>
+
+<!-- begin:navodOrg -->
+<details class="hodnoceni-navod" {otevrenyNavod}>
+  <summary>📖 Jak na hodnocení turnaje</summary>
+  <ol>
+    <li>Dole na stránce zadej <strong>kritéria hodnocení</strong>: škálu, kategorie a kritéria. Naklikáš je, nebo
+      je načteš z tabulky. Bez nich vypravěči hodnotit nemůžou. Dolaď je před prvním kolem: nové kritérium pak smaže
+      hotová hodnocení.</li>
+    <li><strong>Vypravěči kol</strong> hodnotí skupiny, které vedli, od začátku kola. Stránku najdou v Moje aktivity: na
+      kartě kola je odkaz „Hodnocení skupin“. Skupina má v každém kole jedno hodnocení.</li>
+    <li>Ve <strong>Výsledcích</strong> hlídej skupiny s ⚠️, chybí jim hodnocení některého kola. Připomeň to vypravěči,
+      nebo hodnocení zadej za něj v části Ohodnotit skupinu.</li>
+    <li>Po posledním kole hodnocení <strong>uzavři</strong> (tlačítko pod Všemi hodnoceními). Vypravěči pak už nic
+      nezmění, ty ano.</li>
+    <li>Výsledky i všechna hodnocení si <strong>stáhneš</strong> jako XLSX.</li>
+  </ol>
+  <p class="hodnoceni-poznamka">Kterékoli hodnocení můžeš upravit i smazat. Na stránku pouští role „Organizátor turnaje
+    D&amp;D“, dalším orgům turnaje ji přidělí kdokoli s přístupem do Práv.</p>
+</details>
+<!-- end:navodOrg -->
+
+<!-- begin:bezSablony -->
+<p class="hodnoceni-info">Org turnaje ještě nezadal kritéria hodnocení. Až to udělá, objeví se tu formulář.</p>
+<!-- end:bezSablony -->
+
+<!-- begin:uzavreno -->
+<p class="hodnoceni-info">🔒 Hodnocení je uzavřené, vypravěči ho už nemění.</p>
+<!-- end:uzavreno -->
+
+<!-- begin:bezKol -->
+<p class="hodnoceni-info">V ročníku {rok} nevedeš žádné kolo turnaje D&amp;D. Hodnotí jen vypravěči kol turnaje.</p>
+<!-- end:bezKol -->
+
+<!-- begin:vyber -->
+<section class="aBox hodnoceni-vyber">
+  <h3>Ohodnotit skupinu</h3>
+  <!-- begin:navodVypravece -->
+  <details class="hodnoceni-navod" open>
+    <summary>📖 Jak hodnotit</summary>
+    <ul>
+      <li>Vyber kolo a v něm skupinu, kterou jsi vedl(a). V nabídce jsou všechny skupiny kola, protože kdo vedl kterou,
+        systém neví.</li>
+      <li>U každého kritéria vyber hodnotu ze škály {skala}. Vyšší je lepší, pořadí skupin jde podle součtu (při shodě
+        podle nejlepší, pak nejslabší kategorie). Uložit jde, až mají hodnotu všechna kritéria.</li>
+      <li>Hodnotit jde od začátku kola. Své hodnocení můžeš měnit, dokud ho org turnaje neuzavře.</li>
+      <li>Skupina má v každém kole jedno hodnocení. Když ji už ohodnotil jiný vypravěč kola, uvidíš jen kdo, ne jeho
+        hodnoty.</li>
+      <li>Ohodnotil(a) jsi omylem jinou skupinu? Napiš orgovi turnaje, hodnocení smaže.</li>
+    </ul>
+  </details>
+  <!-- end:navodVypravece -->
+  <form method="get" action="hodnoceni-turnaje" class="hodnoceni-vyber-formular">
+    <label>
+      Kolo
+      <select name="aktivita" onchange="this.form.submit()" required>
+        <option value="">vyber kolo</option>
+        <!-- begin:kolo -->
+        <option value="{idAkce}" {vybrano}>{popisKola}</option>
+        <!-- end:kolo -->
+      </select>
+    </label>
+    <label>
+      Skupina
+      <select name="tym" onchange="this.form.submit()" required {zakazatTym}>
+        <option value="">{textBezTymu}</option>
+        <!-- begin:tym -->
+        <option value="{idTymu}" {vybrano}>{nazevTymu}</option>
+        <!-- end:tym -->
+      </select>
+    </label>
+    <noscript><button type="submit">Vybrat</button></noscript>
+  </form>
+
+  <!-- begin:formular -->
+  <form method="post" action="{urlFormulare}" class="hodnoceni-formular">
+    <input type="hidden" name="akce" value="ulozit-hodnoceni">
+    <input type="hidden" name="aktivita" value="{idAkce}">
+    <input type="hidden" name="tym" value="{idTymu}">
+
+    <p class="hodnoceni-stav">{stav}</p>
+    <!-- begin:duvodZakazu -->
+    <p class="hodnoceni-zakaz">{duvodZakazu}</p>
+    <!-- end:duvodZakazu -->
+
+    <!-- begin:zaVypravece -->
+    <label class="hodnoceni-za-vypravece">
+      Hodnotí za
+      <select name="za_vypravece" required {zakazano}>
+        <option value="">vyber vypravěče kola</option>
+        <!-- begin:vypravec -->
+        <option value="{idVypravece}" {vybrano}>{jmenoVypravece}</option>
+        <!-- end:vypravec -->
+      </select>
+      <span class="hodnoceni-poznamka">Hodnocení bude patřit jemu a dál ho může upravovat sám.</span>
+    </label>
+    <!-- end:zaVypravece -->
+
+    <!-- begin:kategorie -->
+    <fieldset class="hodnoceni-kategorie" {zakazano}>
+      <legend>{nazevKategorie}</legend>
+      <!-- begin:kriterium -->
+      <label class="hodnoceni-kriterium">
+        <span>{nazevKriteria}</span>
+        <select name="hodnoty[{idKriteria}]" required>
+          <option value="">–</option>
+          <!-- begin:hodnota -->
+          <option value="{hodnota}" {vybrano}>{hodnota}</option>
+          <!-- end:hodnota -->
+        </select>
+      </label>
+      <!-- end:kriterium -->
+    </fieldset>
+    <!-- end:kategorie -->
+
+    <!-- begin:ulozit -->
+    <button type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {textUlozit}</button>
+    <!-- end:ulozit -->
+  </form>
+  <!-- end:formular -->
+</section>
+<!-- end:vyber -->
+
+<!-- begin:org -->
+<section class="aBox">
+  <h3>Výsledky</h3>
+  <!-- begin:bezVysledku -->
+  <p class="hodnoceni-info">{textBezVysledku}</p>
+  <!-- end:bezVysledku -->
+  <!-- begin:vysledky -->
+  <p>
+    <a href="hodnoceni-turnaje?export=souhrn"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Stáhnout výsledky (XLSX)</a>
+    &ensp;
+    <a href="hodnoceni-turnaje?export=detail"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Stáhnout všechna hodnocení (XLSX)</a>
+  </p>
+  <div class="hodnoceni-tabulka">
+    <table class="zvyraznovana">
+      <tr>
+        <th>Pořadí</th>
+        <th>Skupina</th>
+        <th>Běh</th>
+        <!-- begin:hlavickaKategorie -->
+        <th>{nazevKategorie}</th>
+        <!-- end:hlavickaKategorie -->
+        <th>Celkem</th>
+        <th>Kola</th>
+      </tr>
+      <!-- begin:radek -->
+      <tr class="{tridaRadku}">
+        <td>{poradi}</td>
+        <td>{nazevTymu}</td>
+        <td>{nazevTurnaje}</td>
+        <!-- begin:soucet -->
+        <td class="hodnoceni-cislo">{soucet}</td>
+        <!-- end:soucet -->
+        <td class="hodnoceni-cislo"><strong>{celkem}</strong></td>
+        <td title="{titulekKol}">{hodnocenoKol}/{kol}{neuplna}</td>
+      </tr>
+      <!-- end:radek -->
+    </table>
+  </div>
+  <p class="hodnoceni-poznamka">Pořadí je podle celkového součtu. Při shodě rozhodne víc bodů v nejlepší kategorii, pak
+    víc bodů v nejslabší kategorii. Kdo se shoduje ve všem, dělí místo. ⚠️ = skupině chybí hodnocení některého kola.</p>
+  <!-- end:vysledky -->
+</section>
+
+<section class="aBox">
+  <h3>Všechna hodnocení</h3>
+  <!-- begin:bezHodnoceni -->
+  <p class="hodnoceni-info">Zatím nikdo nehodnotil.</p>
+  <!-- end:bezHodnoceni -->
+  <!-- begin:hodnoceniSeznam -->
+  <div class="hodnoceni-tabulka">
+    <table class="zvyraznovana">
+      <tr>
+        <th>Běh</th>
+        <th>Skupina</th>
+        <th>Kolo</th>
+        <th>Hodnotil</th>
+        <th>Upraveno</th>
+        <th>Celkem</th>
+        <th></th>
+      </tr>
+      <!-- begin:radek -->
+      <tr class="{tridaRadku}">
+        <td>{nazevTurnaje}</td>
+        <td>{nazevTymu}</td>
+        <td>{kolo}.</td>
+        <td>{hodnotitel}</td>
+        <td>{upraveno}</td>
+        <td class="hodnoceni-cislo">{celkem}</td>
+        <td class="hodnoceni-akce">
+          <!-- begin:upravit -->
+          <a href="{urlUpravit}">upravit</a>
+          <!-- end:upravit -->
+          <!-- begin:mimoKolo -->
+          <span title="Do výsledků se nepočítá">⚠️ skupina už v kole není</span>
+          <!-- end:mimoKolo -->
+          <form method="post" action="hodnoceni-turnaje">
+            <input type="hidden" name="akce" value="smazat-hodnoceni">
+            <input type="hidden" name="id_hodnoceni" value="{idHodnoceni}">
+            <input type="submit" value="smazat" data-potvrzeni="{potvrzeniSmazani}"
+                   onclick="return confirm(this.dataset.potvrzeni)">
+          </form>
+        </td>
+      </tr>
+      <!-- end:radek -->
+    </table>
+  </div>
+  <!-- end:hodnoceniSeznam -->
+
+  <!-- begin:uzavreni -->
+  <form method="post" action="hodnoceni-turnaje" class="hodnoceni-uzavreni">
+    <input type="hidden" name="akce" value="{akceUzavreni}">
+    <button type="submit">{textUzavreni}</button>
+    <span class="hodnoceni-poznamka">{popisUzavreni}</span>
+  </form>
+  <!-- end:uzavreni -->
+</section>
+
+<!-- begin:editor -->
+<section class="aBox" id="kriteria">
+  <h3>Kritéria hodnocení</h3>
+  <details class="hodnoceni-navod" {otevrenyNavod}>
+    <summary>📖 Jak kritéria zadat</summary>
+    <ul>
+      <li><strong>Škála</strong> má 2 až 20 celých čísel oddělených mezerou, třeba <code>1 2 3 4 5</code> nebo
+        <code>0 1 2 3</code>. Z nich vypravěč u každého kritéria vybírá, vyšší je lepší.</li>
+      <li>Kategorie a kritéria přidáš tlačítky, šipkami je seřadíš. Šipkou z kraje kategorie přesuneš kritérium do
+        vedlejší. Každá kategorie potřebuje aspoň jedno kritérium a ve výsledcích má sloupec se svým součtem.</li>
+      <li>Hotová kritéria můžeš taky načíst z tabulky nebo textového souboru (pod editorem). Načtou se do editoru,
+        uloží se až tlačítkem Uložit kritéria.</li>
+      <li>Po začátku hodnocení můžeš kategorie a kritéria přejmenovat, přeřadit i přesunout, hodnocení zůstanou. Odebrané
+        kritérium vezme s sebou své hodnoty. Nové kritérium, nebo škála bez použité hodnoty, smaže všechna hodnocení.
+        Co by něco smazalo, stránka nejdřív vypíše a chce potvrzení.</li>
+    </ul>
+  </details>
+
+  <form method="post" action="hodnoceni-turnaje#kriteria" class="hodnoceni-editor" data-editor-kriterii {neulozeno}>
+    <input type="hidden" name="akce" value="ulozit-kriteria">
+    <!-- begin:nacteno -->
+    <p class="hodnoceni-upozorneni">Kritéria ze souboru „{nazevSouboru}“ jsou v editoru, ale <strong>ještě nejsou
+      uložená</strong>. Zkontroluj je a ulož. Štítek „nové“ mají kategorie a kritéria, která se se stejným názvem
+      nenašla mezi uloženými.</p>
+    <!-- end:nacteno -->
+    <label class="hodnoceni-editor-skala">
+      Škála
+      <input type="text" name="skala" value="{skalaEditoru}" required placeholder="1 2 3 4 5" autocomplete="off">
+    </label>
+    <div class="hodnoceni-editor-seznam" data-seznam-kategorii>
+      <!-- begin:kategorie -->
+      <fieldset class="hodnoceni-editor-kategorie" data-kategorie data-klic="{klicKategorie}">
+        <div class="hodnoceni-editor-radek">
+          <input type="hidden" name="kategorie[{klicKategorie}][id]" value="{idKategorie}">
+          <input type="text" name="kategorie[{klicKategorie}][nazev]" value="{nazevKategorie}" required maxlength="255"
+                 class="hodnoceni-editor-nazev-kategorie" placeholder="Název kategorie" aria-label="Název kategorie">
+          {stitekKategorie}
+          <span class="hodnoceni-editor-tlacitka">
+            <button type="button" data-posun="-1" title="Posunout kategorii výš" aria-label="Posunout kategorii výš"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button>
+            <button type="button" data-posun="1" title="Posunout kategorii níž" aria-label="Posunout kategorii níž"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></button>
+            <button type="button" data-odebrat title="Odebrat kategorii i s kritérii" aria-label="Odebrat kategorii i s kritérii"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+          </span>
+        </div>
+        <ol class="hodnoceni-editor-kriteria" data-seznam-kriterii>
+          <!-- begin:kriterium -->
+          <li class="hodnoceni-editor-radek" data-kriterium>
+            <input type="hidden" name="kategorie[{klicKategorie}][kriteria][{klicKriteria}][id]" value="{idKriteria}">
+            <input type="text" name="kategorie[{klicKategorie}][kriteria][{klicKriteria}][nazev]" value="{nazevKriteria}"
+                   required maxlength="255" placeholder="Název kritéria" aria-label="Název kritéria">
+            {stitekKriteria}
+            <span class="hodnoceni-editor-tlacitka">
+              <button type="button" data-posun="-1" title="Posunout kritérium výš" aria-label="Posunout kritérium výš"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button>
+              <button type="button" data-posun="1" title="Posunout kritérium níž" aria-label="Posunout kritérium níž"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></button>
+              <button type="button" data-odebrat title="Odebrat kritérium" aria-label="Odebrat kritérium"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+            </span>
+          </li>
+          <!-- end:kriterium -->
+        </ol>
+        <button type="button" data-pridat-kriterium><i class="fa-solid fa-plus" aria-hidden="true"></i> Přidat kritérium</button>
+      </fieldset>
+      <!-- end:kategorie -->
+    </div>
+    <p><button type="button" data-pridat-kategorii><i class="fa-solid fa-plus" aria-hidden="true"></i> Přidat kategorii</button></p>
+    <!-- begin:potvrzeni -->
+    <div class="hodnoceni-potvrzeni">
+      <ul>
+        <!-- begin:podrobnost -->
+        <li>{podrobnost}</li>
+        <!-- end:podrobnost -->
+      </ul>
+      <label>
+        <input type="checkbox" name="potvrzeni" value="{klicPotvrzeni}">
+        {textPotvrzeni}
+      </label>
+    </div>
+    <!-- end:potvrzeni -->
+    <button type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Uložit kritéria</button>
+  </form>
+
+  <!-- vzory řádků pro tlačítka Přidat, __KATEGORIE__ a __KRITERIUM__ nahradí skript klíčem nového řádku -->
+  <template data-sablona-kategorie>
+    <fieldset class="hodnoceni-editor-kategorie" data-kategorie data-klic="__KATEGORIE__">
+      <div class="hodnoceni-editor-radek">
+        <input type="hidden" name="kategorie[__KATEGORIE__][id]" value="">
+        <input type="text" name="kategorie[__KATEGORIE__][nazev]" value="" required maxlength="255"
+               class="hodnoceni-editor-nazev-kategorie" placeholder="Název kategorie" aria-label="Název kategorie">
+        {stitekNove}
+        <span class="hodnoceni-editor-tlacitka">
+          <button type="button" data-posun="-1" title="Posunout kategorii výš" aria-label="Posunout kategorii výš"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button>
+          <button type="button" data-posun="1" title="Posunout kategorii níž" aria-label="Posunout kategorii níž"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></button>
+          <button type="button" data-odebrat title="Odebrat kategorii i s kritérii" aria-label="Odebrat kategorii i s kritérii"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+        </span>
+      </div>
+      <ol class="hodnoceni-editor-kriteria" data-seznam-kriterii></ol>
+      <button type="button" data-pridat-kriterium><i class="fa-solid fa-plus" aria-hidden="true"></i> Přidat kritérium</button>
+    </fieldset>
+  </template>
+  <template data-sablona-kriteria>
+    <li class="hodnoceni-editor-radek" data-kriterium>
+      <input type="hidden" name="kategorie[__KATEGORIE__][kriteria][__KRITERIUM__][id]" value="">
+      <input type="text" name="kategorie[__KATEGORIE__][kriteria][__KRITERIUM__][nazev]" value=""
+             required maxlength="255" placeholder="Název kritéria" aria-label="Název kritéria">
+      {stitekNove}
+      <span class="hodnoceni-editor-tlacitka">
+        <button type="button" data-posun="-1" title="Posunout kritérium výš" aria-label="Posunout kritérium výš"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button>
+        <button type="button" data-posun="1" title="Posunout kritérium níž" aria-label="Posunout kritérium níž"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></button>
+        <button type="button" data-odebrat title="Odebrat kritérium" aria-label="Odebrat kritérium"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+      </span>
+    </li>
+  </template>
+
+  <h4>Načíst ze souboru</h4>
+  <form method="post" action="hodnoceni-turnaje#kriteria" enctype="multipart/form-data" class="hodnoceni-nacteni">
+    <input type="hidden" name="akce" value="nacist-soubor">
+    <input type="file" name="soubor" accept="{pripony}" required aria-label="Soubor s kritérii">
+    <button type="submit"><i class="fa-solid fa-file-import" aria-hidden="true"></i> Načíst do editoru</button>
+  </form>
+  <ul class="hodnoceni-poznamka">
+    <li><strong>Tabulka XLSX, ODS nebo CSV:</strong> v prvním sloupci kategorie, ve druhém kritérium, jedno kritérium
+      na řádek. Prázdná kategorie znamená stejnou jako o řádek výš. Škálu dej na řádek se „Škála“ v prvním sloupci
+      a hodnotami ve druhém, bez něj zůstane škála z editoru.</li>
+    <li><strong>Textový soubor:</strong> řádek <code>Škála: 1 2 3 4 5</code>, kategorie začíná <code># </code>,
+      kritérium <code>## </code>.</li>
+    <li>Kategorie a kritéria se stejným názvem jako uložená si hodnocení nechají, kritérium i v jiné kategorii, když
+      se tak jmenuje jen jedno. Ostatní jsou nová. Přejmenovávej proto v editoru, ne v souboru.</li>
+  </ul>
+  <p>
+    <a href="hodnoceni-turnaje?export=kriteria-xlsx"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> {textStazeni} (XLSX)</a>
+    &ensp;
+    <a href="hodnoceni-turnaje?export=kriteria-csv"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> {textStazeni} (CSV)</a>
+  </p>
+</section>
+<script src="files/hodnoceni-turnaje.js?version={jsVerze}"></script>
+<!-- end:editor -->
+<!-- end:org -->
+
+</div>
+<!-- end:hodnoceni -->
