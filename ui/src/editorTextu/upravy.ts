@@ -65,8 +65,8 @@ export type PredponaRadku = {
 };
 
 /**
- * Přidá předponu všem řádkům, kterých se výběr dotýká (nadpis, odrážky, číslovaný seznam, citace), nebo ji odebere,
- * když ji mají všechny. Prázdné řádky přeskočí, ledaže je výběr jen na jednom prázdném řádku.
+ * Přidá předponu řádkům, kterých se výběr dotýká (nadpis, odrážky, číslovaný seznam, citace) a které ji ještě nemají,
+ * nebo ji odebere, když ji mají všechny. Prázdné řádky přeskočí, ledaže je výběr jen na jednom prázdném řádku.
  */
 export const prepniPredponuRadku = ({ predpona, vzor, nahrazuje }: PredponaRadku): StateCommand => ({ state, dispatch }) => {
   const cislaRadku = new Set<number>();
@@ -83,13 +83,17 @@ export const prepniPredponuRadku = ({ predpona, vzor, nahrazuje }: PredponaRadku
   const radky = neprazdne.length > 0 ? neprazdne : vsechny;
   const odebrat = neprazdne.length > 0 && neprazdne.every((radek) => vzor.test(radek.text));
 
-  const changes = radky.map((radek, poradi) => {
+  const changes = radky.flatMap((radek, poradi) => {
     if (odebrat) {
-      return { from: radek.from, to: radek.from + (radek.text.match(vzor)?.[0].length ?? 0) };
+      return [{ from: radek.from, to: radek.from + (radek.text.match(vzor)?.[0].length ?? 0) }];
+    }
+    // řádek, který předponu už má, zůstane, jak je, jinak by ji měl dvakrát (`- - a`)
+    if (vzor.test(radek.text)) {
+      return [];
     }
     const nahrazena = nahrazuje ? radek.text.match(nahrazuje)?.[0].length ?? 0 : 0;
 
-    return { from: radek.from, to: radek.from + nahrazena, insert: predpona(poradi) };
+    return [{ from: radek.from, to: radek.from + nahrazena, insert: predpona(poradi) }];
   });
   const zmeny = state.changes(changes);
   dispatch(state.update({
