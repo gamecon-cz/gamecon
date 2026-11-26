@@ -1,11 +1,12 @@
 TL;DR: Stav anglické verze veřejného webu (`/en/…`) a co chybí, aby šla od ledna nabízet cizincům: co je hotové, ověření proti Trello kartě „Anglický web“, TODO podle priority, rozhodnutí, otevřené otázky pro tým a jak pokračovat. Mechaniku (prefix, cookie, katalogy, přeložená stránka) popisuje [jazyk-webu](jazyk-webu.md), původní plán a analýza jsou v [docs/dvojjazycny-web.md](../dvojjazycny-web.md).
 
-## Stav k 21. 11. 2026
+## Stav k 26. 11. 2026
 
-- Všechno je v [PR #1403](https://github.com/gamecon-cz/gamecon/pull/1403), větev `dvojjazycny-web` (bez čísla karty, commity proto nemají prefix). PR je otevřený, bez konfliktů, CI zelené. **Do `main` sloučený není**, na betě ani na ostré angličtina zatím není.
+- Všechno je v [PR #1403](https://github.com/gamecon-cz/gamecon/pull/1403), větev `dvojjazycny-web` (bez čísla karty, commity proto nemají prefix). PR je otevřený. **Do `main` sloučený není**, na betě ani na ostré angličtina zatím není.
+- 26. 11. větev znovu přerebasovaná na `main` (79 nových commitů, konflikty ve 22 souborech). Co z toho plyne pro angličtinu, je v TODO 17.
 - Preview: <https://dvojjazycny-web.preview.gamecon.cz/en/>, za basic auth brány; organizátor přihlášený v adminu projde bez hesla ([preview-vstup-pres-adminu](preview-vstup-pres-adminu.md)).
 - PR založil Geretik (fáze 0 a 1 plánu), zbytek je práce s Claude: review, překlady a tři kola připomínek uživatele.
-- Karta týmu: [Trello 563 „Anglický web“](https://trello.com/c/6bhPahq1/563-anglick%C3%BD-web) (board 1G: Obecná organizace). Navázaná IT karta [1002 gamecon.cz EN](https://trello.com/c/bp0v3lBx/1002-gameconcz-en) je soukromá, její obsah tu ověřený není `(nejisté)`.
+- Karta týmu: [Trello 563 „Anglický web“](https://trello.com/c/6bhPahq1/563-anglick%C3%BD-web) (board 1G: Obecná organizace), komentáře ověřené 26. 11. Navázaná IT karta [1002 gamecon.cz EN](https://trello.com/c/bp0v3lBx/1002-gameconcz-en) je soukromá, její obsah tu ověřený není `(nejisté)`.
 - Mimo tuto větev: oprava přihlášky, která při každém uložení mazala zájem o pomoc (`pomoc_typ`, sekce „Chceš se zapojit“), je v samostatném [PR #1530](https://github.com/gamecon-cz/gamecon/pull/1530), otevřeném.
 - Počty aktivit, štítků a účtů níže jsou z lokální kopie ostré DB (registrace do 9. 11. 2026).
 
@@ -16,7 +17,8 @@ TL;DR: Stav anglické verze veřejného webu (`/en/…`) a co chybí, aby šla o
   - titulka, menu, patička;
   - stránky linií (`web/moduly/aktivity.php`): výpis, přihlašovátko, hlavička s vedoucím linie, lišta filtrů (karty / seznam, minulé ročníky), archiv přednášek;
   - celý program v Preactu: legenda a filtry, štítky, názvy linií a tagů, přihlašovátko, náhled aktivity s cenou, okna odhlášení a týmu;
-  - účet: registrace (i adresa v cizině, volnější pravidla pro ulici a PSČ v `Uzivatel::registrujUprav()`), nastavení, přihlášení i QR kódem, obnova hesla;
+  - účet: registrace (i adresa v cizině, volnější pravidla pro ulici a PSČ v `Uzivatel::registrujUprav()`), nastavení (kromě sekce medailonku z `main`, TODO 17), přihlášení i QR kódem, obnova hesla;
+  - přepínač jazyka drobně nahoře před přezdívkou (nepřihlášenému před „přihlásit“), viz [jazyk-webu](jazyk-webu.md);
   - přihláška na GameCon (`/prihlaska`) kromě e-shopu, který je v ní česky v `lang="cs"`;
   - přehled financí (`/finance`): částky v CZK i EUR, pokyny k platbě, QR kódy; názvy aktivit, předmětů a poznámky k platbám jsou data a zůstávají česky.
 - **Obsah z DB** (sloupce `*_en`, prázdné = česká záloha):
@@ -25,15 +27,23 @@ TL;DR: Stav anglické verze veřejného webu (`/en/…`) a co chybí, aby šla o
   - překlady přidávají migrace `migrace/2026-11-20-*`, mění jen `*_en` a párují podle českého klíče (`url_stranky`, `nazev`, `sekce`), ne podle id.
 - **Jazyk aktivity** (`akce_seznam.jazyk`: `cs`, `en`, `cs-en`, `nezavisla`; `model/Aktivita/JazykAktivity.php`): pole „Jazyk“ v editoru aktivity (`model/Aktivita/templates/editor-aktivity.xtpl:368`), sloupec v importu a exportu (`ActivitiesImportSqlColumn::JAZYK`, `ExportAktivitSloupce::JAZYK`), ruční filtr `?jazykAktivity=` a štítky `EN` / `CZ/EN` / tichý `CZ` v programu.
 - **Vyhledávače:** `hreflang` a anglickou kanonickou adresu mají jen stránky prohlášené za přeložené (`Modul::setObsahPrelozeny()`), ostatní pod `/en/` odkazují kanonicky na českou verzi.
+- **Typografie podle jazyka textu** ([Trello 1137](https://trello.com/c/Jxi4xST1)): anglický obsah stránek (`obsah_en`) a popisy aktivit s `jazyk = 'en'` mají anglické uvozovky `“…”`, i v živém náhledu editoru textů v adminu; ostatní české `„…“`. Zbývají medailonky (TODO 16).
 - **Terminologie je rozhodnutá** (viz [Rozhodnutí](#rozhodnutí)). **Všechny překlady ale psala AI a žádný člověk je neprošel.**
 
 ## Ověření proti kartě Trello 563
 
-Karta: anglická verze stránek do Vánoc, test mezi Vánoci a Novým rokem, od ledna lákat cizince, programové sekce potřebují čas připravit program pro cizince. Komentář sirien (20. 11.): jen CZ + EN, na anglickém webu neukazovat aktivity jen v češtině (výchozí filtr „en accessible“ / „en only“) a ty aktivity mají mít anotace anglicky. Ověřeno 21. 11. 2026 proti této větvi.
+Karta: anglická verze stránek do Vánoc, test mezi Vánoci a Novým rokem, od ledna lákat cizince, programové sekce potřebují čas připravit program pro cizince. Ověřeno 21. 11. 2026 proti této větvi, komentáře znovu 26. 11.
+
+Postřehy z komentářů:
+
+- **sirien (20. 11., jediný jeho komentář):** jen CZ + EN, jiné jazyky záměrně ne (polský web by sliboval program pro polsky mluvící); na anglickém webu neukazovat aktivity jen v češtině, výchozí filtr na „en accessible“ a „en only“; ty pak potřebují anotace v angličtině.
+- **bunny (20. 11.):** stačí angličtina, nebo překladač prohlížeče? Máme na to kapacity? Odpověď Archiho: vlastní ustálená terminologie je výhoda vlastního řešení.
+- **Archi (20. 11.):** největší úskalí je vysvětlit do zahraničí, co je GameCon, a udržet komunitní atmosféru (TODO 7).
+- **Gerete (26. 11.):** s anglickým webem musí být dvojjazyčné i mapy, rollupy a navigace v areálu (rozcestníky a popisky aspoň česky a anglicky). Netýká se webu, patří organizaci a tisku `(záměr)`.
 
 | Požadavek | Stav | Poznámka |
 |---|---|---|
-| Anglická verze stránek | částečně | Rozhraní, účet, program, finance a 25 stránek ano. E-shop přihlášky, e-maily, pravidla turnajů a anotace aktivit česky (TODO 5, 9, 10, 12). |
+| Anglická verze stránek | částečně | Rozhraní, účet, program, finance a 25 stránek ano. E-shop přihlášky, e-maily, pravidla turnajů, anotace aktivit a funkce přidané do `main` po 21. 11. česky (TODO 5, 9, 10, 12, 17). |
 | Hotovo do Vánoc | zatím ne | Vše jen v PR #1403, ne v `main` (TODO 8). |
 | Test mezi Vánoci a Novým rokem | čeká | Na preview už jde (za basic auth), na betě až po sloučení. |
 | Připraveno na lákání od ledna | částečně | Chybí výchozí filtr a data jazyka (TODO 1–3) a lidská kontrola překladů (TODO 6). |
@@ -99,16 +109,22 @@ Velikost: malé = hodiny až den, střední = dny, velké = týden a víc `(neji
   - anglické praktické informace uvádějí česká tlačítka se závorkou („*Založit nový tým* (Create a new team)“), rozhraní už je anglicky;
   - sitemapa nemá žádnou `/en/` adresu (`model/Web/CestyKSitemape.php`).
 - [ ] **15. Fotogalerie linií** (malé · vývoj): upozornit v editoru, že anglická kopie zastará, nebo anglickou verzi skládat za běhu z české (nahradit tři texty).
-- [ ] **16. Anglické uvozovky v anglických textech mimo `*_en`** (malé · vývoj, u medailonků rozhodne tým). [Trello 1137](https://trello.com/c/Jxi4xST1): `Smartyp` v `main` mění každé `"` na `„“` a i správné `“…”` přepíše na české. Tato větev to řeší pro `stranky.obsah_en` (jazyk obsahu v `Stranka::html()`) a náhled v adminu; po sloučení jde kartu 1137 zavřít s odkazem na PR. Česky převedené zůstávají anglické texty v českých sloupcích, na českém i anglickém webu:
-  - anotace aktivit: `Aktivita::popis()` volá `markdown()` bez jazyka; pro `jazyk = 'en'` předat `Jazyk::ANGLICTINA`, `cs-en` je smíšený text a zůstane česky. Projeví se až po TODO 2 (dnes mají všechny aktivity `cs`), s anglickými anotacemi (TODO 5) to odpadne;
-  - medailonky (`model/Uzivatel/Medailonek.php`) jazyk nemají, zahraniční vypravěč píše anglicky: pole s jazykem, nebo smířit se s českými uvozovkami;
-  - okrajově novinky a anotace v archivu přednášek.
+- [x] **16. Anglické uvozovky v anglických textech** ([Trello 1137](https://trello.com/c/Jxi4xST1), 26. 11.). `Smartyp` v `main` měnil každé `"` na `„“` a i správné `“…”` přepsal na české. Hotovo: `stranky.obsah_en` (jazyk obsahu v `Stranka::html()`), náhled v adminu i živý náhled editoru textů (`data-editor-textu-jazyk`, POST `jazyk` v `EditorTextuPozadavek`) a popisy aktivit s `jazyk = 'en'` (`JazykAktivity::getJazykTextu()`, `cs-en` je smíšený text a zůstává česky). Projeví se až s daty jazyka (TODO 2). Po sloučení PR jde kartu 1137 zavřít s odkazem na PR.
+  - zbývá: medailonky (`model/Uzivatel/Medailonek.php`) jazyk nemají a zahraniční vypravěč píše anglicky: pole s jazykem, nebo smířit se s českými uvozovkami (rozhodne tým); okrajově novinky a anotace v archivu přednášek.
+- [ ] **17. Co přibylo v `main` a pod `/en/` je česky** (střední · vývoj, po rebasu 26. 11.). Menu už má anglicky „Costume rental“ a „My costumes“. Česky zůstává:
+  - katalog půjčovny kostýmů `/kostymy` a „Moje kostýmy“ (`web/moduly/kostymy.php`, `web/sablony/blackarrow/kostymy.xtpl`), v náhledu aktivity „Kostým:“ / „Půjčit si kostým“ (`ui/src/pages/program/components/KostymAktivity.tsx`), e-maily půjčovny;
+  - upozornění na věk před přihlášením a vstupem do týmu: okno v programu (`UpozorneniNaVekModal.tsx`, tlačítka „Přihlásit“ / „Zpět“), text z `Aktivita::getUpozorneniNaVek()` a `getPrihlasovatkoSUpozornenimNaVek()` na stránkách linií; věta o šéfovi sekce skládá českou sekci (`KontaktSefaLinie::getKdo()`), anglicky jen obecně;
+  - sekce medailonku v nastavení účtu (`model/Uzivatel/MedailonekVNastaveni.php`, `medailonek-v-nastaveni.xtpl`);
+  - stránky, které chyběly už dřív: seznam vypravěčů `/vypraveci`, 404 (`nenalezeno`), „musíte se přihlásit“ (`neprihlasen`), slevový poukaz (`poukaz`), odhlášení z e-mailů (`odhlas-z-mailu`); nepřeložený modul na rozdíl od stránky z CMS nemá poznámku „jen česky“;
+  - nápověda zámku týmu „Kapitánovi týmu zbývá …“ v přihlašovátku programu;
+  - souhlas rodičů pro účastníky pod 15 let je jen české PDF (`souhlas_rodicu_{rocnik}.pdf`, obsah, ne kód).
 
 ## Rozhodnutí
 
 - **Jen čeština a angličtina.** Polština nebo němčina by naznačovala, že ty návštěvníky aktivně podporujeme (sirien na kartě 20. 11.). `(záměr)`
 - **Terminologie:** „vypravěč“ je **Game Master** (ne storyteller), „přednáška“ je **talk** (ne lecture), britská angličtina (programme, organise). Dál „deskoherna“ = board game library, „přihláška“ = GameCon registration, „infopult“ = info desk, „Celohra“ zůstává jménem. Platí pro katalogy, Preact i obsah stránek. `(záměr)`
 - **Anglická titulka** je česká titulka s přeloženými texty. Ručně psaná CMS stránka `en` je zastaralá a nepoužívá se, `/en/en` přesměruje na `/en/`. `(záměr)`
+- **Přepínač jazyka** je drobně nahoře před přezdívkou, nezabírá místo v liště (26. 11.). `(záměr)`
 - **Štítek „CZ“** u česky vedené aktivity v programu na anglickém webu má být nenápadný: šedý text, ne černý rámeček jako `EN`. `(záměr)`
 - **Nepřejmenovávat kód kvůli angličtině.** Tým je český, metody a identifikátory zůstávají, jak jsou, i když porušují pravidlo `get…`/`is…`. `(záměr)`
 - **Netvrdit, že je GameCon pro všechny věky.** V angličtině je vynechané „bez ohledu na věk“, česky to zůstalo. `(záměr)`
@@ -147,3 +163,4 @@ Velikost: malé = hodiny až den, střední = dny, velké = týden a víc `(neji
 - 20. 11. 2026, druhé kolo podle připomínek uživatele: Game Masters a Talks, tichý štítek CZ, vedoucí linií, karty a seznam, minulé ročníky, fotogalerie, archiv přednášek, registrace, přihlášení a obnova hesla. Ke každému kolu proběhlo code review novým agentem.
 - 20. 11. 2026, třetí kolo podle připomínek uživatele: celé rozhraní programu v Preactu (legenda, přihlašovátko, okna týmů), přihláška na GameCon kromě e-shopu, přehled financí; nahrání souhlasu rodičů po vypršení session vede na přihlášení. Větev je lineárně přerebasovaná na `main`, protože repozitář slučuje jen přes „Rebase and merge“ a merge commity mainu ve větvi GitHub neuměl přehrát. Oprava mazání zájmu o pomoc v přihlášce šla zvlášť do PR #1530.
 - 21. 11. 2026: ověření proti Trello kartě 563 a komentáři sirien; nalezen rozpor štítků „Eng Only“ / „Eng Friendly“ s atributem `jazyk`, dokument přepsán na TODO list.
+- 26. 11. 2026: rebase na `main`. Hlavičku linie z `main` (`KontaktSefaLinie`, sdílená s upozorněním na věk) jsem rozšířil o anglickou sekci místo vlastní třídy `HlavickaLinie` větve, odkazy půjčovny kostýmů v menu jsou anglicky. Přepínač jazyka drobně před přezdívku, anglické uvozovky u popisů anglických aktivit a v živém náhledu editoru (TODO 16), soupis toho, co z `main` zůstává česky (TODO 17), postřehy z karty 563.
