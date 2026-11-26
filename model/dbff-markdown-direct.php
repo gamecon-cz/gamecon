@@ -35,6 +35,10 @@ class DbffMarkdownDirect extends DbFormField
             'mdText'        => NahledMarkdownu::obrazkyNaWebu($this->nahledHtml()),
             'skriptEditoru' => htmlspecialchars(self::adresaSkriptuEditoru()),
             'odUzivatele'   =>$this->isTextOdUzivatele() ? ' data-editor-textu-od-uzivatele' : '',
+            // živý náhled při psaní má stejnou typografii jako náhled při načtení (@see nahledHtml()); bez jazyka česká
+            'jazykTextu'    => $this->getJazykTextu()->jeVychozi()
+                ? ''
+                : ' data-editor-textu-jazyk="' . $this->getJazykTextu()->value . '"',
         ]);
         $t->parse('md');
         return $t->text('md');

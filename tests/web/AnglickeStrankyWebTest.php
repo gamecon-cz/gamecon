@@ -146,7 +146,8 @@ SQL,
         $telo = $this->fetchAdminPage($url);
 
         self::assertStringContainsString('<p class="dbffMdPopisek"><strong>Obsah anglicky (prázdné = stránka je jen česky)</strong></p>', $telo);
-        self::assertMatchesRegularExpression('~<textarea[^>]*name="[^"]*\[obsah_en\][^"]*"~', $telo);
+        self::assertMatchesRegularExpression('~<textarea[^>]*name="[^"]*\[obsah_en\][^"]*" data-editor-textu data-editor-textu-jazyk="en">~', $telo, 'Živý náhled anglického obsahu má anglickou typografii.');
+        self::assertMatchesRegularExpression('~<textarea[^>]*name="[^"]*\[obsah\][^"]*" data-editor-textu>~', $telo, 'Český obsah jazyk nemá, náhled je česky.');
         self::assertSame(1, substr_count($telo, 'dbffMdPopisek"'), 'Český obsah popisek nemá, zůstává hlavním textem formuláře.');
 
         $pole = self::poleFormulare($telo);

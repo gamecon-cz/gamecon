@@ -34,6 +34,19 @@ describe('náhled', () => {
     const [, pozadavek] = fetchFn.mock.calls[0] as [string, RequestInit]
     expect((pozadavek.body as FormData).get('odUzivatele')).toBe('1')
   })
+
+  it('pošle jazyk textu, jen když ho pole má', async () => {
+    const anglickyFetch = odpoved(JSON.stringify({ ok: true, html: '<p>Hi</p>' }))
+    const ceskyFetch = odpoved(JSON.stringify({ ok: true, html: '<p>Ahoj</p>' }))
+
+    await nactiNahled('Hi', { jazyk: 'en', fetchFn: anglickyFetch, adresaStranky: STRANKA })
+    await nactiNahled('Ahoj', { fetchFn: ceskyFetch, adresaStranky: STRANKA })
+
+    const [, anglicky] = anglickyFetch.mock.calls[0] as [string, RequestInit]
+    const [, bezJazyka] = ceskyFetch.mock.calls[0] as [string, RequestInit]
+    expect((anglicky.body as FormData).get('jazyk')).toBe('en')
+    expect((bezJazyka.body as FormData).has('jazyk')).toBe(false)
+  })
 })
 
 describe('obrázek', () => {

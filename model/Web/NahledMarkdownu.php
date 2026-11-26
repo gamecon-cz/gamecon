@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\Web;
 
+use Gamecon\Jazyk\Jazyk;
+
 /**
  * Náhled textu stránky nebo novinky v editoru se vykresluje na stránce administrace, ne na webu.
  */
@@ -11,11 +13,11 @@ final class NahledMarkdownu
 {
     /**
      * Náhled, který editor průběžně načítá při psaní. Bez cache (@see \markdown()): každá rozepsaná verze textu by v ní
-     * zůstala.
+     * zůstala. Typografie podle jazyka textu (anglický obsah stránky má anglické uvozovky), výchozí čeština.
      */
-    public static function zTextu(string $text): string
+    public static function zTextu(string $text, ?Jazyk $jazyk = null): string
     {
-        return self::obrazkyNaWebu(markdownNoCache($text));
+        return self::obrazkyNaWebu(markdownNoCache($text, $jazyk));
     }
 
     /**
