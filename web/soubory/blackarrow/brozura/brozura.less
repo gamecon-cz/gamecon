@@ -1,0 +1,249 @@
+// Stránka /brozura: „Hráčův průvodce GameConem“ z tištěné brožury. Text je stránka v adminu
+// (migrace 2026-11-26-100356_stranka-brozura.php), tady je jen vzhled tříd, které ten text používá:
+//
+// <div class="brozura" markdown="1">
+//   <nav class="brozura_obsah" id="obsah" markdown="1">…</nav>
+//   <section class="brozura_sekce" markdown="1">
+//     ## Nadpis {#kotva}
+//     <img class="brozura_obrazek" src="soubory/blackarrow/brozura/….avif" alt="" width="…" height="…">
+//     <span class="brozura_paska brozura_paska-cervena">Červená páska</span>
+//     <div class="brozura_tabulka" markdown="1">| tabulka |</div>
+//     <a class="brozura_mapa" href="…-velka.avif"><img …></a>
+//     [zpět na obsah](brozura#obsah){.brozura_zpet}
+//   </section>
+// </div>
+//
+// Odkaz na kotvu musí obsahovat i stránku (`brozura#mapa-arealu`): web má `<base href="{URL_WEBU}/">`,
+// takže holé `#mapa-arealu` vede na titulku.
+
+// .stranka .brozura, protože stranka.less nastavuje okraje nadpisů stejně silným selektorem a načítá se až po tomhle
+.stranka .brozura {
+  // kotvy obsahu se nesmí schovat pod přilepené menu
+  [id] {
+    scroll-margin-top: 90px;
+  }
+
+  h1 {
+    margin-bottom: 24px;
+
+    @media (max-width: 600px) {
+      font-size: 36px;
+      margin-top: 36px;
+    }
+  }
+
+  h2 {
+    margin-top: 0;
+
+    @media (max-width: 600px) {
+      font-size: 28px;
+    }
+  }
+
+  strong {
+    font-weight: 800;
+  }
+
+  // telefonní číslo se nemá zalomit uprostřed
+  a[href^="tel:"] {
+    white-space: nowrap;
+  }
+}
+
+.brozura_obrazek {
+  float: right;
+  width: 120px;
+  height: auto;
+  margin: 0 0 12px 20px;
+  shape-outside: margin-box;
+
+  @media (max-width: 600px) {
+    width: 84px;
+    margin-left: 12px;
+  }
+}
+
+.brozura_obrazek-vlevo {
+  float: left;
+  margin: 0 20px 12px 0;
+
+  @media (max-width: 600px) {
+    margin-right: 12px;
+  }
+}
+
+.brozura_obrazek-uvod {
+  width: 170px;
+  margin-top: -10px;
+
+  @media (max-width: 600px) {
+    width: 110px;
+  }
+}
+
+.stranka .brozura_obsah {
+  clear: both;
+  margin: 32px 0 8px;
+  padding: 20px 24px;
+  border-radius: 8px;
+  background-color: #f6f4f0;
+
+  h2 {
+    font-size: 24px;
+    margin: 0 0 12px;
+  }
+
+  ol {
+    margin: 0;
+    padding-left: 24px;
+    columns: 2;
+    column-gap: 32px;
+
+    @media (max-width: 600px) {
+      columns: 1;
+    }
+  }
+
+  li {
+    break-inside: avoid;
+    padding: 2px 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--gc-red);
+      text-decoration: underline;
+    }
+  }
+}
+
+.brozura_sekce {
+  display: flow-root; // obtékané ilustrace nepřetečou do další sekce
+  padding-top: 32px;
+  border-top: 2px solid rgba(16, 17, 26, 0.08);
+  margin-top: 24px;
+}
+
+.brozura_zpet {
+  clear: both;
+  display: block;
+  margin-top: 8px;
+  text-align: right;
+  font-size: 14px;
+  font-style: italic;
+  color: rgba(16, 17, 26, 0.6);
+}
+
+.brozura_paska {
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.brozura_paska-cervena {
+  background-color: var(--gc-red);
+}
+
+.brozura_paska-oranzova {
+  background-color: #e0780f; // tmavší než oranžová z brožury, aby se bílé písmo dalo přečíst
+}
+
+.brozura_paska-modra {
+  background-color: #1f5fa8;
+}
+
+.brozura_tabulka {
+  table {
+    border-collapse: collapse;
+    margin: 8px 0 16px;
+  }
+
+  thead {
+    // záhlaví tabulek jen pojmenovává sloupce pro čtečky, vidět být nemusí
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  td {
+    padding: 3px 24px 3px 0;
+    vertical-align: top;
+  }
+
+  td:first-child {
+    font-weight: 800;
+  }
+}
+
+.brozura_mapa {
+  display: block;
+  margin: 8px 0 12px;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.widget-sponzori {
+  margin-top: 24px;
+
+  .sponzori_logo,
+  .partneri_logo {
+    height: auto;
+    padding: 12px 0;
+    line-height: normal;
+  }
+
+  .sponzori_loga,
+  .partneri_loga {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px 24px;
+    align-items: center;
+  }
+
+  // na telefonu se na logo nedá najet myší, tak rovnou barevně
+  .sponzori_logo > a > img,
+  .partneri_logo > a > img {
+    filter: none;
+    max-height: 80px;
+  }
+}
+
+// legenda mapy jako text: v obrázku by na telefonu byla nečitelně malá
+.stranka .brozura_legenda {
+  list-style: none;
+  margin: 16px 0 24px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px 24px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    line-height: 1.3;
+  }
+
+  img {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .brozura_legenda-deskoherny img {
+    width: auto;
+  }
+}
