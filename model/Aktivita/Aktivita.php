@@ -2399,14 +2399,14 @@ SQL
     }
 
     /**
-     * Vrátí formátovaný (html) popisek aktivity
+     * Vrátí formátovaný (html) popisek aktivity; anglická aktivita má anglickou typografii (uvozovky “…”), ostatní českou
      */
     public function popis(
         string $popis = null,
         bool   $resetujKorekci = false,
     ) {
         if ($popis === null) {
-            return markdown($this->a[Sql::POPIS]);
+            return markdown($this->a[Sql::POPIS], $this->jazyk()->getJazykTextu());
         }
         $oldPopis = $this->a[Sql::POPIS];
         $zmeny = [];

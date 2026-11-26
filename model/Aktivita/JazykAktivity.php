@@ -52,6 +52,19 @@ enum JazykAktivity: string
         };
     }
 
+    /**
+     * Jazyk, ve kterém vypravěč píše název a popisy aktivity: česká česky, anglická anglicky, ostatní neznámý (null).
+     * Podle něj dostanou popisy `lang` a typografii (anglické uvozovky), nezávisle na jazyce stránky.
+     */
+    public function getJazykTextu(): ?Jazyk
+    {
+        return match ($this) {
+            self::CESKY    => Jazyk::CESTINA,
+            self::ANGLICKY => Jazyk::ANGLICTINA,
+            default        => null,
+        };
+    }
+
     public function nazev(): string
     {
         return match ($this) {

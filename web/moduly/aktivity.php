@@ -11,7 +11,6 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\Cas\DatumVJazyce;
 use Gamecon\Jazyk\AktualniJazyk;
-use Gamecon\Jazyk\Jazyk;
 use Gamecon\KategorieTagu;
 use Gamecon\Uzivatel\Medailonek;
 
@@ -188,6 +187,7 @@ foreach ($skupiny as $skupina) {
 
     $obrazek = $aktivita->obrazek();
 
+    $jazykTextu = $aktivita->jazyk()->getJazykTextu();
     $t->assign([
         'aktivita'           => $aktivita,
         'htmlId'             => $aktivita->urlId(),
@@ -207,11 +207,9 @@ foreach ($skupiny as $skupina) {
         'kapacita'           => $aktivita->kapacita()
             ?: htmlspecialchars(t('aktivity.neomezene')),
         // název a popisy píše vypravěč v jazyce aktivity, rozhraní kolem nich je v jazyce stránky
-        'jazykTextu'         => match ($aktivita->jazyk()) {
-            JazykAktivity::CESKY    => ' lang="' . Jazyk::CESTINA->value . '"',
-            JazykAktivity::ANGLICKY => ' lang="' . Jazyk::ANGLICTINA->value . '"',
-            default                 => '',
-        },
+        'jazykTextu'         => $jazykTextu !== null
+            ? ' lang="' . $jazykTextu->value . '"'
+            : '',
     ]);
     if ($vypraveciKarty && $vypraveciVsechTerminuStejni) {
         $t->parse('aktivity.aktivita.vypraveci');
