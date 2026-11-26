@@ -99,6 +99,10 @@ Velikost: malé = hodiny až den, střední = dny, velké = týden a víc `(neji
   - anglické praktické informace uvádějí česká tlačítka se závorkou („*Založit nový tým* (Create a new team)“), rozhraní už je anglicky;
   - sitemapa nemá žádnou `/en/` adresu (`model/Web/CestyKSitemape.php`).
 - [ ] **15. Fotogalerie linií** (malé · vývoj): upozornit v editoru, že anglická kopie zastará, nebo anglickou verzi skládat za běhu z české (nahradit tři texty).
+- [ ] **16. Anglické uvozovky v anglických textech mimo `*_en`** (malé · vývoj, u medailonků rozhodne tým). [Trello 1137](https://trello.com/c/Jxi4xST1): `Smartyp` v `main` mění každé `"` na `„“` a i správné `“…”` přepíše na české. Tato větev to řeší pro `stranky.obsah_en` (jazyk obsahu v `Stranka::html()`) a náhled v adminu; po sloučení jde kartu 1137 zavřít s odkazem na PR. Česky převedené zůstávají anglické texty v českých sloupcích, na českém i anglickém webu:
+  - anotace aktivit: `Aktivita::popis()` volá `markdown()` bez jazyka; pro `jazyk = 'en'` předat `Jazyk::ANGLICTINA`, `cs-en` je smíšený text a zůstane česky. Projeví se až po TODO 2 (dnes mají všechny aktivity `cs`), s anglickými anotacemi (TODO 5) to odpadne;
+  - medailonky (`model/Uzivatel/Medailonek.php`) jazyk nemají, zahraniční vypravěč píše anglicky: pole s jazykem, nebo smířit se s českými uvozovkami;
+  - okrajově novinky a anotace v archivu přednášek.
 
 ## Rozhodnutí
 
