@@ -92,6 +92,7 @@ prihlasovatko:
 program:
     nadpis:
         muj: Můj program
+        vsechny_dny: Program – všechny dny
         den: Program {den}
 
 stranka:

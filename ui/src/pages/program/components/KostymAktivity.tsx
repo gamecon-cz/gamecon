@@ -1,5 +1,6 @@
 import { FunctionComponent } from "preact";
 import { ApiKostymAktivity } from "../../../api/program";
+import { t, tSPrvky } from "../../../i18n";
 
 type KostymAktivityProps = {
   kostym?: ApiKostymAktivity | null,
@@ -17,8 +18,8 @@ export const KostymAktivity: FunctionComponent<KostymAktivityProps> = ({ kostym 
   return (
     <div class="programNahled_kostym">
       {kostym.nazev !== null
-        ? <>Kostým: <a href={kostym.url}>{kostym.nazev}</a></>
-        : <a href={kostym.url}>Půjčit si kostým</a>}
+        ? <>{tSPrvky("program.nahled.kostym", { kostym: <a href={kostym.url}>{kostym.nazev}</a> })}</>
+        : <a href={kostym.url}>{t("program.nahled.pujcit_kostym")}</a>}
     </div>
   );
 };

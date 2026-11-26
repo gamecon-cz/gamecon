@@ -36,7 +36,7 @@ function nazevStranky(?string $slug): string {
     }
     // zrcadlí nadpisProgramu() z ui/src/store/program/logic/url.ts
     if ($slug === 'vsechny-dny') {
-        return 'Program – všechny dny';
+        return t('program.nadpis.vsechny_dny');
     }
     if (isset($dny[$slug])) {
         return t('program.nadpis.den', ['den' => DatumVJazyce::denVTydnu($dny[$slug])]);

@@ -163,7 +163,7 @@ export const Filtry: FunctionComponent<TFiltryProps> = (props) => {
                 nastavFiltrVolné(!filtrVolné);
               }}
             >
-              Volná místa
+              {t("program.tlacitko.volna_mista")}
             </button>
             <button class={
               "program_filtry_tlacitko"

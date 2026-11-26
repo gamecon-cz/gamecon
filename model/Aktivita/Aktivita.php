@@ -3433,7 +3433,7 @@ HTML
         return '<form method="post" style="display:inline"'
                . " data-nadpis=\"{$nadpis}\" data-upozorneni=\"{$upozorneni}\" data-kontakt=\"{$kontakt}\">"
                . '<input type="hidden" name="prihlasit" value="' . $this->id() . '">'
-               . "<a href=\"#\" onclick=\"{$onclick}\">přihlásit</a>"
+               . "<a href=\"#\" onclick=\"{$onclick}\">" . htmlspecialchars(\t('prihlasovatko.prihlasit')) . '</a>'
                . '</form>';
     }
 
