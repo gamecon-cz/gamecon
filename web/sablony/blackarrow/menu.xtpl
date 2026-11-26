@@ -8,6 +8,10 @@
       <a href="." class="menu_nazev">GameCon</a>
       
 
+      <div class="menu_prava">
+      <!-- begin: jazyk -->
+      <a class="menu_jazyk" href="{jazykUrl}" title="{jazykTitulek}" lang="{jazykKod}" hreflang="{jazykKod}">{jazykNazev}</a>
+      <!-- end: jazyk -->
       <div class="menu_uzivatel">
         <!-- begin: neprihlasen -->
         <a class="menu_prihlasit" href="prihlaseni">{t:menu.prihlasit}</a>
@@ -34,10 +38,7 @@
         </div>
         <!-- end: prihlasen -->
       </div>
-
-      <!-- begin: jazyk -->
-      <a class="menu_jazyk" href="{jazykUrl}" title="{jazykTitulek}" lang="{jazykKod}" hreflang="{jazykKod}">{jazykNazev}</a>
-      <!-- end: jazyk -->
+      </div>
 
       <div class="menu_menu">
         <a href="program" class="menu_odkaz">{t:menu.program}</a>
