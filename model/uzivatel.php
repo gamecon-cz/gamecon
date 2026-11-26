@@ -1188,8 +1188,9 @@ SQL,
 
     public function nastavJazyk(Jazyk $jazyk): void
     {
-        dbQuery(
-            'UPDATE uzivatele_hodnoty SET jazyk = $0 WHERE id_uzivatele = $1',
+        dbQuery(<<<'SQL'
+            UPDATE uzivatele_hodnoty SET jazyk = $0 WHERE id_uzivatele = $1
+            SQL,
             [0 => $jazyk->value, 1 => $this->id()],
         );
         $this->r[Sql::JAZYK] = $jazyk->value;

@@ -229,7 +229,7 @@ class JazykPozadavkuTest extends TestCase
         ]);
 
         self::assertNull(
-            $prepinac->getJazykDoUctu(true),
+            $prepinac->getJazykDoUctu(true, true),
             'Infopult přepnutý na účastníka volí jazyk svého prohlížeče, ne jazyk e-mailů účastníka.',
         );
         self::assertSame(Jazyk::CESTINA, $prepinac->getJazykDoCookie('GET', false, 'navigate', true));
@@ -244,10 +244,45 @@ class JazykPozadavkuTest extends TestCase
         self::assertNull(JazykPozadavku::zCesty('program')->getJazykDoUctu());
         self::assertSame(Jazyk::ANGLICTINA, JazykPozadavku::zCesty('program', [
             'jazyk' => 'en',
-        ])->getJazykDoUctu());
+        ])->getJazykDoUctu(zeStrankyWebu: true));
         self::assertSame(Jazyk::CESTINA, JazykPozadavku::zCesty('en/program', [
             'jazyk' => 'cs',
-        ])->getJazykDoUctu());
+        ])->getJazykDoUctu(zeStrankyWebu: true));
+    }
+
+    public function testOdkazSPrepinacemZCizihoWebuUcetNemeni(): void
+    {
+        $prepinac = JazykPozadavku::zCesty('program', [
+            'jazyk' => 'en',
+        ]);
+
+        self::assertNull(
+            $prepinac->getJazykDoUctu(zeStrankyWebu: false),
+            'Odkaz ?jazyk=en z chatu nebo cizího webu přepne jen prohlížeč, ne e-maily a přesměrování účtu.',
+        );
+        self::assertSame(Jazyk::ANGLICTINA, $prepinac->getJazykDoCookie('GET', false, 'navigate', true));
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string, 2: bool}>
+     */
+    public static function providePuvodPozadavku(): array
+    {
+        return [
+            'přepínač na našem webu'        => ['same-origin', '', true],
+            'odkaz z cizího webu'           => ['cross-site', 'https://gamecon.cz/', false],
+            'subdoména (admin, preview)'    => ['same-site', 'https://gamecon.cz/', false],
+            'napsaná adresa nebo záložka'   => ['none', '', false],
+            'starý prohlížeč, náš Referer'  => ['', 'https://GAMECON.cz/program', true],
+            'starý prohlížeč, cizí Referer' => ['', 'https://evil.example/gamecon.cz', false],
+            'starý prohlížeč, bez Refereru' => ['', '', false],
+        ];
+    }
+
+    #[DataProvider('providePuvodPozadavku')]
+    public function testPoznaJestliPozadavekPriselZeStrankyWebu(string $secFetchSite, string $referer, bool $ocekavany): void
+    {
+        self::assertSame($ocekavany, JazykPozadavku::isZeStrankyWebu($secFetchSite, $referer, 'gamecon.cz'));
     }
 
     public function testZvolenyJazykJeZCookieJinakZUctu(): void

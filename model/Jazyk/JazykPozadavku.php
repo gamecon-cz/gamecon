@@ -9,7 +9,7 @@ namespace Gamecon\Jazyk;
  *
  * Volbu si web pamatuje v cookie prohlížeče: z přepínače `?jazyk=cs|en` vždy, z adresy s prefixem
  * jen při navigaci (viz isNavigace()). U přihlášeného ji ukládá i do `uzivatele_hodnoty.jazyk`
- * (z toho čtou jazyk e-maily, které jdou mimo request), ale jen z přepínače, viz getJazykDoUctu().
+ * (z toho čtou jazyk e-maily, které jdou mimo request), ale jen z přepínače na stránce webu, viz getJazykDoUctu().
  * Kdo si zvolil angličtinu a přijde na českou adresu (odkaz z e-mailu, natvrdo psaný odkaz),
  * přesměruje se na anglickou. Zpátky do češtiny vede přepínač přes `?jazyk=cs`.
  * Podle jazyka prohlížeče se záměrně nepřesměrovává.
@@ -183,13 +183,29 @@ final class JazykPozadavku
      * i přesměrování na všech zařízeních) a infopult, který se přihlásí jako účastník v prohlížeči
      * s anglickou cookie, nesmí zapsat angličtinu do jeho účtu. Registrace si jazyk ukládá sama.
      * Kdo je přepnutý na jiného uživatele (infopult na vypravěče), volí jazyk jen pro svůj prohlížeč,
-     * jazyk e-mailů toho uživatele nemění.
+     * jazyk e-mailů toho uživatele nemění. Účet mění jen přepínač kliknutý na stránce našeho webu
+     * ($zeStrankyWebu, viz isZeStrankyWebu()): odkaz `?jazyk=en` poslaný v chatu nebo na cizím webu
+     * přepne jen prohlížeč (cookie), ne e-maily a přesměrování na všech zařízeních.
      */
-    public function getJazykDoUctu(bool $jePrepnutoNaUzivatele = false): ?Jazyk
+    public function getJazykDoUctu(bool $jePrepnutoNaUzivatele = false, bool $zeStrankyWebu = false): ?Jazyk
     {
-        return $jePrepnutoNaUzivatele
+        return $jePrepnutoNaUzivatele || ! $zeStrankyWebu
             ? null
             : $this->jazykPrepnuti();
+    }
+
+    /**
+     * Přišel požadavek z naší stránky (přepínač v menu), ne z cizího webu, chatu, záložky nebo napsané adresy?
+     * Prohlížeč to řekne hlavičkou `Sec-Fetch-Site`; bez ní (starší prohlížeč) rozhodne hostitel v `Referer`.
+     */
+    public static function isZeStrankyWebu(string $secFetchSite, string $referer, string $hostWebu): bool
+    {
+        if ($secFetchSite !== '') {
+            return $secFetchSite === 'same-origin';
+        }
+        $hostReferera = (string) parse_url($referer, PHP_URL_HOST);
+
+        return $hostReferera !== '' && strcasecmp($hostReferera, $hostWebu) === 0;
     }
 
     /**
@@ -228,7 +244,14 @@ final class JazykPozadavku
         }
         // session přepnutí se čte, jen když je co uložit
         $doUctu = $uzivatel !== null && $this->jazykPrepnuti() !== null
-            ? $this->getJazykDoUctu(\Gamecon\Uzivatel\PrepnutiNaUzivatele::zSession()->isPrepnuto())
+            ? $this->getJazykDoUctu(
+                \Gamecon\Uzivatel\PrepnutiNaUzivatele::zSession()->isPrepnuto(),
+                self::isZeStrankyWebu(
+                    (string) ($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''),
+                    (string) ($_SERVER['HTTP_REFERER'] ?? ''),
+                    (string) parse_url(URL_WEBU, PHP_URL_HOST),
+                ),
+            )
             : null;
         if ($doUctu !== null && $uzivatel->jazyk() !== $doUctu) {
             $uzivatel->nastavJazyk($doUctu);
