@@ -7,6 +7,8 @@ declare(strict_types=1);
 // Brožura „Hráčův průvodce GameConem“ jako stránka webu (/brozura), aby se nemusela stahovat jako PDF.
 // Text je v Markdownu a upravuje se v adminu jako každá jiná stránka; ilustrace a mapy leží v gitu
 // ve web/soubory/blackarrow/brozura/, vzhled dává brozura.less. Stránku, kterou už někdo založil, nepřepíše.
+// U dalekohledu je `src` před `class` schválně: Stranka::obrazek() bere za obrázek stránky (og:image) první
+// `<img src=`, u ostatních ilustrací by jím jinak byla mapa areálu.
 
 $existuje = $this->q(<<<'SQL'
 SELECT 1 FROM stranky WHERE url_stranky = 'brozura'
@@ -21,7 +23,7 @@ $obsah = <<<'MD'
 
 # Hráčův průvodce GameConem
 
-<img class="brozura_obrazek brozura_obrazek-uvod" src="soubory/blackarrow/brozura/dalekohled.avif" alt="" width="355" height="226">
+<img src="soubory/blackarrow/brozura/dalekohled.avif" class="brozura_obrazek brozura_obrazek-uvod" alt="" width="355" height="226">
 
 Všechno důležité na jednom místě: kde co najdeš, kdy se jí, na koho se obrátit a jak to na GameConu chodí. Stránku si ulož do telefonu, ať ji máš po ruce. Pro tisk je tu i [brožura v PDF](soubory/obsah/download/brozura_2026.pdf).
 
