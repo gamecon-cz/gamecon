@@ -1,5 +1,6 @@
 import { FunctionComponent } from "preact";
-import { formátujDatum } from "../../../../utils";
+import { t } from "../../../../i18n";
+import { formátujDatumProČtenáře } from "../../../../i18n/datum";
 import produce from "immer";
 import {
   generujUrl,
@@ -31,7 +32,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
   return (
     <>
       <div class="program_hlavicka">
-        <h1>Program {urlStav.ročník}</h1>
+        <h1>{t("program.nadpis.rocnik", { rocnik: urlStav.ročník })}</h1>
         <div class="program_dny">
           {urlStavMožnosti.map((možnost) => {
             return (
@@ -53,8 +54,8 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
                 }}
               >
                 {možnost.typ === "můj"
-                  ? (GAMECON_KONSTANTY.JE_ADMIN ? "Účastník" : "můj program")
-                  : možnost.typ === "všechny_dny" ? "všechny dny" : formátujDatum(možnost.datum, !jeLetošníRočník)}
+                  ? t(GAMECON_KONSTANTY.JE_ADMIN ? "program.vyber.ucastnik" : "program.vyber.muj")
+                  : možnost.typ === "všechny_dny" ? t("program.vyber.vsechny_dny") : formátujDatumProČtenáře(možnost.datum, !jeLetošníRočník)}
               </a>
             );
           })}
@@ -63,7 +64,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
             {/* přehled vypravěčů je jen letošní */}
             {!GAMECON_KONSTANTY.JE_ADMIN && jeLetošníRočník && (
               <a href="vypraveci" class="program_filtry_tlacitko program_vypraveci">
-                Vypravěči
+                {t("program.vypraveci")}
               </a>
             )}
             <button
@@ -74,7 +75,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
                 nastavFiltryOtevřené(!filtryOtevřené);
               }}
             >
-              Filtry
+              {t("program.filtry")}
             </button>
           </div>
         </div>

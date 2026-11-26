@@ -1,4 +1,6 @@
 import { ApiArchivPrednasek, ApiArchivPrednaska } from "../../api/archivPrednasek";
+import { GAMECON_KONSTANTY } from "../../env";
+import { Jazyk } from "../../i18n";
 import { obsahujeVšechnaSlova, slovaHledání } from "../filtrStranky/text";
 import { číslaZParametru, nastavParametr, sČárkami, seznamZParametru } from "../filtrStranky/url";
 
@@ -143,8 +145,9 @@ export const sPřednášejícím = (filtr: FiltrArchivu, id: number): FiltrArchi
     ? filtr
     : { ...filtr, přednášející: [...filtr.přednášející, id] };
 
-/** 1 přednáška, 2 přednášky, 5 přednášek */
-export const počtemPřednášek = (počet: number): string => {
+/** 1 přednáška, 2 přednášky, 5 přednášek; anglicky 1 talk, 2 talks */
+export const počtemPřednášek = (počet: number, jazyk: Jazyk = GAMECON_KONSTANTY.JAZYK): string => {
+  if (jazyk === "en") return počet === 1 ? "1 talk" : `${počet} talks`;
   if (počet === 1) return "1 přednáška";
   if (počet >= 2 && počet <= 4) return `${počet} přednášky`;
 

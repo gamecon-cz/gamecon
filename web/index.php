@@ -5,6 +5,9 @@ declare(strict_types=1);
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+use Gamecon\Jazyk\JazykPozadavku;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\CestyKSitemape;
 use Gamecon\Web\Info;
@@ -56,6 +59,9 @@ if (($_GET['req'] ?? '') === 'sitemap.xml') {
 $u = Uzivatel::zSession();
 SsoPrihlaseniZUrl::zpracuj($u);
 
+// Jazyk podle prefixu cesty (/en/…). Odtrhne ho z $_GET['req'], takže routery níž pracují s cestou bez něj.
+JazykPozadavku::zGlobals()->zpracuj($u);
+
 // Postupná migrace na Symfony: vybrané veřejné cesty obsluhuje Symfony
 // controller. Kernel bootujeme JEN pro tyhle cesty (jsou pro nepřihlášené
 // uživatele), ať neplatíme režii na každém veřejném requestu. Legacy router
@@ -93,6 +99,11 @@ if (! $m && ($stranka = Stranka::zUrl())) {
         header('Location: ' . $stranka->redirectUrl(), true, 301);
         exit;
     }
+    if ($stranka->url() === Stranka::URL_ANGLICKE_TITULKY) {
+        // stará ručně psaná anglická titulka z doby, kdy titulka nebyla přeložená; zastaralá, místo ní je /en/
+        header('Location: ' . urlWebu('', Jazyk::ANGLICTINA), true, 301);
+        exit;
+    }
     $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
     $m->param('stranka', $stranka);
     $kanonickaCesta = $stranka->url();
@@ -119,7 +130,7 @@ $i = (new Info($systemoveNastaveni))
     ->obrazek('soubory/styl/og-image.jpg')
     ->site('GameCon');
 if ($url !== null) {
-    $i->url(Info::getKanonickaUrlZCesty(URL_WEBU, $kanonickaCesta));
+    $i->setKanonickaCesta($kanonickaCesta);
 }
 $m->info($i);
 
@@ -130,6 +141,9 @@ try {
 } catch (Neprihlasen $e) {
     $m = Modul::zNazvu('neprihlasen', null, $systemoveNastaveni)->spust();
 }
+// Až po spuštění, modul se tím prohlásí sám. Podle toho Info skládá kanonickou adresu, hreflang a og:locale.
+// $i, ne $m->info(): modul z catch výš Info nemá, a jazyk obsahu se pozná i pro něj.
+$i->setObsahPrelozeny($m->isObsahPrelozeny());
 
 // sestavení menu
 $menu = '';
@@ -151,12 +165,18 @@ $t->assign([
     'chyba'        => Chyba::vyzvedniHtml(),
     'menu'         => $menu,
     'obsah'        => $m->vystup(),
-    'base'         => URL_WEBU . '/',
+    'base'         => urlWebu(),
+    'jazyk'        => AktualniJazyk::jazyk()->value,
     'info'         => $m->info() ? $m->info()->html() : '',
     'letosniRok'   => date('Y'),
 ]);
 $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
 $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
+if ($i->getJazykObsahu() !== AktualniJazyk::jazyk()) {
+    // nepřeložená stránka pod /en/: menu a patička jsou anglicky (<html lang>), obsah česky
+    $t->assign('jazykObsahu', $i->getJazykObsahu()->value);
+    $t->parse('index.jinyJazykObsahu');
+}
 if (! $m->bezPaticky()) {
     if ($u?->jeOrganizator()) {
         $t->parse('index.paticka.qrka');

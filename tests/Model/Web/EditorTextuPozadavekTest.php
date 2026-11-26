@@ -50,6 +50,29 @@ class EditorTextuPozadavekTest extends TestCase
     }
 
     /**
+     * Anglický obsah stránky (`obsah_en`) má v živém náhledu anglické uvozovky jako na webu, ostatní české (Trello 1137).
+     *
+     * @test
+     */
+    public function nahledMaTypografiiPodleJazykaTextu(): void
+    {
+        $nahled = fn (array $post): string => $this->pozadavek()->zpracuj('nahled', 'POST', true, [
+            EditorTextuPozadavek::POST_TEXT => 'A "quoted" word',
+        ] + $post, $this->bezObrazku())['telo']['html'];
+
+        self::assertSame('<p>A “quoted” word</p>', trim($nahled([
+            EditorTextuPozadavek::POST_JAZYK => 'en',
+        ])));
+        self::assertSame('<p>A „quoted“ word</p>', trim($nahled([
+            EditorTextuPozadavek::POST_JAZYK => 'cs',
+        ])));
+        self::assertSame('<p>A „quoted“ word</p>', trim($nahled([])), 'Bez jazyka česky.');
+        self::assertSame('<p>A „quoted“ word</p>', trim($nahled([
+            EditorTextuPozadavek::POST_JAZYK => 'klingon',
+        ])), 'Neznámý jazyk česky.');
+    }
+
+    /**
      * Medailonek si píše vypravěč sám a organizátorovi se v adminu nesmí spustit nic z jeho textu.
      *
      * @test

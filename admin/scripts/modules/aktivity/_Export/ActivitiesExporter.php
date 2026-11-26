@@ -117,6 +117,7 @@ class ActivitiesExporter
                 $this->exportAktivitSloupce::URL => $aktivita->urlId(), // URL
                 $this->exportAktivitSloupce::KRATKA_ANOTACE => $aktivita->kratkyPopis(), // Krátká anotace
                 $this->exportAktivitSloupce::TAGY => implode('; ', $aktivita->tagy()), // Tagy
+                $this->exportAktivitSloupce::JAZYK => $aktivita->jazyk()->nazev(), // Jazyk
                 $this->exportAktivitSloupce::DLOUHA_ANOTACE => $aktivita->getPopisRaw(), // Dlouhá anotace
                 $this->exportAktivitSloupce::DEN => $zacatekDen, // Den
                 $this->exportAktivitSloupce::ZACATEK => $zacatekCas, // Začátek

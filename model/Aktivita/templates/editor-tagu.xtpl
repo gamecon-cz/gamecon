@@ -10,6 +10,12 @@
         </td>
       </tr>
       <tr>
+        <td><label for="nazevEnTaguEditorTagu">Anglický název</label></td>
+        <td><input id="nazevEnTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevEnTagu}]"
+                   placeholder="prázdný = na anglickém webu česky">
+        </td>
+      </tr>
+      <tr>
         <td><label for="idKategorieTaguEditorTagu">Kategorie tagu*</label></td>
         <td>
           <select id="idKategorieTaguEditorTagu" name="{aEditTag}[{aEditKategorieTagu}]" required>
@@ -58,6 +64,7 @@
         document.getElementById('idTaguEditorTagu').value = tag.id;
         const nazevTaguElement = document.getElementById('nazevTaguEditorTagu');
         nazevTaguElement.value = tag.nazev;
+        document.getElementById('nazevEnTaguEditorTagu').value = tag.nazev_en || '';
         $('#idKategorieTaguEditorTagu').find('option[value="' + tag.id_kategorie_tagu + '"]').attr('selected', 'selected');
         document.getElementById('poznamkaEditorTagu').value = tag.poznamka;
       }
@@ -114,6 +121,7 @@
                 tag: {
                   id: response.tag.id,
                   nazev: response.tag.nazev,
+                  nazev_en: response.tag.nazev_en,
                   id_kategorie_tagu: response.tag.id_kategorie_tagu,
                   nazev_kategorie: response.tag.nazev_kategorie,
                   poznamka: response.tag.poznamka,

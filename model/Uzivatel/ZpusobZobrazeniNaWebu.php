@@ -27,9 +27,9 @@ enum ZpusobZobrazeniNaWebu: int
     public function popis(): string
     {
         return match ($this) {
-            self::POUZE_PREZDIVKA                => 'Pouze přezdívka',
-            self::JMENO_A_PRIJMENI               => 'Jméno + příjmení',
-            self::JMENO_S_PREZDIVKOU_A_PRIJMENI  => 'Jméno + přezdívka + příjmení',
+            self::POUZE_PREZDIVKA                => \t('ucet.zobrazeni_na_webu.pouze_prezdivka'),
+            self::JMENO_A_PRIJMENI               => \t('ucet.zobrazeni_na_webu.jmeno_a_prijmeni'),
+            self::JMENO_S_PREZDIVKOU_A_PRIJMENI  => \t('ucet.zobrazeni_na_webu.jmeno_s_prezdivkou_a_prijmenim'),
         };
     }
 

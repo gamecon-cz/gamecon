@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Gamecon\Web;
 
+use Gamecon\Jazyk\Jazyk;
+
 /**
  * Požadavky editoru textu v administraci (ui/src/editorTextu, pole @see \DbffMarkdownDirect). Modul s editorem je
  * obslouží na vlastní adrese s parametrem `editorTextu`:
  * - `nahled` (POST `text`) vrátí `html`, text vykreslený stejně jako náhled vedle editoru při načtení stránky,
  *   tedy stejným Markdownem jako na webu; s `odUzivatele=1` (pole s textem, který si píše uživatel sám, @see
- *   \DbffMarkdownOdUzivatele) jen vyčištěné HTML,
+ *   \DbffMarkdownOdUzivatele) jen vyčištěné HTML; s `jazyk=en` (anglický obsah, `obsah_en`) s anglickou typografií,
  * - `obrazek` (POST soubor `obrazek`) uloží obrázek vložený do textu ze schránky nebo přetažením do adresáře textu
  *   (stejného jako blok Obrázky pod editorem) pod volným názvem a vrátí `cesta` (jak ji zapsat do textu) a `markdown`.
  * Odpověď je JSON s `ok`; chyba, kterou má vidět člověk, je `ok: false` se `zprava` a kód 422.
@@ -23,6 +25,7 @@ final class EditorTextuPozadavek
     public const string HLAVICKA = 'HTTP_X_GAMECON_EDITOR';
     public const string POST_TEXT = 'text';
     public const string POST_OD_UZIVATELE = 'odUzivatele';
+    public const string POST_JAZYK = 'jazyk';
     public const string POST_OBRAZEK = 'obrazek';
 
     /**
@@ -137,7 +140,7 @@ final class EditorTextuPozadavek
         return [
             'html' => ($post[self::POST_OD_UZIVATELE] ?? null) === '1'
                 ? NahledMarkdownu::zTextuOdUzivatele($text)
-                : NahledMarkdownu::zTextu($text),
+                : NahledMarkdownu::zTextu($text, Jazyk::tryFrom((string) ($post[self::POST_JAZYK] ?? ''))),
         ];
     }
 

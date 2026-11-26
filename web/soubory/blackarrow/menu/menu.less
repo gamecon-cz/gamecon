@@ -177,6 +177,33 @@
     margin: 0 -30px;
 }
 
+// blok uživatele s přepínačem jazyka; přepínač je v něm absolutně, ať lišta nezabere místo menu a to se nezalomí
+.menu_prava {
+    float: right;
+    position: relative;
+}
+
+// přepínač jazyka: drobně nahoře těsně před přezdívkou (přihlášením), nad odsazením bloku uživatele; jako sourozenec
+// bloku ho najetím myši nerozbalí
+.menu_jazyk {
+    position: absolute;
+    top: 6px;
+    right: ~'calc(100% - 28px)'; // pravý okraj kousek před textem, blok uživatele má odsazení 30px; ~'' jinak LESS spočítá 72 %
+    z-index: 2;
+    padding: 2px 4px;
+    color: inherit;
+    text-decoration: none;
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;
+    opacity: .85;
+}
+
+.menu_jazyk:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
 .menu_jmeno {
     cursor: default;
 }

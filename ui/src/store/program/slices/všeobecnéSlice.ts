@@ -1,5 +1,6 @@
 import { ProgramStateCreator, useProgramStore } from "..";
 import { fetchAktivitaTým, AktivitaTymResponse, ApiUpozorněníNaVěk, ChybaApi } from "../../../api/program";
+import { t } from "../../../i18n";
 
 export type NastaveniTymuData = AktivitaTymResponse;
 
@@ -47,7 +48,7 @@ export const dotáhniNastaveníTýmuProModal = async () => {
   try {
     data = await fetchAktivitaTým(aktivitaId);
   } catch (chyba) {
-    nastavChyba(chyba instanceof ChybaApi ? chyba.message : "Tým se nepodařilo načíst, zkus to prosím znovu.");
+    nastavChyba(chyba instanceof ChybaApi ? chyba.message : t("program.chyba.nacteni_tymu"));
     // Modal bez dat se nezobrazí. Zavřený jde otevřít znovu, otevřený s daty z dřívějška nechá hlášku nad nimi.
     if (!useProgramStore.getState().všeobecné.nastaveniTymu?.data)
       nastavModalNastaveníTýmu();

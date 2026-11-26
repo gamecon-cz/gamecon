@@ -7,6 +7,7 @@
 import { FunctionComponent } from "preact";
 import { UpozorneniOdpocet } from "./UpozorneniOdpocet";
 import { Alert } from "../NastaveniTymuView/Alert";
+import { t } from "../../i18n";
 
 type AktivitaSPrekryvem = {
   id: number;
@@ -38,13 +39,13 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
     <div>
       <UpozorneniOdpocet
         zbyvajiciCas={zbyvajiciCas}
-        podtexty="Přihlas se jako kapitán nebo bude tým automaticky smazán."
+        podtexty={t("tym.priprava.prihlas_kapitana")}
       />
 
       {řádky.length > 0 && (
         <div class="gc-tm-section" style={{ marginTop: 0 }}>
           <div class="gc-tm-section-label">
-            Vybrané termíny <span class="gc-tm-section-label__dash" />
+            {t("tym.priprava.vybrane_terminy")} <span class="gc-tm-section-label__dash" />
           </div>
           <div class="gc-tm-chosen-list">
             {řádky.map((řádek, i) => (
@@ -60,8 +61,8 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
       {máPřekryv && (
         <div class="gc-tm-section">
           <Alert kind="danger" icon="!">
-            <div class="gc-tm-alert__title">Konflikt termínů</div>
-            <div class="gc-tm-alert__desc">Pro přihlášení jako kapitán se musíš odhlásit z těchto aktivit:</div>
+            <div class="gc-tm-alert__title">{t("tym.priprava.konflikt")}</div>
+            <div class="gc-tm-alert__desc">{t("tym.priprava.konflikt_popis")}</div>
           </Alert>
           <div>
             {překrývajícíSeAktivity.map(a => (
@@ -79,7 +80,7 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
                   onClick={() => onOdhlasitAktivitu(a.id)}
                   disabled={nacita}
                 >
-                  Odhlásit
+                  {t("tym.priprava.odhlasit")}
                 </button>
               </div>
             ))}
@@ -93,7 +94,7 @@ export const PrihlaseniKapitana: FunctionComponent<PrihlaseniKapitanaProps> = ({
         disabled={nacita || máPřekryv}
         style={{ marginTop: 18 }}
       >
-        {nacita ? "Přihlašuji…" : "✓ Přihlásit se jako kapitán"}
+        {t(nacita ? "tym.priprava.prihlasuji" : "tym.priprava.prihlasit_kapitana")}
       </button>
     </div>
   );

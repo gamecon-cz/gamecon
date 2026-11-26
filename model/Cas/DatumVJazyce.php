@@ -1,0 +1,92 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Gamecon\Cas;
+
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+
+/**
+ * Datum pro účastníka v jazyce požadavku (nebo v předaném jazyce).
+ *
+ * `DateTimeCz::format()` vrací dny vždy česky a zůstává tak schválně: jeho výstup slouží
+ * i jako klíč (slugy dnů programu, párování v importu). Text pro člověka se skládá tady.
+ */
+final class DatumVJazyce
+{
+    /** @var array<string, \IntlDateFormatter> */
+    private static array $formattery = [];
+
+    /** „pátek" / „Friday" */
+    public static function denVTydnu(\DateTimeInterface $datum, ?Jazyk $jazyk = null): string
+    {
+        return self::format($datum, 'EEEE', $jazyk);
+    }
+
+    /** „1. července" / „1 July" */
+    public static function denAMesic(\DateTimeInterface $datum, ?Jazyk $jazyk = null): string
+    {
+        return self::format($datum, self::vzorDneAMesice($jazyk), $jazyk);
+    }
+
+    /** „1. července 14:00" / „1 July 14:00" */
+    public static function denAMesicSCasem(\DateTimeInterface $datum, ?Jazyk $jazyk = null): string
+    {
+        return self::format($datum, self::vzorDneAMesice($jazyk) . ' HH:mm', $jazyk);
+    }
+
+    /**
+     * Datum z textu stránky (`%PRISTI_VLNA_KDY|datum:FORMAT_ZACATEK_UDALOSTI%`, @see DateTimeCzTrait::formatujProSablonu())
+     * zapsané tak, jak se píše v jazyce textu: „17 July 2026 at 10:00“ místo „17. 7. 2026 v 10:00“.
+     *
+     * @param string $nazevFormatu název konstanty z DateTimeCzTrait, třeba `FORMAT_ZACATEK_UDALOSTI`
+     * @return string|null null pro češtinu a pro formát, který se v jazyce píše stejně (strojové formáty), ten platí z `DateTimeCz`
+     */
+    public static function podleFormatuZeSablony(\DateTimeInterface $datum, string $nazevFormatu, Jazyk $jazyk): ?string
+    {
+        $vzor = match ($jazyk) {
+            Jazyk::CESTINA    => null,
+            Jazyk::ANGLICTINA => match ($nazevFormatu) {
+                'FORMAT_DATUM_LETOS'            => 'd MMMM',
+                'FORMAT_DATUM_STANDARD'         => 'd MMMM y',
+                'FORMAT_DATUM_A_CAS_STANDARD'   => 'd MMMM y HH:mm:ss',
+                'FORMAT_CAS_NA_MINUTY_STANDARD' => 'd MMMM y HH:mm',
+                'FORMAT_ZACATEK_UDALOSTI'       => "d MMMM y 'at' HH:mm",
+                default                         => null,
+            },
+        };
+
+        return $vzor === null
+            ? null
+            : self::format($datum, $vzor, $jazyk);
+    }
+
+    private static function vzorDneAMesice(?Jazyk $jazyk): string
+    {
+        return match ($jazyk ?? AktualniJazyk::jazyk()) {
+            Jazyk::CESTINA    => 'd. MMMM',
+            Jazyk::ANGLICTINA => 'd MMMM',
+        };
+    }
+
+    private static function format(\DateTimeInterface $datum, string $vzor, ?Jazyk $jazyk): string
+    {
+        $locale = ($jazyk ?? AktualniJazyk::jazyk())->locale();
+        // vždy ve výchozí časové zóně (Europe/Prague) jako dřívější date(), ne v zóně předaného objektu
+        // (datum z UTC by jinak ukázalo jiný den i čas); formatter převede časové razítko do své zóny
+        $casovaZona = new \DateTimeZone(date_default_timezone_get());
+        $klic = $locale . '|' . $vzor . '|' . $casovaZona->getName();
+        // vytvořit formatter je dražší než formátovat, stránka jich přitom potřebuje jen pár druhů
+        self::$formattery[$klic] ??= new \IntlDateFormatter(
+            $locale,
+            \IntlDateFormatter::NONE,
+            \IntlDateFormatter::NONE,
+            $casovaZona,
+            \IntlDateFormatter::GREGORIAN,
+            $vzor,
+        );
+
+        return (string)self::$formattery[$klic]->format($datum);
+    }
+}

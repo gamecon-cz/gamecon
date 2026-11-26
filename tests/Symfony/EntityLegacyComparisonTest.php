@@ -42,6 +42,7 @@ use Gamecon\Aktivita\AkcePrihlaseniStavy;
 use Gamecon\Aktivita\Lokace;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\KategorieTagu;
 use Gamecon\Kfc\ObchodMrizka;
 use Gamecon\Kfc\ObchodMrizkaBunka;
@@ -175,6 +176,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $symfonyPage = PageFactory::createOne([
             PageEntityStructure::urlStranky => 'test-page-' . uniqid(),
             PageEntityStructure::obsah      => 'Test page content',
+            PageEntityStructure::obsahEn    => 'Test page content in English',
             PageEntityStructure::poradi     => 42,
         ])->_real();
 
@@ -189,6 +191,8 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         $this->assertEquals($symfonyPage->getId(), $legacyPage->id());
         $this->assertEquals($symfonyPage->getUrlStranky(), $legacyPage->url());
         $this->assertEquals($symfonyPage->getObsah(), $legacyPage->raw()['obsah']);
+        $this->assertEquals($symfonyPage->getObsahEn(), $legacyPage->raw()['obsah_en']);
+        $this->assertTrue($legacyPage->isPrelozena());
         $this->assertEquals($symfonyPage->getPoradi(), $legacyPage->poradi());
     }
 
@@ -205,6 +209,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         /** @var Tag $symfonyTag */
         $symfonyTag = TagFactory::createOne([
             TagEntityStructure::nazev       => 'Test Tag ' . uniqid(),
+            TagEntityStructure::nazevEn     => 'Test tag in English',
             TagEntityStructure::poznamka    => 'Test tag note',
             TagEntityStructure::categoryTag => $categoryTag,
         ])->_real();
@@ -219,6 +224,8 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Compare values using getters
         $this->assertEquals($symfonyTag->getId(), $legacyTag->id());
         $this->assertEquals($symfonyTag->getNazev(), $legacyTag->nazev());
+        $this->assertEquals($symfonyTag->getNazevEn(), $legacyTag->getNazevVJazyce(Jazyk::ANGLICTINA));
+        $this->assertEquals($symfonyTag->getNazevEn(), $legacyTag->raw()['nazev_en']);
         $this->assertEquals($symfonyTag->getPoznamka(), $legacyTag->poznamka());
         $this->assertEquals($symfonyTag->getCategoryTag()->getId(), $legacyTag->raw()['id_kategorie_tagu']);
     }
@@ -229,6 +236,7 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         /** @var CategoryTag $symfonyCategoryTag */
         $symfonyCategoryTag = CategoryTagFactory::createOne([
             CategoryTagEntityStructure::nazev           => 'Test Category Tag ' . uniqid(),
+            CategoryTagEntityStructure::nazevEn         => 'test category tag',
             CategoryTagEntityStructure::poradi          => 10,
             CategoryTagEntityStructure::mainCategoryTag => null,
         ])->_real();
@@ -243,6 +251,8 @@ class EntityLegacyComparisonTest extends AbstractTestDb
         // Compare values using getters
         $this->assertEquals($symfonyCategoryTag->getId(), $legacyCategoryTag->id());
         $this->assertEquals($symfonyCategoryTag->getNazev(), $legacyCategoryTag->nazev());
+        $this->assertEquals($symfonyCategoryTag->getNazevEn(), $legacyCategoryTag->getNazevVJazyce(Jazyk::ANGLICTINA));
+        $this->assertEquals($symfonyCategoryTag->getNazevEn(), $legacyCategoryTag->raw()['nazev_en']);
         $this->assertEquals($symfonyCategoryTag->getPoradi(), $legacyCategoryTag->poradi());
         $this->assertEquals($symfonyCategoryTag->getMainCategoryTag()?->getId(), $legacyCategoryTag->idHlavniKategorie());
     }

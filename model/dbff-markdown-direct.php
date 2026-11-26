@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Web\EditorTextuPozadavek;
 use Gamecon\Web\NahledMarkdownu;
 use Gamecon\XTemplate\XTemplate;
@@ -21,6 +22,11 @@ class DbffMarkdownDirect extends DbFormField
     function html()
     {
         $t = new XTemplate(__DIR__ . '/dbff-markdown-direct.xtpl');
+        $popisek = $this->label();
+        if ($popisek !== '') {
+            $t->assign('popisek', htmlspecialchars($popisek));
+            $t->parse('md.popisek');
+        }
         $t->assign([
             //'pnOldId' => $this->postName('oldVal'),
             //'oldId'   => $this->value(),
@@ -29,6 +35,10 @@ class DbffMarkdownDirect extends DbFormField
             'mdText'        => NahledMarkdownu::obrazkyNaWebu($this->nahledHtml()),
             'skriptEditoru' => htmlspecialchars(self::adresaSkriptuEditoru()),
             'odUzivatele'   =>$this->isTextOdUzivatele() ? ' data-editor-textu-od-uzivatele' : '',
+            // živý náhled při psaní má stejnou typografii jako náhled při načtení (@see nahledHtml()); bez jazyka česká
+            'jazykTextu'    => $this->getJazykTextu()->jeVychozi()
+                ? ''
+                : ' data-editor-textu-jazyk="' . $this->getJazykTextu()->value . '"',
         ]);
         $t->parse('md');
         return $t->text('md');
@@ -49,7 +59,7 @@ class DbffMarkdownDirect extends DbFormField
      */
     protected function nahledHtml(): string
     {
-        return (string) markdown($this->value());
+        return (string) markdown($this->value(), $this->getJazykTextu());
     }
 
     /**
@@ -59,6 +69,25 @@ class DbffMarkdownDirect extends DbFormField
     protected function isTextOdUzivatele(): bool
     {
         return false;
+    }
+
+    /**
+     * Anglický sloupec (`obsah_en`) má v náhledu anglickou typografii jako na webu, ostatní českou.
+     */
+    private function getJazykTextu(): Jazyk
+    {
+        return str_ends_with((string) $this->name(), '_en')
+            ? Jazyk::ANGLICTINA
+            : Jazyk::CESTINA;
+    }
+
+    /**
+     * Popisek je text komentáře sloupce za slovem markdown (`markdown, Obsah anglicky (…)`). Sloupec jen s `markdown`
+     * popisek nemá, editor je pak jediný hlavní text formuláře.
+     */
+    public function label(): string
+    {
+        return mb_ucfirst(trim((string) preg_replace('~^markdown\s*(?:,|--)?~u', '', (string) ($this->d['Comment'] ?? ''))));
     }
 
     function loadPost(): void

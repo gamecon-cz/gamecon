@@ -72,16 +72,24 @@ export type MoznostiPozadavku = Parameters<typeof posli>[2];
 
 /**
  * Text vykreslený stejně jako na webu (Markdown Extra), s obrázky vedoucími na web. Text, který si píše uživatel sám
- * (`odUzivatele`, medailonek), vrátí server jen s vyčištěným HTML, jak ho ukazuje web.
+ * (`odUzivatele`, medailonek), vrátí server jen s vyčištěným HTML, jak ho ukazuje web. Typografie podle `jazyk` textu
+ * (anglický obsah stránky má anglické uvozovky), bez něj česká.
  */
 export const nactiNahled = async (
   text: string,
-  { odUzivatele = false, ...moznosti }: NonNullable<MoznostiPozadavku> & { odUzivatele?: boolean } = {},
+  {
+    odUzivatele = false,
+    jazyk = null,
+    ...moznosti
+  }: NonNullable<MoznostiPozadavku> & { odUzivatele?: boolean; jazyk?: string | null } = {},
 ): Promise<string> => {
   const telo = new FormData();
   telo.append("text", text);
   if (odUzivatele) {
     telo.append("odUzivatele", "1");
+  }
+  if (jazyk) {
+    telo.append("jazyk", jazyk);
   }
   const data = await posli("nahled", telo, moznosti);
   if (typeof data.html !== "string") {

@@ -7,10 +7,13 @@
 .dbffMdtext img { max-width: 100%; max-height: 6em; }
 </style>
 
+<!-- begin:popisek -->
+<p class="dbffMdPopisek"><strong>{popisek}</strong></p>
+<!-- end:popisek -->
 <input type="hidden" name="{pnOldId}" value="{oldId}">
 <table style="width:100%" class="editor-textu">
   <tr>
-    <td style="width: 50%; vertical-align: top"><textarea style="width: 100%" rows="20" name="{pnText}" data-editor-textu{odUzivatele}>{text}</textarea></td>
+    <td style="width: 50%; vertical-align: top"><textarea style="width: 100%" rows="20" name="{pnText}" data-editor-textu{odUzivatele}{jazykTextu}>{text}</textarea></td>
     <td style="vertical-align: top" class="dbffMdtext" data-editor-textu-nahled>{mdText}</td>
   </tr>
 </table>

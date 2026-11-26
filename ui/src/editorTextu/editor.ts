@@ -48,6 +48,8 @@ export type NastaveniEditoru = {
   obrazky: string | null;
   /** text si píše uživatel sám (medailonek), náhled z něj ukáže jen vyčištěné HTML */
   odUzivatele: boolean;
+  /** jazyk textu (`en` u anglického obsahu stránky), podle něj má náhled typografii; null = čeština */
+  jazyk: string | null;
 };
 
 const NEJDE_VLOZIT_OBRAZEK =
@@ -130,7 +132,7 @@ export const vytvorEditor = (pole: HTMLTextAreaElement, nastaveni: NastaveniEdit
   );
   const nahled = nastaveni.nahled
     ? new Nahled(
-      async (text, signal) => nactiNahled(text, { odUzivatele: nastaveni.odUzivatele, signal }),
+      async (text, signal) => nactiNahled(text, { odUzivatele: nastaveni.odUzivatele, jazyk: nastaveni.jazyk, signal }),
       (html) => {
         if (nastaveni.nahled) {
           nastaveni.nahled.innerHTML = html;
@@ -355,6 +357,8 @@ export const spustEditoryTextu = (dokument: Document): void => {
         obrazky: obrazky ? obrazky.dataset.editorTextuObrazky ?? "image/*" : null,
         // model/dbff-markdown-od-uzivatele.php
         odUzivatele: pole.dataset.editorTextuOdUzivatele !== undefined,
+        // model/dbff-markdown-direct.php
+        jazyk: pole.dataset.editorTextuJazyk ?? null,
       });
     } catch (chyba) {
       // bez editoru zůstane obyčejné pole, text jde psát a uložit dál

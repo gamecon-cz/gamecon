@@ -68,6 +68,38 @@ describe("filtrujAktivity – muj program nekoliduje s filtrem interních", () =
   });
 });
 
+describe("filtrujAktivity – jazyk aktivity", () => {
+  const aktivity: Aktivita[] = [
+    aktivita(1, { jazyk: "cs" }),
+    aktivita(2, { jazyk: "en" }),
+    aktivita(3, { jazyk: "cs-en" }),
+    aktivita(4, { jazyk: "nezavisla" }),
+    aktivita(5, {}), // data z doby před jazykem aktivity
+  ];
+
+  it("bez filtru jazyka nechá všechny aktivity", () => {
+    expect(idčka(aktivity, { filtrInterni: true })).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("angličtině vyhoví i aktivita vedená česky i anglicky a jazykově nezávislá", () => {
+    // cizinec, který chce hrát anglicky, nesmí přijít o deskovky bez textu
+    expect(idčka(aktivity, { filtrInterni: true, filtrJazyk: ["en"] })).toEqual([2, 3, 4]);
+  });
+
+  it("češtině vyhoví i aktivita bez uvedeného jazyka a jazykově nezávislá", () => {
+    expect(idčka(aktivity, { filtrInterni: true, filtrJazyk: ["cs"] })).toEqual([1, 3, 4, 5]);
+  });
+
+  it("volba jazykově nezávislé ukáže jen jazykově nezávislé", () => {
+    expect(idčka(aktivity, { filtrInterni: true, filtrJazyk: ["nezavisla"] })).toEqual([4]);
+  });
+
+  it("víc vybraných jazyků se sčítá", () => {
+    expect(idčka(aktivity, { filtrInterni: true, filtrJazyk: ["en", "nezavisla"] })).toEqual([2, 3, 4]);
+    expect(idčka(aktivity, { filtrInterni: true, filtrJazyk: ["cs", "en"] })).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
 describe("neúčast (nedorazil, pozdě se odhlásil)", () => {
   const aktivity: Aktivita[] = [
     aktivita(1, { interni: false, stavPrihlaseni: "prihlasen", vedu: false }),

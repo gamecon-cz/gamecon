@@ -10,6 +10,8 @@ use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Kanaly\EmailovaSablona\EmailoveSablony;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\Zaznamnik;
@@ -1173,6 +1175,25 @@ SQL,
     public function zpusobZobrazeniNaWebu(): ZpusobZobrazeniNaWebu
     {
         return ZpusobZobrazeniNaWebu::zHodnoty($this->r[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ?? null);
+    }
+
+    /**
+     * Jazyk, ve kterém uživatel používá web. Píšou se v něm i e-maily, které jdou mimo jeho request.
+     */
+    public function jazyk(): Jazyk
+    {
+        return Jazyk::tryFrom((string)($this->r[Sql::JAZYK] ?? ''))
+            ?? Jazyk::vychozi();
+    }
+
+    public function nastavJazyk(Jazyk $jazyk): void
+    {
+        dbQuery(<<<'SQL'
+            UPDATE uzivatele_hodnoty SET jazyk = $0 WHERE id_uzivatele = $1
+            SQL,
+            [0 => $jazyk->value, 1 => $this->id()],
+        );
+        $this->r[Sql::JAZYK] = $jazyk->value;
     }
 
     /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
@@ -2466,15 +2487,15 @@ SQL,
             $u,
         ) {
             if (empty($login)) {
-                return 'vyber si prosím přezdívku';
+                return \t('registrace.chyba.prezdivka');
             }
 
             $u2 = Uzivatel::zNicku($login) ?? Uzivatel::zEmailu($login);
             if ($u2 && ! $u) {
-                return 'přezdívka už je zabraná; pokud je tvoje, přihlaš se nebo si resetuj heslo';
+                return \t('registrace.chyba.prezdivka_zabrana_prihlas_se');
             }
             if ($u2 && $u && $u2->id() !== $u->id()) {
-                return 'přezdívka už je zabraná, vyber si prosím jinou';
+                return \t('registrace.chyba.prezdivka_zabrana');
             }
 
             return '';
@@ -2486,15 +2507,15 @@ SQL,
             $u,
         ) {
             if (! preg_match('/^[a-z0-9_\-.+]+@[a-z0-9_\-.]+\.[a-z]+$/', $mail)) {
-                return 'zadej prosím platný e-mail';
+                return \t('registrace.chyba.email');
             }
 
             $u2 = Uzivatel::zNicku($mail) ?? Uzivatel::zEmailu($mail);
             if ($u2 && ! $u) {
-                return 'e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo';
+                return \t('registrace.chyba.email_zaregistrovany');
             }
             if ($u2 && $u && $u2->id() !== $u->id()) {
-                return 'e-mail už je zabraný. Pokud je tvůj, resetuj si heslo';
+                return \t('registrace.chyba.email_zabrany');
             }
 
             return '';
@@ -2505,7 +2526,7 @@ SQL,
         ) {
             // přichází ve formátu rrrr-mm-dd
             if (! DateTimeImmutable::createFromFormat('Y-m-d', trim((string) $datum))) {
-                return 'vyplň prosím platné datum narození';
+                return \t('registrace.chyba.datum_narozeni');
             }
 
             return '';
@@ -2517,42 +2538,54 @@ SQL,
             $dbTab,
         ) {
             if (empty($heslo)) {
-                return 'vyplň prosím heslo';
+                return \t('registrace.chyba.heslo');
             }
 
             if (
                 $heslo !== ($dbTab['heslo'] ?? null)
                 || $heslo !== ($dbTab['heslo_kontrola'] ?? null)
             ) {
-                return 'hesla se neshodují';
+                return \t('registrace.chyba.hesla_se_neshoduji');
             }
 
             return '';
         };
 
+        // Stát z formuláře, při úpravě jen části údajů ten uložený. Adresa v jiném státě než v Česku a na Slovensku
+        // nemá české PSČ ani číslo popisné na konci ulice (britské SW1A 1AA, 10 Downing Street). Bez vybraného
+        // státu platí česká pravidla jako dřív.
+        $stat = $dbTab[Sql::STAT_UZIVATELE] ?? $u?->r[Sql::STAT_UZIVATELE] ?? null;
+        $adresaVJinemState = (string) $stat === (string) Stat::JINY_ID;
+
         $validace = [
             // Osobní
             Sql::EMAIL1_UZIVATELE   => $validaceMailu,
-            Sql::TELEFON_UZIVATELE  => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
-            Sql::JMENO_UZIVATELE    => ['.+', 'jméno nesmí být prázdné'],
-            Sql::PRIJMENI_UZIVATELE => ['.+', 'příjmení nesmí být prázdné'],
+            Sql::TELEFON_UZIVATELE  => ['^[\d \+]+$', \t('registrace.chyba.telefon')],
+            Sql::JMENO_UZIVATELE    => ['.+', \t('registrace.chyba.jmeno')],
+            Sql::PRIJMENI_UZIVATELE => ['.+', \t('registrace.chyba.prijmeni')],
             Sql::DATUM_NAROZENI     => $validaceDataNarozeni,
-            Sql::STATNI_OBCANSTVI   => ['[[:alpha:]]{2,}', 'vyplň prosím státní občanství'],
+            Sql::STATNI_OBCANSTVI   => ['[[:alpha:]]{2,}', \t('registrace.chyba.statni_obcanstvi')],
             // Adresa trvalého pobytu
-            Sql::ULICE_A_CP_UZIVATELE => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
-            Sql::MESTO_UZIVATELE      => ['.+', 'vyplň prosím město'],
-            Sql::PSC_UZIVATELE        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
-            Sql::STAT_UZIVATELE       => ['^(1|2|-1)$', 'vyber prosím stát'],
+            Sql::ULICE_A_CP_UZIVATELE => $adresaVJinemState
+                // aspoň jedno písmeno, číslo domu nemusí být na konci ani vůbec (dům se jménem)
+                ? ['\p{L}', \t('registrace.chyba.ulice_v_cizine')]
+                : ['.+ [\d\/a-z]+$', \t('registrace.chyba.ulice')],
+            Sql::MESTO_UZIVATELE      => ['.+', \t('registrace.chyba.mesto')],
+            Sql::PSC_UZIVATELE        => $adresaVJinemState
+                // písmena a číslice ve skupinách oddělených mezerou nebo pomlčkou (SW1A 1AA, LV-1010, 12345-6789)
+                ? ['^[a-zA-Z0-9]+([ -][a-zA-Z0-9]+)*$', \t('registrace.chyba.psc_v_cizine')]
+                : ['^[\d ]+$', \t('registrace.chyba.psc')],
+            Sql::STAT_UZIVATELE       => ['^(1|2|-1)$', \t('registrace.chyba.stat')],
             // Platný doklad totožnosti
-            Sql::TYP_DOKLADU_TOTOZNOSTI => [implode('|', self::TYPY_DOKLADU), 'vyber prosím typ dokladu totožnosti'],
-            Sql::OP                     => ['[a-zA-Z0-9]{5,}', 'vyplň prosím celé číslo dokladu'],
+            Sql::TYP_DOKLADU_TOTOZNOSTI => [implode('|', self::TYPY_DOKLADU), \t('registrace.chyba.typ_dokladu')],
+            Sql::OP                     => ['[a-zA-Z0-9]{5,}', \t('registrace.chyba.cislo_dokladu')],
             // Ostatní
             Sql::LOGIN_UZIVATELE          => $validaceLoginu,
             Sql::ZPUSOB_ZOBRAZENI_NA_WEBU => [
                 '^(' . implode('|', ZpusobZobrazeniNaWebu::platneHodnoty()) . ')$',
-                'vyber prosím způsob zobrazení na webu',
+                \t('registrace.chyba.zobrazeni_na_webu'),
             ],
-            Sql::POHLAVI     => ['^(m|f)$', 'vyber prosím pohlaví'],
+            Sql::POHLAVI     => ['^(m|f)$', \t('registrace.chyba.pohlavi')],
             'heslo'          => $validaceHesla,
             'heslo_kontrola' => $validaceHesla,
         ];
@@ -2597,12 +2630,13 @@ SQL,
         }
 
         if ($chyby) {
-            $ch = Chyby::zPole($chyby);
-            $ch->globalniChyba(
+            // hlášky z t() jsou prostý text, chyby formuláře se ale vypisují jako HTML
+            $ch = Chyby::zPole(array_map(htmlspecialchars(...), $chyby));
+            $ch->globalniChyba(htmlspecialchars(
                 $u
-                    ? 'Úprava se nepodařila, oprav prosím zvýrazněné položky.'
-                    : 'Registrace se nepodařila. Oprav prosím zvýrazněné položky.',
-            );
+                    ? \t('registrace.chyba.uprava')
+                    : \t('registrace.chyba.registrace'),
+            ));
             throw $ch;
         }
 
@@ -2615,6 +2649,8 @@ SQL,
         if (! $u) {
             $dbTab[Sql::RANDOM] = ''; // nese jen kód z e-mailu po rychloregistraci
             $dbTab['registrovan'] = (new DateTimeCz())->formatDb();
+            // nový účet dostane jazyk, ve kterém se registroval
+            $dbTab[Sql::JAZYK] = AktualniJazyk::jazyk()->value;
         }
 
         // odstranění polí, co nebudou v DB
@@ -2754,6 +2790,7 @@ SQL,
         $tab[Sql::POTVRZENI_ZAKONNEHO_ZASTUPCE] = null;
         $tab[Sql::FORMULAR_CIZINCE_OD] = null; // nullable DATE, prázdný string by byl nevalidní
         $tab[Sql::ZPUSOB_ZOBRAZENI_NA_WEBU] ??= ZpusobZobrazeniNaWebu::vychozi()->value;
+        $tab[Sql::JAZYK] ??= AktualniJazyk::jazyk()->value;
         foreach (Sql::sloupce() as $sloupec) {
             if (! array_key_exists($sloupec, $tab)) {
                 $tab[$sloupec] = '';
@@ -2861,6 +2898,15 @@ SQL,
         $telefon = trim((string) $this->r['telefon_uzivatele']);
         if ($telefon === '') {
             return '';
+        }
+        // Cizí předvolba (ne česká ani slovenská) zůstane, jak ji účastník napsal: dělení po třech číslicích podle
+        // českého čísla by z +44 20 7946 0958 udělalo +442 079 460 958.
+        if (preg_match('~^(\+|00)\s*(?!42[01])\d~', $telefon)) {
+            $telefon = (string) preg_replace('~\s+~', ' ', $telefon);
+
+            return $html
+                ? "<span class='telefon'>" . htmlspecialchars($telefon) . '</span>'
+                : $telefon;
         }
         // zahodíme českou předvolbu a mezery
         $telefon = preg_replace('~(^[+]?\s*420|\s)~', '', $telefon);

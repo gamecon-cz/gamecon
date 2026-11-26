@@ -1,6 +1,58 @@
 <?php
 
 declare(strict_types=1);
+
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+use Gamecon\Jazyk\Preklad;
+
+/**
+ * Text rozhraní v jazyce požadavku (nebo v předaném jazyce), viz {@see Preklad}.
+ * Vrací prostý text, ne HTML: do HTML ho escapuj (`htmlspecialchars`), `{t:…}` v šabloně to dělá sám.
+ *
+ * @param array<string, mixed> $parametry hodnoty pro `{nazev}` v textu
+ */
+function t(string $klic, array $parametry = [], ?Jazyk $jazyk = null): string
+{
+    return Preklad::t($klic, $parametry, $jazyk);
+}
+
+/**
+ * Značka argumentu věty pro {@see htmlSVlozkami()}: znak ze soukromé oblasti Unicode, `htmlspecialchars()` ho nechá
+ * a v textu není.
+ */
+function znackaVlozky(string $argument): string
+{
+    return "\u{E000}{$argument}\u{E000}";
+}
+
+/**
+ * Věta z katalogu s kusem HTML uprostřed (odkaz, tučné slovo) jako HTML. Věta je v katalogu celá s argumentem,
+ * slovosled tak zůstává na překladu. t() vrací prostý text, věta se proto escapuje celá a značky argumentů se
+ * nahradí HTML až potom:
+ * `htmlSVlozkami(t('klic', ['odkaz' => znackaVlozky('odkaz')]), ['odkaz' => '<a href="legal">…</a>'])`.
+ *
+ * @param array<string, string> $vlozky argument => HTML, které se za jeho značku dosadí
+ */
+function htmlSVlozkami(string $veta, array $vlozky): string
+{
+    $htmlPodleZnacky = [];
+    foreach ($vlozky as $argument => $html) {
+        $htmlPodleZnacky[znackaVlozky($argument)] = $html;
+    }
+
+    return strtr(htmlspecialchars($veta), $htmlPodleZnacky);
+}
+
+/**
+ * Absolutní URL stránky veřejného webu v jazyce požadavku, např. `urlWebu('program')`.
+ * Relativní odkazy jazyk drží samy přes `<base href>`, tohle je pro odkazy s `URL_WEBU`.
+ */
+function urlWebu(string $cesta = '', ?Jazyk $jazyk = null): string
+{
+    return URL_WEBU . '/' . ($jazyk ?? AktualniJazyk::jazyk())->prefixCesty() . ltrim($cesta, '/');
+}
+
 /**
  * Vrací hlášku s daným názvem. Libovolný počet argumentů. Pokud je druhým
  * argumentem uživatel, podporuje symbol {a} jako proměnlivou koncovku a. Další
@@ -217,7 +269,8 @@ function altchaWidget(): string
     // application/json). display=invisible + auto=onload = neviditelná ochrana:
     // widget nic nevykreslí a výzvu vyřeší tiše na pozadí hned po načtení,
     // uživatel o ničem neví. Skryté pole „altcha" se naplní pro odeslání.
-    $challengeUrl = htmlspecialchars(URL_WEBU . '/altcha-challenge', ENT_QUOTES);
+    // v jazyce stránky jako ostatní absolutní adresy webu, viz urlWebu()
+    $challengeUrl = htmlspecialchars(urlWebu('altcha-challenge'), ENT_QUOTES);
 
     return $script
         . '<altcha-widget display="invisible" auto="onload"'

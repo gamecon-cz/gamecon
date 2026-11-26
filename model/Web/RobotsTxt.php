@@ -31,6 +31,11 @@ class RobotsTxt
         Disallow: /api/
         Disallow: /admin$
         Disallow: /admin/
+        Disallow: /en/finance$
+        Disallow: /en/finance/
+        Disallow: /en/qrka$
+        Disallow: /en/qrka/
+        Disallow: /en/api/
 
         TXT;
 

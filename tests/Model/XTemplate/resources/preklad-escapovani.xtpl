@@ -1,0 +1,4 @@
+<!-- begin: page -->
+<meta name="description" content="{t:test.uvozovky}">
+<p>{t:test.uvozovky}</p>
+<!-- end: page -->

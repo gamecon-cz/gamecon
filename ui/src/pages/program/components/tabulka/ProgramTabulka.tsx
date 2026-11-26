@@ -1,6 +1,8 @@
 import { FunctionComponent } from "preact";
 import { useRef } from "preact/hooks";
 import { DNY_NÁZVY_S_HÁČKY, formátujDenVTýdnu, range } from "../../../../utils";
+import { t } from "../../../../i18n";
+import { popisekSkupiny } from "../../../../i18n/datum";
 import { ProgramPosuv } from "./ProgramPosuv";
 import {
   připravTabulkuAktivit,
@@ -13,6 +15,7 @@ import {
   useAktivitaNáhled,
   useAktivityFiltrované,
   useAktivityStatus,
+  useNázvyLinií,
   useUrlStav,
   useUrlVýběr,
 } from "../../../../store/program/selektory";
@@ -51,6 +54,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const urlStavVýběr = useUrlVýběr();
   const aktivityFiltrované = useAktivityFiltrované();
   const aktivityStatus = useAktivityStatus();
+  const názvyLinií = useNázvyLinií();
 
   const kompaktní = useProgramStore(s => s.všeobecné.kompaktní);
 
@@ -72,6 +76,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
     urlStavVýběr.typ === "můj"
     || urlStav.filtrLinie?.length
     || urlStav.filtrTagy?.length
+    || urlStav.filtrJazyk?.length
     || urlStav.filtrText
     || urlStav.filtrStavAktivit?.length
     || urlStav.filtrPřihlašovatelné
@@ -115,7 +120,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
   const tabulkaŽádnéAktivity = (
     <tr>
-      <td colSpan={PROGRAM_ČASY.length + 1}>Žádné aktivity tento den</td>
+      <td colSpan={PROGRAM_ČASY.length + 1}>{t("program.zadne_aktivity")}</td>
     </tr>
   );
 
@@ -127,7 +132,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
         const nadpisSkupiny = (
           <td rowSpan={Math.max(řádků, 1)}>
-            <div class="program_nazevLinie">{klíč}</div>
+            <div class="program_nazevLinie">{popisekSkupiny(klíč, jeMístnost ? undefined : názvyLinií)}</div>
           </td>
         );
 
@@ -188,7 +193,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
           .flatMap(([denKlíč, tabulkaProDen]) => [
             <tr key={`nadpis-${denKlíč}`}>
               <td colSpan={PROGRAM_ČASY.length + 1}>
-                <div class="program_den_nadpis">{denKlíč}</div>
+                <div class="program_den_nadpis">{popisekSkupiny(denKlíč)}</div>
               </td>
             </tr>,
             ...vytvořŘádkyZeSeskupiny(tabulkaProDen, true, seskupPodle === SeskupováníAktivit.mistnost),

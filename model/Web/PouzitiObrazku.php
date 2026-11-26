@@ -26,8 +26,8 @@ class PouzitiObrazku
      */
     public const ODKAZY_Z_KODU = [
         'obsah/download/tiskova_kronika.pdf'                   => 'QR kódy (web/moduly/qrka.php)',
-        'obsah/materialy/{rocnik}/souhlas_rodicu_{rocnik}.pdf' => 'přihláška (web/sablony/blackarrow/prihlaska.xtpl)',
-        'obsah/materialy/2026/velikosti_mikin.pdf'             => 'přihláška (web/sablony/blackarrow/prihlaska.xtpl)',
+        'obsah/materialy/{rocnik}/souhlas_rodicu_{rocnik}.pdf' => 'přihláška (web/moduly/prihlaska/prihlaska.php)',
+        'obsah/materialy/2026/velikosti_mikin.pdf'             => 'přihláška (web/moduly/prihlaska/prihlaska.php)',
     ];
 
     /**
@@ -219,7 +219,8 @@ class PouzitiObrazku
                 'zdroj'        => 'stranky',
                 'tabulka'      => 'stranky',
                 'klic'         => 'id_stranky',
-                'sloupceTextu' => ['obsah'],
+                // anglický obsah odkazuje na tytéž obrázky, smazat ani převést se bez něj nesmí
+                'sloupceTextu' => ['obsah', 'obsah_en'],
                 'razeni'       => 'url_stranky',
                 'popisMista'   => static fn (array $stranka): array => [
                     'popis' => 'stránka ' . $stranka['url_stranky'],

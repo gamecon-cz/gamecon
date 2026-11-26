@@ -252,7 +252,7 @@ SQL,
 
     public static function provideOdkazyZKodu(): array
     {
-        $prihlaska = 'přihláška (web/sablony/blackarrow/prihlaska.xtpl)';
+        $prihlaska = 'přihláška (web/moduly/prihlaska/prihlaska.php)';
 
         return [
             'tisková kronika'                   => ['soubory/obsah/download/tiskova_kronika.pdf', 'QR kódy (web/moduly/qrka.php)'],

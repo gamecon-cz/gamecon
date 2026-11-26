@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { GAMECON_KONSTANTY } from "../../env";
 
 
@@ -53,6 +54,13 @@ export type ApiObsazenost = {
   kt?: number,
 }
 
+/**
+ * Gamecon\Aktivita\JazykAktivity – v jakém jazyce aktivita probíhá
+ *  - "cs-en": vypravěč ji povede česky, nebo anglicky podle hráčů
+ *  - "nezavisla": jazyk nehraje roli
+ */
+export type JazykAktivity = "cs" | "en" | "cs-en" | "nezavisla";
+
 export type OdDo = {
   od: number,
   do: number,
@@ -73,7 +81,12 @@ export type ApiAktivitaNepřihlášen = {
   cenaZaklad: number,
   casText: string,
   cas: OdDo,
+  /** český název linie, klíč (seskupení v tabulce, filtr ?linie=) */
   linie: string,
+  /** anglický název linie k zobrazení (bez překladu český), viz názevLinie(); chybí ve starších JSONech */
+  linieEn?: string,
+  /** chybí v datech vygenerovaných před zavedením jazyka aktivity, pak jde o "cs" */
+  jazyk?: JazykAktivity,
   turnajId?: number;
   turnajKolo?: number;
   vBudoucnu?: boolean,
@@ -152,10 +165,16 @@ export type ApiAktivitaObsazenost = {
   obsazenost: ApiObsazenost,
 };
 
+/** EditorTagu::getTagy() přes ProgramStaticFileGenerator::generateStitky() */
 export type ApiTag = {
   id: number,
   nazev: string,
+  /** anglický název k zobrazení (bez překladu český), viz názevŠtítku(); chybí ve starších JSONech */
+  nazevEn?: string,
+  /** český název kategorie, klíč (štítky z jedné kategorie se ve filtru sčítají) */
   nazevKategorie: string,
+  /** anglický název kategorie k zobrazení (bez překladu český); chybí ve starších JSONech */
+  nazevKategorieEn?: string,
 };
 
 // --- Static file manifest ---
@@ -268,10 +287,10 @@ export class ChybaApi extends Error {}
 /** Hláška k neúspěšnému HTTP statusu (401 po vypršení přihlášení, 403, 500), jehož tělo vlastní hlášku nemá. */
 const hláškaKeStatusu = (status: number): string =>
   status === 401
-    ? "Přihlášení vypršelo, přihlas se prosím znovu."
+    ? t("program.chyba.prihlaseni_vyprselo")
     : status === 403
-      ? "Na tohle nemáš oprávnění."
-      : `Server odpověděl chybou (HTTP ${status}).`;
+      ? t("program.chyba.bez_opravneni")
+      : t("program.chyba.http", { status });
 
 /** Tělo odpovědi jako JSON, null u prázdného nebo nečitelného. */
 const přečtiJson = async (odpověď: Response): Promise<unknown> => {
@@ -291,7 +310,7 @@ export const odpověďAkce = async <T extends {úspěch: boolean, chyba?: {hlá�
     return {úspěch: false, chyba: {hláška: hláškaKeStatusu(odpověď.status)}} as T;
   const tělo = await přečtiJson(odpověď);
   if (tělo === null || typeof tělo !== "object")
-    return {úspěch: false, chyba: {hláška: "Server na akci neodpověděl, obnov prosím stránku a akci zopakuj."}} as T;
+    return {úspěch: false, chyba: {hláška: t("program.chyba.bez_odpovedi")}} as T;
   return tělo as T;
 };
 

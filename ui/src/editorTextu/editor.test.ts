@@ -24,6 +24,7 @@ const editorVeFormulari = (nastaveni: Partial<NastaveniEditoru> = {}) => {
     nahled: null,
     obrazky: null,
     odUzivatele: false,
+    jazyk: null,
     ...nastaveni,
   })
   editory.push(view)

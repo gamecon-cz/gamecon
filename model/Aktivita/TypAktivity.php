@@ -2,6 +2,10 @@
 
 namespace Gamecon\Aktivita;
 
+use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+
 /**
  * Typ aktivit (programová linie)
  *
@@ -86,6 +90,9 @@ class TypAktivity extends \DbObject
     protected static $pk           = 'id_typu';
     protected static $sloupecNazev = 'typ_1pmn';
 
+    /** @var \Stranka|null|false false = ještě nenačtená, viz getStrankaO() */
+    private \Stranka|null|false $strankaO = false;
+
     public function id(): int
     {
         return (int)parent::id();
@@ -132,13 +139,55 @@ class TypAktivity extends \DbObject
 
     public function oTypu()
     {
-        $s = \Stranka::zId($this->r['stranka_o']);
+        $s = $this->getStrankaO();
         return $s ? $s->html() : null;
+    }
+
+    /**
+     * Úvodní stránka linie z CMS (`akce_typy.stranka_o`).
+     */
+    public function getStrankaO(): ?\Stranka
+    {
+        // stránka linie se ptá víckrát (příznak přeložení, nadpis, úvod), načte se jednou
+        if ($this->strankaO === false) {
+            $this->strankaO = \Stranka::zId($this->r['stranka_o']);
+        }
+
+        return $this->strankaO;
     }
 
     public function popisKratky()
     {
         return $this->r['popis_kratky'];
+    }
+
+    /**
+     * Název linie pro čtenáře v jazyce stránky (nebo v předaném), bez překladu česky.
+     * {@see nazev()} zůstává český, je to i klíč (párování v importu, seskupení v programu).
+     */
+    public function getNazevVJazyce(?Jazyk $jazyk = null): string
+    {
+        return $this->getTextVJazyce(TypAktivitySqlStruktura::TYP_1PMN, $jazyk);
+    }
+
+    public function getPopisKratkyVJazyce(?Jazyk $jazyk = null): string
+    {
+        return $this->getTextVJazyce(TypAktivitySqlStruktura::POPIS_KRATKY, $jazyk);
+    }
+
+    /**
+     * Text ze sloupce `{sloupec}_en` pro angličtinu, a když chybí (NULL, prázdný), český ze `{sloupec}`.
+     */
+    private function getTextVJazyce(string $sloupec, ?Jazyk $jazyk): string
+    {
+        if (($jazyk ?? AktualniJazyk::jazyk()) === Jazyk::ANGLICTINA) {
+            $anglicky = trim((string) ($this->r[$sloupec . '_en'] ?? ''));
+            if ($anglicky !== '') {
+                return $anglicky;
+            }
+        }
+
+        return (string) $this->r[$sloupec];
     }
 
     public function poradi()

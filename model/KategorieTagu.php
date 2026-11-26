@@ -2,6 +2,10 @@
 
 namespace Gamecon;
 
+use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
+
 /**
  * For Doctrine entity equivalent @see \App\Entity\CategoryTag
  */
@@ -16,6 +20,22 @@ class KategorieTagu extends \DbObject
     public function nazev(): string
     {
         return $this->r['nazev'];
+    }
+
+    /**
+     * Název pro čtenáře v jazyce stránky (nebo v předaném), bez anglického názvu český.
+     * {@see nazev()} zůstává český, je to klíč.
+     */
+    public function getNazevVJazyce(?Jazyk $jazyk = null): string
+    {
+        if (($jazyk ?? AktualniJazyk::jazyk()) === Jazyk::ANGLICTINA) {
+            $anglicky = trim((string) ($this->r[KategorieSjednocenychTaguSqlStruktura::NAZEV_EN] ?? ''));
+            if ($anglicky !== '') {
+                return $anglicky;
+            }
+        }
+
+        return $this->nazev();
     }
 
     public function poradi(): int

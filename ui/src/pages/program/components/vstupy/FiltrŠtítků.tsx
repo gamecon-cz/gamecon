@@ -3,7 +3,8 @@ import { useMemo } from "preact/hooks";
 import Select, { GroupBase, GroupProps, MultiValueProps, OptionsOrGroups, components } from "react-select";
 import { useAktivityFiltrované, useTagyPodleKategorie, useTagyPočetAktivit, useTagyVybranéPodleKategorie } from "../../../../store/program/selektory";
 import { nastavFiltrTagů } from "../../../../store/program/slices/urlSlice";
-import { asValueLabel } from "../../../../utils";
+import { t } from "../../../../i18n";
+import { názevŠtítku } from "../../../../i18n/nazvy";
 
 export type TagValueLabel = {
   value: number;
@@ -61,13 +62,13 @@ export const FiltrTagů: React.FC<TFiltrTagůProps> = (props) => {
   const početAktivit = useAktivityFiltrované().length;
 
   const tagyMožnosti: OptionsOrGroups<TagValueLabel, GroupBase<TagValueLabel>> =
-    tagyPodleKategorie.map(({ kategorie, tagy }) => ({
-      label: kategorie,
+    tagyPodleKategorie.map(({ názevKategorie, tagy }) => ({
+      label: názevKategorie,
       options: tagy
         .map(((tag) => {
           const valueLabel: TagValueLabel = {
             value: tag.id,
-            label: tag.nazev,
+            label: názevŠtítku(tag),
           };
           const početAktivitTagu = tagySPočtemAktivit.find(x => x.tagId === tag.id)?.počet ?? -1;
           if (početAktivitTagu >= 0) {
@@ -83,13 +84,12 @@ export const FiltrTagů: React.FC<TFiltrTagůProps> = (props) => {
 
   const vybranéTagySKategorií = useMemo(
     () => {
-      return vybranéTagyPodleKategorie.flatMap(({ kategorie, tagy }) => {
-        // TODO: opravit typování
-        const kat: TagValueLabel = asValueLabel(kategorie) as any;
-        kat.jeNázevKategorie = true;
+      return vybranéTagyPodleKategorie.flatMap(({ kategorie, názevKategorie, tagy }) => {
+        // TODO: opravit typování (hodnotou je český název kategorie, jedinečný klíč popisku)
+        const kat: TagValueLabel = { value: kategorie as any, label: názevKategorie, jeNázevKategorie: true };
         return [kat].concat(tagy.map(tag => ({
           value: tag.id,
-          label: tag.nazev,
+          label: názevŠtítku(tag),
         }))
         );
       });
@@ -97,7 +97,7 @@ export const FiltrTagů: React.FC<TFiltrTagůProps> = (props) => {
 
   return <>
     <Select<TagValueLabel, true>
-      placeholder="Tagy"
+      placeholder={t("program.filtr.tagy")}
       options={tagyMožnosti}
       isMulti
       closeMenuOnSelect={false}

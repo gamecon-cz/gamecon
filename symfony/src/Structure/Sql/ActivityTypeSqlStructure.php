@@ -25,9 +25,19 @@ class ActivityTypeSqlStructure
     public const typ_1p = 'typ_1p';
 
     /**
+     * @see ActivityType::$typ1pEn
+     */
+    public const typ_1p_en = 'typ_1p_en';
+
+    /**
      * @see ActivityType::$typ1pmn
      */
     public const typ_1pmn = 'typ_1pmn';
+
+    /**
+     * @see ActivityType::$typ1pmnEn
+     */
+    public const typ_1pmn_en = 'typ_1pmn_en';
 
     /**
      * @see ActivityType::$urlTypuMn
@@ -48,6 +58,11 @@ class ActivityTypeSqlStructure
      * @see ActivityType::$popisKratky
      */
     public const popis_kratky = 'popis_kratky';
+
+    /**
+     * @see ActivityType::$popisKratkyEn
+     */
+    public const popis_kratky_en = 'popis_kratky_en';
 
     /**
      * @see ActivityType::$aktivni

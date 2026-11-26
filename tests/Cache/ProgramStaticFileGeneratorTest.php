@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Cache;
 
 use App\Kernel;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\SqlStruktura\AkceSeznamSqlStruktura as Sql;
+use Gamecon\Aktivita\SqlStruktura\KategorieSjednocenychTaguSqlStruktura as KategorieTaguSql;
+use Gamecon\Aktivita\SqlStruktura\SjednoceneTagySqlStruktura as TagSql;
 use Gamecon\Aktivita\SqlStruktura\TypAktivitySqlStruktura as TypSql;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cache\ProgramStaticFileGenerator;
 use Gamecon\Cache\ProgramStaticFileType;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\Prostredi\Prostredi;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -741,6 +746,142 @@ class ProgramStaticFileGeneratorTest extends AbstractTestDb
         foreach ($manifest as $filename) {
             self::assertFileExists($programDir . '/' . $filename);
         }
+    }
+
+    /**
+     * @test
+     * Program podle jazyka filtruje a vypisuje štítek, takže ho JSON musí nést.
+     */
+    public function generateAktivityObsahujeJazykAktivity(): void
+    {
+        $idAnglicke = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Anglický larp',
+            Sql::JAZYK      => JazykAktivity::ANGLICKY->value,
+        ]);
+        $idBezJazyka = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita bez zadaného jazyka',
+        ]);
+
+        $generator = $this->createGenerator();
+        $filename = $generator->generateActivities(self::ROK);
+        $data = json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filename), true);
+        $jazykPodleId = array_column($data, 'jazyk', 'id');
+
+        self::assertSame('en', $jazykPodleId[$idAnglicke] ?? null);
+        self::assertSame('cs', $jazykPodleId[$idBezJazyka] ?? null, 'Výchozí jazyk aktivity je čeština.');
+    }
+
+    /**
+     * @test
+     * JSON sdílí oba jazyky webu, anglický název linie proto jde vedle českého. Český zůstává klíčem
+     * (seskupení v tabulce programu, filtr ?linie=).
+     */
+    public function generateAktivityObsahujeAnglickyNazevLinie(): void
+    {
+        dbUpdate(
+            TypSql::TYP_AKTIVITY_TABULKA,
+            [
+                TypSql::TYP_1PMN_EN => 'Test board game library',
+            ],
+            [
+                TypSql::ID_TYPU => TypAktivity::DESKOHERNA,
+            ],
+        );
+        $idAktivity = $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita s anglickým názvem linie',
+        ]);
+
+        $filename = $this->createGenerator()->generateActivities(self::ROK);
+        $data = json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filename), true);
+        $aktivita = array_column($data, null, 'id')[$idAktivity] ?? null;
+
+        self::assertNotNull($aktivita);
+        self::assertSame(TypAktivity::zId(TypAktivity::DESKOHERNA)->nazev(), $aktivita['linie'], 'Klíč linie zůstává český.');
+        self::assertSame('Test board game library', $aktivita['linieEn']);
+    }
+
+    /**
+     * @test
+     * Anglické názvy štítků a jejich kategorií jdou vedle českých, bez překladu český (Preact pak nemusí
+     * nic dohledávat). České zůstávají klíčem: podle kategorie se štítky ve filtru seskupují.
+     */
+    public function generateStitkyObsahujeAnglickeNazvy(): void
+    {
+        dbInsert(KategorieTaguSql::KATEGORIE_SJEDNOCENYCH_TAGU_TABULKA, [
+            KategorieTaguSql::NAZEV    => 'Testovací kategorie s překladem',
+            KategorieTaguSql::NAZEV_EN => 'test category',
+            KategorieTaguSql::PORADI   => 999,
+        ]);
+        $idKategorieSPrekladem = (int) dbInsertId();
+        dbInsert(KategorieTaguSql::KATEGORIE_SJEDNOCENYCH_TAGU_TABULKA, [
+            KategorieTaguSql::NAZEV  => 'Testovací kategorie jen česky',
+            KategorieTaguSql::PORADI => 999,
+        ]);
+        $idKategorieJenCesky = (int) dbInsertId();
+        dbInsert(TagSql::SJEDNOCENE_TAGY_TABULKA, [
+            TagSql::ID_KATEGORIE_TAGU => $idKategorieSPrekladem,
+            TagSql::NAZEV             => 'Testovací štítek s překladem',
+            TagSql::NAZEV_EN          => 'Translated test tag',
+            TagSql::POZNAMKA          => '',
+        ]);
+        $idPrelozenehoTagu = (int) dbInsertId();
+        dbInsert(TagSql::SJEDNOCENE_TAGY_TABULKA, [
+            TagSql::ID_KATEGORIE_TAGU => $idKategorieJenCesky,
+            TagSql::NAZEV             => 'Testovací štítek jen česky',
+            TagSql::POZNAMKA          => '',
+        ]);
+        $idCeskehoTagu = (int) dbInsertId();
+
+        $filename = $this->createGenerator()->generateStitky(self::ROK);
+        $tagy = array_column(json_decode(file_get_contents($this->publicCacheDir . '/program/' . $filename), true), null, 'id');
+
+        self::assertSame([
+            'id'               => $idPrelozenehoTagu,
+            'nazev'            => 'Testovací štítek s překladem',
+            'nazevEn'          => 'Translated test tag',
+            'nazevKategorie'   => 'Testovací kategorie s překladem',
+            'nazevKategorieEn' => 'test category',
+        ], $tagy[$idPrelozenehoTagu] ?? null);
+        self::assertSame([
+            'id'               => $idCeskehoTagu,
+            'nazev'            => 'Testovací štítek jen česky',
+            'nazevEn'          => 'Testovací štítek jen česky',
+            'nazevKategorie'   => 'Testovací kategorie jen česky',
+            'nazevKategorieEn' => 'Testovací kategorie jen česky',
+        ], $tagy[$idCeskehoTagu] ?? null, 'Bez anglického názvu je i v anglickém poli český.');
+    }
+
+    /**
+     * @test
+     * Statické JSONy sdílí všechny jazyky webu a regeneraci spouští i /en/api/programManifest.
+     * Jazyk návštěvníka, který ji zrovna spustil, se do nich nesmí zapéct.
+     */
+    public function generovaniVAnglictineDaStejneSouboryJakoVCestine(): void
+    {
+        $this->insertAktivita([
+            Sql::NAZEV_AKCE => 'Aktivita pro oba jazyky webu',
+            Sql::POPIS      => 'Popis s "uvozovkami" - a pomlčkou',
+            Sql::JAZYK      => JazykAktivity::CESKY_I_ANGLICKY->value,
+        ]);
+
+        $vygenerujVse = fn () => [
+            ProgramStaticFileType::AKTIVITY->value    => $this->createGenerator()->generateActivities(self::ROK),
+            ProgramStaticFileType::POPISY->value      => $this->createGenerator()->generatePopisy(self::ROK),
+            ProgramStaticFileType::OBSAZENOSTI->value => $this->createGenerator()->generateObsazenosti(self::ROK),
+            ProgramStaticFileType::TAGY->value        => $this->createGenerator()->generateStitky(self::ROK),
+        ];
+
+        $cesky = $vygenerujVse();
+        try {
+            AktualniJazyk::nastav(Jazyk::ANGLICTINA);
+            $anglicky = $vygenerujVse();
+            self::assertSame(Jazyk::ANGLICTINA, AktualniJazyk::jazyk(), 'Po generování platí zase jazyk požadavku.');
+        } finally {
+            AktualniJazyk::reset();
+        }
+
+        // jméno souboru obsahuje hash obsahu
+        self::assertSame($cesky, $anglicky, 'Generování v angličtině musí dát tytéž soubory jako v češtině.');
     }
 
     /**

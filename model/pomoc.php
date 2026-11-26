@@ -13,40 +13,57 @@ class Pomoc
     private $u;
     private $pn = 'cPomoc'; // název post proměnné vyhrazené pro tuto třídu
 
-    private static $typy; // tabulka s typy pomoci a jejich popisy
-
     public function __construct(Uzivatel $u)
     {
         $this->u = $u;
         $this->r = dbOneLine('SELECT pomoc_typ, pomoc_vice FROM uzivatele_hodnoty WHERE id_uzivatele = $1', [$this->u->id()]);
-        if (!isset(self::$typy)) {
-            self::$typy = include __DIR__ . '/pomoc-texty.php';
-        }
     }
 
-    public function html()
+    /**
+     * Typy pomoci: id (ukládá se do `uzivatele_hodnoty.pomoc_typ`), název a popis v jazyce stránky (prostý text).
+     *
+     * @return list<array{0: string, 1: string, 2: string}>
+     */
+    private static function typy(): array
+    {
+        return [
+            ['dobrovolnik', t('prihlaska.pomoc.typ.dobrovolnik'), t('prihlaska.pomoc.typ.dobrovolnik_popis')],
+            ['vypravec', t('prihlaska.pomoc.typ.vypravec'), t('prihlaska.pomoc.typ.vypravec_popis')],
+            ['organizator', t('prihlaska.pomoc.typ.organizator'), t('prihlaska.pomoc.typ.organizator_popis')],
+            ['partner', t('prihlaska.pomoc.typ.partner'), t('prihlaska.pomoc.typ.partner_popis')],
+        ];
+    }
+
+    public function html(): string
     {
         $t = new XTemplate(__DIR__ . '/pomoc.xtpl');
         $t->assign([
             'postname'    => $this->pn,
-            'a'           => $this->u->koncovkaDlePohlavi(),
             'displayVice' => $this->r['pomoc_typ'] ? 'block' : 'none',
             'vChci'       => $this->r['pomoc_typ'] ? 'checked' : '',
-            'vDetail'     => $this->r['pomoc_vice'],
+            'vDetail'     => htmlspecialchars((string) $this->r['pomoc_vice']),
+            'dobrovolnik' => htmlSVlozkami(
+                t('prihlaska.pomoc.dobrovolnik', ['odkaz' => znackaVlozky('odkaz')]),
+                ['odkaz' => '<a href="program">' . htmlspecialchars(t('prihlaska.pomoc.dobrovolnik_odkaz')) . '</a>'],
+            ),
+            'sponzoring'  => htmlSVlozkami(
+                t('prihlaska.pomoc.sponzoring', ['odkaz' => znackaVlozky('odkaz')]),
+                ['odkaz' => '<a href="pro-sponzory-a-media">' . htmlspecialchars(t('prihlaska.pomoc.sponzoring_odkaz')) . '</a>'],
+            ),
+            'organizace'  => htmlSVlozkami(
+                t('prihlaska.pomoc.organizace', ['odkaz' => znackaVlozky('odkaz')]),
+                ['odkaz' => '<a href="organizacni-vypomoc">' . htmlspecialchars(t('prihlaska.pomoc.organizace_odkaz')) . '</a>'],
+            ),
         ]);
-        $koncovky   = [
-            '{a}'  => $this->u->koncovkaDlePohlavi(),
-            '{ka}' => $this->u->koncovkaDlePohlavi() ? 'ka' : '',
-            '{ík}' => $this->u->koncovkaDlePohlavi() ? 'ice' : 'ík',
-        ];
-        $vybranyTyp = $this->r['pomoc_typ'] ?: self::$typy[0][0];
+        $typy       = self::typy();
+        $vybranyTyp = $this->r['pomoc_typ'] ?: $typy[0][0];
 
-        foreach (self::$typy as $typ) {
+        foreach ($typy as [$id, $nazev, $popis]) {
             $t->assign([
-                'id'      => $typ[0],
-                'nazev'   => mb_ucfirst(strtr($typ[1], $koncovky)),
-                'popis'   => strtr($typ[2], $koncovky),
-                'checked' => $vybranyTyp == $typ[0] ? 'checked' : '',
+                'id'      => $id,
+                'nazev'   => htmlspecialchars($nazev),
+                'popis'   => htmlspecialchars($popis),
+                'checked' => $vybranyTyp == $id ? 'checked' : '',
             ]);
             $t->parse('pomoc.typ');
         }
@@ -55,7 +72,7 @@ class Pomoc
         return $t->text('pomoc');
     }
 
-    public function zpracuj()
+    public function zpracuj(): void
     {
         if (!isset($_POST[$this->pn])) {
             return;

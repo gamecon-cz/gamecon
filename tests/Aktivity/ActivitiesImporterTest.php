@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Aktivity;
 
+use Gamecon\Admin\Modules\Aktivity\Export\ActivitiesExporter;
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
+use Gamecon\Admin\Modules\Aktivity\Export\ExportLokaciSloupce;
+use Gamecon\Admin\Modules\Aktivity\Export\ExportStavuAktivitSloupce;
+use Gamecon\Admin\Modules\Aktivity\Export\ExportTaguSloupce;
+use Gamecon\Admin\Modules\Aktivity\Export\ExportVypravecuSloupce;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImporter;
 use Gamecon\Admin\Modules\Aktivity\Import\Activities\ActivitiesImportLogger;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\JazykAktivity;
 use Gamecon\Aktivita\Lokace;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
@@ -289,7 +295,7 @@ class ActivitiesImporterTest extends AbstractTestDb
     /**
      * Helper method to create mock Google Sheets data
      */
-    private function createMockSheetData(array $dataRows): array
+    private function createMockSheetData(array $dataRows, array $extraHeaders = []): array
     {
         $headers = [
             'ID aktivity',
@@ -319,7 +325,7 @@ class ActivitiesImporterTest extends AbstractTestDb
             'Obrázek',
         ];
 
-        return array_merge([$headers], $dataRows);
+        return array_merge([array_merge($headers, $extraHeaders)], $dataRows);
     }
 
     /**
@@ -396,5 +402,119 @@ class ActivitiesImporterTest extends AbstractTestDb
 
         $this->assertSame(0, $result->getImportedCount(), 'Aktivita s příliš dlouhým popiskem by neměla být importována');
         $this->assertNotEmpty($result->getErrorMessages(), 'Import by měl vrátit chybu');
+    }
+
+    public function testImportActivityLanguage()
+    {
+        $mockData = $this->createMockSheetData(
+            [
+                ['', 'Deskoherna', 'Aktivita anglicky', 'url-jazyk-en', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', '', 'anglicky'],
+                ['', 'Deskoherna', 'Aktivita bez jazyka', 'url-jazyk-prazdny', 'Popis', '', '', 'Pátek', '13:00', '15:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', '', ''],
+            ],
+            [ExportAktivitSloupce::JAZYK],
+        );
+
+        $result = $this->createImporter($mockData)->importActivities('fake-spreadsheet-id');
+        self::assertSame(2, $result->getImportedCount(), print_r($result->getErrorMessages(), true));
+
+        $anglicka = $this->fetchActivityByUrl('url-jazyk-en', ROCNIK);
+        self::assertSame(JazykAktivity::ANGLICKY, $anglicka->jazyk());
+        self::assertSame(
+            JazykAktivity::vychozi(),
+            $this->fetchActivityByUrl('url-jazyk-prazdny', ROCNIK)->jazyk(),
+            'Nová aktivita bez vyplněného jazyka je česká',
+        );
+
+        // Starší tabulka bez sloupce Jazyk nesmí jazyk existující aktivity přepsat na výchozí
+        $reimport = $this->createMockSheetData([
+            [(string) $anglicka->id(), 'Deskoherna', 'Aktivita anglicky', 'url-jazyk-en', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', ''],
+        ]);
+        $result = $this->createImporter($reimport)->importActivities('fake-spreadsheet-id');
+        self::assertSame(1, $result->getImportedCount(), print_r($result->getErrorMessages(), true));
+        self::assertSame(JazykAktivity::ANGLICKY, Aktivita::zId($anglicka->id())->jazyk());
+    }
+
+    public function testImportActivityWithUnknownLanguage()
+    {
+        $mockData = $this->createMockSheetData(
+            [
+                ['', 'Deskoherna', 'Aktivita klingonsky', 'url-jazyk-neznamy', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', '', 'klingonsky'],
+            ],
+            [ExportAktivitSloupce::JAZYK],
+        );
+
+        $result = $this->createImporter($mockData)->importActivities('fake-spreadsheet-id');
+
+        self::assertSame(0, $result->getImportedCount());
+        self::assertStringContainsString('Neznámý jazyk aktivity', print_r($result->getErrorMessages(), true));
+    }
+
+    public function testExportMaSloupecJazykSNazvemKteryImportPozna(): void
+    {
+        $mockData = $this->createMockSheetData(
+            [
+                ['', 'Deskoherna', 'Aktivita k exportu', 'url-jazyk-export', 'Popis', '', '', 'Pátek', '10:00', '12:00', '', '', '10', '', '', '', '', '', '', '', '0', '', '', '1', '', 'česky i anglicky'],
+            ],
+            [ExportAktivitSloupce::JAZYK],
+        );
+        $result = $this->createImporter($mockData)->importActivities('fake-spreadsheet-id');
+        self::assertSame(1, $result->getImportedCount(), print_r($result->getErrorMessages(), true));
+
+        [$hlavicka, $radek] = $this->exportujAktivity([$this->fetchActivityByUrl('url-jazyk-export', ROCNIK)]);
+
+        $sloupecJazyka = array_search(ExportAktivitSloupce::JAZYK, $hlavicka, true);
+        self::assertNotFalse($sloupecJazyka, 'Export musí mít sloupec Jazyk, jinak by ho import po úpravě tabulky nenašel.');
+        self::assertSame(JazykAktivity::CESKY_I_ANGLICKY->nazev(), $radek[$sloupecJazyka], 'Export píše český název jazyka.');
+        self::assertSame(JazykAktivity::CESKY_I_ANGLICKY, JazykAktivity::zTextu($radek[$sloupecJazyka]), 'Import pozná jazyk z exportu.');
+    }
+
+    /**
+     * Vyexportuje aktivity s Google službami nahrazenými mocky.
+     *
+     * @param Aktivita[] $aktivity
+     *
+     * @return list<list<string>> list s aktivitami, první řádek je hlavička
+     */
+    private function exportujAktivity(array $aktivity): array
+    {
+        $listy = [];
+        $googleSheets = $this->createMock(GoogleSheetsService::class);
+        // callback, ne willReturn(): PHPUnit by třídu nepoznal pod aliasem z deklarovaného návratového typu
+        $googleSheets->method('createNewSpreadsheet')
+            ->willReturnCallback(static fn () => new \Google_Service_Sheets_Spreadsheet([
+                'spreadsheetId' => 'fake-export-id',
+                'sheets'        => [],
+            ]));
+        $googleSheets->method('setValuesInSpreadsheet')
+            ->willReturnCallback(static function (array $hodnoty, string $idTabulky, int $cisloListu) use (&$listy): void {
+                $listy[$cisloListu] = $hodnoty;
+            });
+
+        $googleDrive = $this->createMock(GoogleDriveService::class);
+        $googleDrive->method('getLocalDirsReferencesByUserIdAndTag')->willReturn([]);
+        $googleDrive->method('getDirsByName')->willReturn([]);
+        $googleDrive->method('createDir')
+            ->willReturnCallback(static fn () => new \Google_Service_Drive_DriveFile([
+                'id' => 'fake-export-dir-id',
+            ]));
+
+        $uzivatel = $this->createMock(\Uzivatel::class);
+        $uzivatel->method('id')->willReturn(1);
+        $uzivatel->method('nick')->willReturn('Tester');
+
+        (new ActivitiesExporter(
+            uzivatel: $uzivatel,
+            googleDriveService: $googleDrive,
+            googleSheetsService: $googleSheets,
+            exportAktivitSloupce: new ExportAktivitSloupce(),
+            exportTaguSloupce: new ExportTaguSloupce(),
+            exportStavuAktivitSloupce: new ExportStavuAktivitSloupce(),
+            exportLokaciSloupce: new ExportLokaciSloupce(),
+            exportVypravecuSloupce: new ExportVypravecuSloupce(),
+        ))->exportActivities($aktivity, '1');
+
+        self::assertArrayHasKey(1, $listy, 'Export nezapsal list s aktivitami.');
+
+        return $listy[1];
     }
 }

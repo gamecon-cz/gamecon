@@ -4,6 +4,8 @@ namespace Gamecon\Shop;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Jazyk\AktualniJazyk;
+use Gamecon\Jazyk\Jazyk;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Gamecon\Pravo;
@@ -607,9 +609,14 @@ SQL,
             'spolubydlici'         => htmlspecialchars(dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()) ?? ''),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
-            'povinneUdaje'         => $this->registrace->povinneUdajeProUbytovaniHtml(
-                nadpis: 'Povinné údaje pro ubytování',
-                vyzadovatAdresuADoklad: true,
+            // E-shop přihlášky na GameCon zatím přeložený není (i pod /en/ je česky v lang="cs"), povinné údaje
+            // z registrace proto taky ne.
+            'povinneUdaje'         => AktualniJazyk::provedVJazyce(
+                Jazyk::vychozi(),
+                fn () => $this->registrace->povinneUdajeProUbytovaniHtml(
+                    nadpis: 'Povinné údaje pro ubytování',
+                    vyzadovatAdresuADoklad: true,
+                ),
             ),
             'minimalniPocetNoci'   => $this->muzeObjednatJednuNoc()
                 ? 1
@@ -810,7 +817,8 @@ SQL,
             self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
         }
 
-        $this->registrace->ulozZmeny(); // povinné údaje pro ubytování
+        // povinné údaje pro ubytování, hlášky česky jako zbytek e-shopu přihlášky (viz html())
+        AktualniJazyk::provedVJazyce(Jazyk::vychozi(), fn () => $this->registrace->ulozZmeny());
 
         return true;
     }

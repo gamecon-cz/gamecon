@@ -2,13 +2,11 @@
 
 return [
     'aktivaceOk'           => 'Účet aktivován. Děkujeme.',
-    'aktualizacePrihlasky' => 'Přihláška aktualizována.',
     'avatarChybaMazani'    => 'Obrázek se nepodařilo smazat.',
     'avatarNahran'         => 'Obrázek uživatele úspěšně uložen.',
     'avatarSmazan'         => 'Obrázek uživatele byl odstraněn.',
     'avatarSpatnyFormat'   => 'Obrázek není v požadovaném formátu .jpg.',
     'drdVypnuto'           => 'Přihlašování na mistrovství v DrD není spuštěno.',
-    'chybaPrihlaseni'      => 'Špatné uživatelské jméno nebo heslo.',
     'jenPrihlaseni'        => 'Na zobrazení této stránky musíte být přihlášeni.',
     'jenPrihlaseniGC'      => 'Na přístup k této stránce musíte být přihlášeni na letošní GameCon.',
     'masKoliziAktivit'     => 'V daném čase už máš přihlášenu jinou aktivitu.',
@@ -19,9 +17,6 @@ return [
     'uzJePrihlasen'        => 'Na tuto aktivitu už je jednou přihlášen.',
     'nyniPrihlaska'        => 'Vyplněním následujícího formuláře se přihlásíš na GameCon.',
     'plno'                 => 'Místa jsou už plná',
-    'regOk'                => 'Účet vytvořen. Informaci o spuštění přihlašování ti včas pošleme e-mailem.',
-    'regOkNyniPrihlaska'   => 'Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.',
-    'upravaUzivatele'      => 'Změny registračních údajů uloženy.',
     'uzPrihlasen'          => 'Na GameCon už máš platnou přihlášku, zde ji můžeš upravit.',
     'nejsiBrigadnik'       => 'Nejsi brigádník',
     'neniBrigadnik'        => 'Účastník není brigádník',
