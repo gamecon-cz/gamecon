@@ -54,7 +54,6 @@ Kdo je při hromadném odhlašování považován za neplatiče: jak velký dluh
 Na betě, preview a lokálním prostředí je pod tabulkou nastavení sekce pro přepsání zdejších dat čerstvými daty. Slouží k tomu, aby testovací prostředí vypadalo jako ostrý web — na ostré se tato sekce vůbec nezobrazuje.
 
 - **Zkopírovat databázi z ostré** — přepíše zdejší data aktuálním stavem ostré.
-- **Zkopírovat archivní databázi** — přepíše je daty vybraného staršího ročníku (jen na betě).
 - **Zkopírovat ze zálohy ostré** — přepíše je vybraným záložním souborem; u každého vidíš datum a stáří zálohy. **Na preview je k dispozici jen tato varianta.**
 
 Každé tlačítko se ještě jednou zeptá, jestli opravdu chceš data přemazat. Kopírování běží na pozadí (může trvat řadu minut), na stránce sleduješ průběh a odhad zbývajícího času, o výsledku přijde e-mail. Naráz může běžet jen jedna kopie.

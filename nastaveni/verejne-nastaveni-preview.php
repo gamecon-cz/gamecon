@@ -21,11 +21,7 @@ define('BABEL_BINARKA', null);
 
 /** aktuální ročník -- při změně roku viz Překlápění ročníku @link PREKLOPENI_ROCNIKU_NAVOD.md */
 if (!defined('ROCNIK')) {
-    $rocnikOverrideFile = __DIR__ . '/../cache/private/rocnik_override';
-    $rocnikOverride     = is_readable($rocnikOverrideFile)
-        ? (int)trim((string)file_get_contents($rocnikOverrideFile))
-        : null;
-    define('ROCNIK', $rocnikOverride ?: 2027);
+    define('ROCNIK', 2027);
 }
 
 // Same diagnostic/testing facilities as beta — previews are
