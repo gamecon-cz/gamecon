@@ -32,11 +32,6 @@ readonly class KopieOstreDatabaze
         $allowedBaseDirs = $this->systemoveNastaveni->jsmeNaLocale()
             ? [realpath($this->systemoveNastaveni->rootAdresarProjektu() . '/backup/db')]
             : [realpath($this->systemoveNastaveni->rootAdresarProjektu() . '/../ostra/backup/db')];
-        // Also allow archive year directories: ../{YYYY}/backup/db
-        $projectParent = dirname($this->systemoveNastaveni->rootAdresarProjektu());
-        foreach (glob($projectParent . '/*/backup/db', GLOB_ONLYDIR) as $dir) {
-            $allowedBaseDirs[] = realpath($dir);
-        }
         $allowedBaseDirs = array_filter($allowedBaseDirs);
 
         $realFile = realpath($gzipSouborZalohy);
@@ -132,7 +127,7 @@ readonly class KopieOstreDatabaze
         $zdrojovaDbName = trim($zdrojovaDbName);
         $jeTestovaciDb = defined('DB_TEST_PREFIX') && str_starts_with($zdrojovaDbName, DB_TEST_PREFIX);
         $jeOstraDb = $zdrojovaDbName === $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze()['DB_NAME'];
-        if (! preg_match('~^gamecon(_\d{4})?$~', $zdrojovaDbName) && ! $jeTestovaciDb && ! $jeOstraDb) {
+        if (! $jeTestovaciDb && ! $jeOstraDb) {
             throw new \RuntimeException("Nepovolený název databáze: {$zdrojovaDbName}");
         }
 
@@ -145,15 +140,6 @@ readonly class KopieOstreDatabaze
         try {
             $nastaveniZdroj = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
             $nastaveniZdroj['DB_NAME'] = $zdrojovaDbName;
-
-            // pro speciální archivy na stejném serveru použijeme lokální DB účet
-            if ($zdrojovaDbName === 'gamecon_2024') {
-                $lokalni = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
-                $nastaveniZdroj['DBM_USER'] = $lokalni['DBM_USER'];
-                $nastaveniZdroj['DBM_PASS'] = $lokalni['DBM_PASS'];
-                $nastaveniZdroj['DB_SERV'] = $lokalni['DB_SERV'];
-                $nastaveniZdroj['DB_PORT'] = $lokalni['DB_PORT'];
-            }
 
             if (
                 $nastaveniZdroj['DB_SERV'] === DB_SERV

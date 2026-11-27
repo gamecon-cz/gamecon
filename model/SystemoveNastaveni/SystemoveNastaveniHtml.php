@@ -17,7 +17,6 @@ class SystemoveNastaveniHtml
 {
     public const SYNCHRONNI_POST_KLIC = 'nastaveni';
     public const ZKOPIROVAT_OSTROU_KLIC = 'zkopirovat_ostrou';
-    public const ZKOPIROVAT_ARCHIVNI_KLIC = 'zkopirovat_archivni';
     public const ZKOPIROVAT_ZE_ZALOHY_KLIC = 'zkopirovat_ze_zalohy';
     public const ZVYRAZNI = 'zvyrazni';
     public const AJAX_STAV_KOPIE_KLIC = 'stavKopieDatabazeZOstre';
@@ -70,22 +69,11 @@ class SystemoveNastaveniHtml
             $templateZkopirovaniOstre = new XTemplate(__DIR__ . '/templates/zkopirovat-databazi-z-ostre.xtpl');
             $templateZkopirovaniOstre->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
             $templateZkopirovaniOstre->assign('zkopirovatOstrouKlic', self::ZKOPIROVAT_OSTROU_KLIC);
-            $templateZkopirovaniOstre->assign('zkopirovatArchivniKlic', self::ZKOPIROVAT_ARCHIVNI_KLIC);
             $templateZkopirovaniOstre->assign('ajaxStavKopieKlic', self::AJAX_STAV_KOPIE_KLIC);
             $templateZkopirovaniOstre->assign(
                 'nadpisProstredi',
                 ucfirst($this->systemoveNastaveni->prostredi()->label()),
             );
-
-            $archivniRoky = range(2024, (int) (new \DateTimeImmutable())->format('Y') - 1);
-            $archivniRokyOptions = implode(
-                '',
-                array_map(
-                    static fn (int $rok) => "<option value=\"{$rok}\">{$rok}</option>",
-                    $archivniRoky,
-                ),
-            );
-            $templateZkopirovaniOstre->assign('archivniRokyOptions', $archivniRokyOptions);
 
             $souboruZaloh = $this->dejSouboruZaloh();
             $souboruZalohOptions = implode('', array_map(
@@ -125,18 +113,11 @@ class SystemoveNastaveniHtml
                     $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular.zalohaForm');
                 }
                 // Na preview běží admin v Docker kontejneru bez přístupu k ostré
-                // DB (vlastní DB účet gc_preview_<slug> nemá práva na produkční DB
-                // ani na archivní gamecon_YYYY) — živý mysqldump z ostré ani kopie
-                // archivního ročníku tam nejdou. Preview proto nabízí jen import
+                // DB (vlastní DB účet gc_preview_<slug> nemá práva na produkční DB)
+                // — živý mysqldump z ostré tam nejde. Preview proto nabízí jen import
                 // z namountovaného .sql.gz dumpu ostré (zalohaForm výše).
                 if (! $this->systemoveNastaveni->jsmeNaPreview()) {
                     $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular.ostraForm');
-                }
-                if (
-                    ! $this->systemoveNastaveni->jsmeNaLocale()
-                    && ! $this->systemoveNastaveni->jsmeNaPreview()
-                ) {
-                    $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular.archivniForm');
                 }
                 $templateZkopirovaniOstre->parse('zkopirovatDatabaziZOstre.formular');
             }
@@ -316,18 +297,6 @@ class SystemoveNastaveniHtml
 
             return true;
         }
-        if (! empty($pozadavky[self::ZKOPIROVAT_ARCHIVNI_KLIC])) {
-            $rok = (int) $pozadavky[self::ZKOPIROVAT_ARCHIVNI_KLIC];
-            $backupFile = $this->systemoveNastaveni->rootAdresarProjektu() . '/../' . $rok . '/backup/db/export_latest.sql.gz';
-            try {
-                $this->zkopirujZeSouboruZalohy($uzivatel, $backupFile);
-                oznameni("Kopírování databáze {$rok} bylo spuštěno na pozadí...");
-            } catch (\RuntimeException $e) {
-                chyba($e->getMessage());
-            }
-
-            return true;
-        }
         if (! empty($pozadavky[self::ZKOPIROVAT_ZE_ZALOHY_KLIC])) {
             $soubor = basename((string) $pozadavky[self::ZKOPIROVAT_ZE_ZALOHY_KLIC]);
             try {
@@ -387,7 +356,7 @@ class SystemoveNastaveniHtml
         return $soubory; // return full paths
     }
 
-    private function zkopirujDatabazi(?\Uzivatel $requestedBy, ?string $zdrojovaDbName = null)
+    private function zkopirujDatabazi(?\Uzivatel $requestedBy)
     {
         $backgroundProcessService = BackgroundProcessService::vytvorZGlobals();
         $commandName = BackgroundProcessService::COMMAND_DB_COPY;
@@ -403,9 +372,7 @@ class SystemoveNastaveniHtml
         $backgroundProcessService->startBackgroundProcess(
             $commandName,
             $workerScript,
-            $zdrojovaDbName ? [
-                'sourceDb' => $zdrojovaDbName,
-            ] : [],
+            [],
             [
                 'started_by' => $requestedBy->id(),
             ],

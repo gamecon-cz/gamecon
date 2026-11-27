@@ -31,8 +31,7 @@ Větev z aktuálního `main`, **zatím nemergovat**. Změň `ROCNIK`:
 - [`nastaveni/verejne-nastaveni-produkce.php`](./nastaveni/verejne-nastaveni-produkce.php): `define('ROCNIK', NOVY);`
 - [`nastaveni/verejne-nastaveni-preview.php`](./nastaveni/verejne-nastaveni-preview.php) a
   [`nastaveni/verejne-nastaveni-beta.php`](./nastaveni/verejne-nastaveni-beta.php): výchozí ročník
-  `$rocnikOverride ?: NOVY` (preview se má chovat jako ostrá). Kopie databáze z ostré ho na betě i preview
-  ponechá, kopie archivního ročníku ho nahradí ročníkem archivu.
+  literál v bloku `if (!defined('ROCNIK')) { define('ROCNIK', NOVY); }` (preview se má chovat jako ostrá).
 
 Anonymizovaný dump v repu (`migrace/pomocne/gc_anonymizovana_databaze.sql`) nesmí být starší než z ročníku
 `NOVY - 1`, jinak CI spadne, viz [`docs/generated/anonymizovana-databaze.md`](./docs/generated/anonymizovana-databaze.md).

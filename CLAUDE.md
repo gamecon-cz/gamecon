@@ -454,9 +454,9 @@ Dev obraz, preview a archivy mají ImageMagick 7.1, ostrá 6.9.11 (Ubuntu 24.04 
 
 ### Import DB ze zálohy ostré na preview (bind-mount, ne env var)
 
-Admin → Nastavení nabízí na betě tlačítka „Zkopírovat databázi z ostré". Na preview z těch tří variant jde **jen import z `.sql.gz` zálohy** (`zalohaForm`):
+Admin → Nastavení nabízí na betě tlačítka „Zkopírovat databázi z ostré". Na preview z těch variant jde **jen import z `.sql.gz` zálohy** (`zalohaForm`):
 
-- **Živý mysqldump z ostré** a **kopie archivního ročníku** na preview NEJDOU: in-app kód běží v kontejneru jako DB účet `gc_preview_<slug>`, který nemá práva na produkční `d16779_gcostra` ani na `gamecon_YYYY`. Proto je `SystemoveNastaveniHtml` na preview skrývá; nabízí jen file-based import.
+- **Živý mysqldump z ostré** na preview NEJDE: in-app kód běží v kontejneru jako DB účet `gc_preview_<slug>`, který nemá práva na produkční `d16779_gcostra`. Proto ho `SystemoveNastaveniHtml` na preview skrývá; nabízí jen file-based import.
 - **Mechanismus doručení dumpu = read-only bind-mount, ne env var.** Preview deploy skript (ansible, `roles/preview_deployer/templates/deploy-preview-branch.sh.j2`) mountuje hostový `/srv/www/ostra/backup/db` → `/var/www/html/ostra/backup/db:ro`, tj. na stejnou relativní cestu (`../ostra/backup/db`), kterou beta čte z filesystému. App-kód proto netřeba měnit pro cestu — `backupDir()` i allowed-dirs v `KopieOstreDatabaze` už tu cestu pro ne-locale prostředí znají.
 - **Import sanituje dump:** `NastrojeDatabaze::removeDefiners()` + `removeDatabaseSelection()` (odstraní `CREATE DATABASE`/`USE`/`DROP DATABASE`), takže obsah zálohy doteče do aktuální (preview/beta) DB bez ohledu na produkční jméno DB zapečené v dumpu. Mount je `:ro` — preview nikdy nepíše do stromu ostré.
 

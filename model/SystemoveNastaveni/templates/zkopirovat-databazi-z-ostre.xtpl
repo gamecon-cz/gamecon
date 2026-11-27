@@ -10,16 +10,6 @@
   </button>
 </form>
 <!-- end:ostraForm -->
-<!-- begin:archivniForm -->
-<form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data daty z archivní databáze gamecon_' + this.querySelector('select').value + '?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
-  <select name="{synchronniPostKlic}[{zkopirovatArchivniKlic}]" style="margin-right: 6px">
-    {archivniRokyOptions}
-  </select>
-  <button type="submit" class="disable-and-show-loading-on-click without-safety-unlock">
-    Zkopírovat archivní databázi
-  </button>
-</form>
-<!-- end:archivniForm -->
 <!-- begin:zalohaForm -->
 <form method="post" style="margin-top: 8px" onsubmit="return confirm('Opravdu přemazat současná data daty ze souboru zálohy ' + this.querySelector('select').value + '?') || (unblockAndRemoveLoading(this.querySelector('button')) && false)">
   <select name="{synchronniPostKlic}[{zkopirovatZeZalohyKlic}]" style="margin-right: 6px">
