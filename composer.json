@@ -26,6 +26,7 @@
         "ext-json": "*",
         "ext-mbstring": "*",
         "ext-mysqli": "*",
+        "ext-openssl": "*",
         "ext-pdo": "*",
         "ext-posix": "*",
         "ext-sqlite3": "*",
@@ -47,6 +48,7 @@
         "guzzlehttp/guzzle": "^7.15",
         "ifsnop/mysqldump-php": "^2.10",
         "michelf/php-markdown": "~1.4",
+        "minishlink/web-push": "^11.0",
         "nextras/migrations": "^3.4",
         "openspout/openspout": "^4.0",
         "rikudou/czqrpayment": "^5.0",
@@ -124,7 +126,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "cweagans/composer-patches": true,
-            "symfony/flex": true
+            "symfony/flex": true,
+            "php-http/discovery": false
         }
     }
 }
