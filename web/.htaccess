@@ -21,6 +21,8 @@ RewriteRule .* index.php?req=$0 [L,QSA]
 <IfModule mod_mime.c>
     # typ obrázků nezávisle na tabulce typů té které verze Apache, stejně jako v cache/public/.htaccess
     AddType image/avif .avif
+    # manifest webu na ploše (push notifikace), starší Apache příponu nezná
+    AddType application/manifest+json .webmanifest
 </IfModule>
 
 <IfModule mod_expires.c>

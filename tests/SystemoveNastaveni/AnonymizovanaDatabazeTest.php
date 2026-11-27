@@ -206,6 +206,15 @@ class AnonymizovanaDatabazeTest extends AbstractTestDb
             'kostym_vydej' => <<<'SQL'
                 INSERT INTO kostym_vydej SET id_kostymu = 1, id_uzivatele = 100, vydano = NOW(), poznamka = 'Honza ho roztrhl'
                 SQL,
+            'uzivatele_push_subscriptions' => <<<'SQL'
+                INSERT INTO uzivatele_push_subscriptions
+                SET id_uzivatele = 100, id_trvaleho_prihlaseni = 1, endpoint = 'https://fcm.googleapis.com/fcm/send/abc',
+                    p256dh = 'klic', auth = 'auth', vapid_verejny_klic = 'vapid', origin = 'https://gamecon.cz'
+                SQL,
+            'push_notifikace_odeslani' => <<<'SQL'
+                INSERT INTO push_notifikace_odeslani
+                SET id_odesilatele = 100, id_prijemce = 100, typ = 'obecna', odeslano_unix = UNIX_TIMESTAMP()
+                SQL,
         ];
 
         self::assertEqualsCanonicalizing(

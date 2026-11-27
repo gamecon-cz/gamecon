@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Gamecon\Uzivatel;
 
 use Chyby;
+use Gamecon\PushNotifikace\PushNaWebu;
+use Gamecon\PushNotifikace\PushNotifikace;
 use Gamecon\Stat;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as Sql;
@@ -394,6 +396,8 @@ HTML
               Odhlásit ostatní zařízení
             </button>
           </form>
+
+          <?php echo (new PushNaWebu(PushNotifikace::zNastaveni($this->systemoveNastaveni), WWW))->getHtmlNastaveni(); ?>
 
           <h2 class="formular_sekceNadpis">Přihlásit jiné zařízení</h2>
           <p>

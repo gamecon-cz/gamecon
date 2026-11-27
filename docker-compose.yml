@@ -35,6 +35,9 @@ services:
       MAILER_DSN: "smtp://mailhog.gamecon:1025"
       # kam v prohlížeči vede Mailpit (viz mailhog.gamecon níže), pro tlačítko Otevřít schránku v adminu
       MAILHOG_URL: "http://localhost:${MAILHOG_HOST_MAPPING_PORT:-8125}"
+      # web push notifikace: klíče z `bin/console app:push:generate-vapid-keys` dej do .env, bez nich je funkce vypnutá
+      VAPID_PUBLIC_KEY: "${VAPID_PUBLIC_KEY:-}"
+      VAPID_PRIVATE_KEY: "${VAPID_PRIVATE_KEY:-}"
     ports:
       - "${WEB_HTTP_HOST_MAPPING_PORT:-80}:80"
       - "${WEB_HTTPS_HOST_MAPPING_PORT:-443}:443"

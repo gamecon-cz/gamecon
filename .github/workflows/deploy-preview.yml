@@ -142,6 +142,8 @@ jobs:
                         ARCHIVE_BASIC_AUTH_PASSWORD=${{ secrets.ARCHIVE_BASIC_AUTH_PASSWORD }}
                         PREVIEW_GATE_SECRET=${{ secrets.PREVIEW_GATE_SECRET }}
                         ARCHIVE_GATE_SECRET=${{ secrets.ARCHIVE_GATE_SECRET }}
+                        VAPID_PUBLIC_KEY=${{ secrets.PREVIEW_VAPID_PUBLIC_KEY }}
+                        VAPID_PRIVATE_KEY=${{ secrets.PREVIEW_VAPID_PRIVATE_KEY }}
                     # Reuse layers across preview builds — composer + yarn
                     # layers in particular are slow to rebuild.
                     cache-from: type=gha,scope=preview

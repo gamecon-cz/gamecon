@@ -131,3 +131,7 @@ jobs:
                     # Přihlášení do Vševědy. JEN ostrá: beta ani preview ho nedostanou, jinak by si
                     # přihlášení mohla podepsat libovolná větev. Shodné s vseveda.sso.secret v ansiblu.
                     VSEVEDA_SSO_SECRET: ${{ secrets.VSEVEDA_SSO_SECRET }}
+                    # Web push notifikace: VAPID klíče JEN ostré. Beta a preview mají vlastní pár, aby
+                    # kopie ostré databáze nemohla posílat zařízením z ostré (docs/push-notifikace.md).
+                    VAPID_PUBLIC_KEY: ${{ secrets.OSTRA_VAPID_PUBLIC_KEY }}
+                    VAPID_PRIVATE_KEY: ${{ secrets.OSTRA_VAPID_PRIVATE_KEY }}

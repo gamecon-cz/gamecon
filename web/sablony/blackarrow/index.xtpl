@@ -11,6 +11,7 @@
     <!-- begin: extraJs --><script defer src="{url}"></script><!-- end: extraJs -->
     {info}
     <link rel="icon" href="soubory/blackarrow/_spolecne/favicon.png">
+    {pushNotifikace}
     {FILE "sablony/blackarrow/gtag.xtpl"}
 </head>
 

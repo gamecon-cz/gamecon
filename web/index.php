@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\ArchivPrednasek\ArchivPrednasekStranka;
 use Gamecon\Dev\SsoPrihlaseniZUrl;
+use Gamecon\PushNotifikace\PushNaWebu;
+use Gamecon\PushNotifikace\PushNotifikace;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Web\CestyKSitemape;
 use Gamecon\Web\Info;
@@ -154,6 +156,8 @@ $t->assign([
     'base'         => URL_WEBU . '/',
     'info'         => $m->info() ? $m->info()->html() : '',
     'letosniRok'   => date('Y'),
+    // manifest of the web on the home screen and the script of push notifications, empty while they are turned off
+    'pushNotifikace' => (new PushNaWebu(PushNotifikace::zNastaveni($systemoveNastaveni), WWW))->getHtmlHlavicky($u),
 ]);
 $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
 $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');

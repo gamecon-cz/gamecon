@@ -1170,6 +1170,17 @@ SQL;
             : $this->dejHodnotu(Klic::POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI));
     }
 
+    /**
+     * Přepínač web push notifikací, výchozí vypnuto. Bez VAPID klíčů prostředí je funkce vypnutá i tak,
+     * viz {@see \Gamecon\PushNotifikace\PushNotifikace::isZapnuto()}.
+     */
+    public function isPushNotifikaceZapnute(): bool
+    {
+        return (bool) (defined('PUSH_NOTIFIKACE_ZAPNUTE')
+            ? PUSH_NOTIFIKACE_ZAPNUTE
+            : $this->dejHodnotu(Klic::PUSH_NOTIFIKACE_ZAPNUTE));
+    }
+
     public function prihlasovaciUdajeSoucasneDatabaze(): array
     {
         $dbPort = try_constant('DB_PORT')

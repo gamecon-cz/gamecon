@@ -1,0 +1,165 @@
+<!-- begin:pushNotifikace -->
+
+<p class="tip">
+  <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+  Notifikace odchází na všechna zařízení vybraného uživatele, na kterých si je v Nastavení na webu zapnul.
+  <strong>„Předáno push službě“ neznamená „zobrazeno“</strong>: server se dozví jen to, že zprávu převzala služba
+  prohlížeče (Google, Mozilla, Apple, Microsoft). Jestli a kdy ji zařízení ukáže, už nezjistí.
+</p>
+
+<!-- begin:bezKlicu -->
+<p class="warning">
+  Na tomto prostředí chybí VAPID klíče, takže notifikace nejdou zapnout ani poslat.
+  Jak je vygenerovat a nastavit, je v <code>docs/push-notifikace.md</code>.
+</p>
+<!-- end:bezKlicu -->
+
+<!-- begin:vypnuto -->
+<p class="warning">
+  Push notifikace jsou vypnuté: uživatelé je v Nastavení nevidí a odeslat nic nejde.
+  Zapneš je v <a href="nastaveni">Nastavení</a>, skupina Notifikace, „Push notifikace zapnuté“.
+</p>
+<!-- end:vypnuto -->
+
+<h2>Příjemce</h2>
+<!-- begin:bezPrijemce -->
+<p>Vyber nahoře uživatele, kterému se má notifikace poslat.</p>
+<!-- end:bezPrijemce -->
+
+<!-- begin:prijemce -->
+<p>
+  <strong>{jmeno}</strong> (ID {id}),
+  zařízení se zapnutými notifikacemi: <strong>{pocetZarizeni}</strong>
+</p>
+<!-- begin:bezZarizeni -->
+<p>
+  Na tomto prostředí nemá notifikace zapnuté na žádném zařízení, není kam poslat.
+  Zapne si je po přihlášení na webu v Nastavení, sekce „Notifikace na tomto zařízení“.
+</p>
+<!-- end:bezZarizeni -->
+<!-- begin:zarizeni -->
+<table class="zvyraznovana">
+  <tr>
+    <th>Zařízení</th>
+    <th>Push služba</th>
+    <th>Zapnuto</th>
+    <th>Naposledy předáno</th>
+    <th>Chyb v řadě</th>
+  </tr>
+  <!-- begin:radek -->
+  <tr>
+    <td>{zarizeni}</td>
+    <td>{pushSluzba}</td>
+    <td>{vytvoreno}</td>
+    <td>{naposledyPredano}</td>
+    <td>{pocetChyb}</td>
+  </tr>
+  <!-- end:radek -->
+</table>
+<!-- end:zarizeni -->
+<!-- end:prijemce -->
+
+<!-- begin:vysledek -->
+<h2>Výsledek posledního odeslání</h2>
+<p>Notifikace <strong>{nadpis}</strong>:</p>
+<!-- begin:bezZarizeni -->
+<p>Nic neodešlo, příjemce nemá notifikace zapnuté na žádném zařízení.</p>
+<!-- end:bezZarizeni -->
+<!-- begin:tabulka -->
+<table class="zvyraznovana">
+  <tr>
+    <th>Zařízení</th>
+    <th>Push služba</th>
+    <th>Výsledek</th>
+    <th>HTTP</th>
+    <th>Poznámka</th>
+  </tr>
+  <!-- begin:radek -->
+  <tr>
+    <td>{zarizeni}</td>
+    <td>{pushSluzba}</td>
+    <td><strong>{stav}</strong></td>
+    <td>{httpKod}</td>
+    <td>{duvod}</td>
+  </tr>
+  <!-- end:radek -->
+</table>
+<p class="tip">
+  Předáno push službě znamená, že ji služba prohlížeče převzala, ne že ji zařízení ukázalo.
+  Neplatná subscription je ta, kterou uživatel zrušil v prohlížeči; ze seznamu zařízení je smazaná.
+</p>
+<!-- end:tabulka -->
+<!-- end:vysledek -->
+
+<!-- begin:rucni -->
+<h2>Napsat notifikaci</h2>
+<form method="post" action="{urlStranky}">
+  <input type="hidden" name="pushNotifikaceAkce" value="rucni">
+  <input type="hidden" name="idPrijemce" value="{idPrijemce}">
+  <table class="seznam">
+    <tr>
+      <td><label for="pushNadpis">Nadpis</label></td>
+      <td>
+        <input type="text" id="pushNadpis" name="nadpis" value="{nadpis}" maxlength="{maxNadpis}" size="60" required
+               placeholder="GameCon – připomínka aktivity">
+      </td>
+    </tr>
+    <tr>
+      <td><label for="pushText">Text</label></td>
+      <td>
+        <textarea id="pushText" name="text" maxlength="{maxText}" rows="4" cols="60"
+                  placeholder="Za 15 minut ti začíná LARP Poslední Pelikán. Vyraž na sraziště.">{text}</textarea>
+      </td>
+    </tr>
+    <tr>
+      <td><label for="pushOdkaz">Odkaz</label></td>
+      <td>
+        <input type="text" id="pushOdkaz" name="odkaz" value="{odkaz}" maxlength="{maxOdkaz}" size="60"
+               placeholder="program/muj">
+        <br>
+        Nepovinný. Jen cesta na webu GameConu, třeba <code>program/muj</code> (Můj program); bez něj se otevře
+        úvodní stránka.
+      </td>
+    </tr>
+  </table>
+  <button type="submit" {zakazano}>Odeslat na všechna zařízení</button>
+</form>
+<!-- end:rucni -->
+
+<!-- begin:testovaci -->
+<h2>Testovací notifikace</h2>
+<p>
+  Každé tlačítko pošle jednu předpřipravenou notifikaci na všechna zařízení příjemce. Všechny mají v nadpisu
+  <strong>{oznaceni}</strong>, aby je příjemce nevzal vážně.
+</p>
+<table class="zvyraznovana">
+  <tr>
+    <th></th>
+    <th>Co se ukáže</th>
+    <th>Co se tím ověřuje</th>
+    <th>Doručení</th>
+  </tr>
+  <!-- begin:notifikace -->
+  <tr>
+    <td>
+      <form method="post" action="{urlStranky}">
+        <input type="hidden" name="pushNotifikaceAkce" value="testovaci">
+        <input type="hidden" name="idPrijemce" value="{idPrijemce}">
+        <input type="hidden" name="testovaci" value="{hodnota}">
+        <button type="submit" {zakazano}>{popisek}</button>
+      </form>
+    </td>
+    <td><strong>{nadpis}</strong><br>{text}</td>
+    <td>{coOveruje}</td>
+    <td>urgence {urgence}, čeká {ttl}{tag}</td>
+  </tr>
+  <!-- end:notifikace -->
+</table>
+<!-- end:testovaci -->
+
+<p class="tip">
+  Limit: jeden člověk pošle nejvýš {limitOdesilatele} notifikací za {oknoMinut} minut a jeden uživatel jich za tu dobu
+  dostane nejvýš {limitPrijemce}. Odeslání se zapisuje (kdo, komu, kdy a jak dopadlo), obsah notifikace ne.
+</p>
+
+<!-- end:pushNotifikace -->

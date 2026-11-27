@@ -35,6 +35,7 @@ final class PristupDoAdminu
         Pravo::ADMINISTRACE_WEB_LOGA,
         Pravo::ADMINISTRACE_DEV,
         Pravo::ADMINISTRACE_PUJCOVNA_KOSTYMU,
+        Pravo::ADMINISTRACE_PUSH_NOTIFIKACE,
     ];
 
     /**

@@ -178,5 +178,13 @@ if (! defined('GAMECON_SSO_KEY')) {
 if (! defined('VSEVEDA_SSO_SECRET')) {
     define('VSEVEDA_SSO_SECRET', getenv('VSEVEDA_SSO_SECRET') ?: '');
 }
+// Web push notifikace: VAPID klíče. Lokálně prázdné, funkce je pak vypnutá; kdo ji chce zkoušet, vygeneruje si je
+// příkazem `bin/console app:push:generate-vapid-keys` a dá do docker-compose.override.yml nebo .env.
+if (! defined('VAPID_PUBLIC_KEY')) {
+    define('VAPID_PUBLIC_KEY', getenv('VAPID_PUBLIC_KEY') ?: '');
+}
+if (! defined('VAPID_PRIVATE_KEY')) {
+    define('VAPID_PRIVATE_KEY', getenv('VAPID_PRIVATE_KEY') ?: '');
+}
 
 error_reporting(E_ALL);

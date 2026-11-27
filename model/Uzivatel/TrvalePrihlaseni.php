@@ -20,7 +20,7 @@ final class TrvalePrihlaseni
     public const string COOKIE = 'gcTrvalePrihlaseni';
 
     /** Stejně dlouho platí cookie. Řádek nepoužitý déle vyprší i v DB. */
-    private const int PLATNOST_DNU = 365;
+    public const int PLATNOST_DNU = 365;
 
     /**
      * Kolik vypršelých řádků smaže jedno trvalé přihlášení. Migrace jich naráz založila desetitisíce
@@ -257,6 +257,19 @@ final class TrvalePrihlaseni
             SQL, [0 => $idTohoto, 1 => self::hash($novyToken), 2 => self::hash($novySelektor)]);
 
         return self::sestavCookie($novySelektor, 0, $novyToken);
+    }
+
+    /**
+     * Trvalé přihlášení tohoto uživatele v tomto prohlížeči, podle cookie tohoto hostu. Null, když prohlížeč cookie
+     * nemá, cookie patří někomu jinému (po „Přihlásit se jako“ nese prohlížeč cookie toho, kdo se přepnul), nebo
+     * její token k řádku nesedí.
+     *
+     * K tomuto řádku se váže, co má skončit s přihlášením zařízení (push notifikace,
+     * {@see \Gamecon\PushNotifikace\PushSubscriptions}): odhlášení ho smaže a databáze s ním i navázané řádky.
+     */
+    public static function getIdNaTomtoZarizeni(int $idUzivatele): ?int
+    {
+        return self::getIdZCookie($idUzivatele);
     }
 
     public static function zrusVsude(int $idUzivatele): void

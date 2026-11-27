@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel;
 
+use Gamecon\PushNotifikace\PushSubscriptions;
 use Gamecon\Uzivatel\SqlStruktura\UzivateleHodnotySqlStruktura as UzivatelSql;
 use Gamecon\Uzivatel\SqlStruktura\MedailonekSqlStruktura as MedailonekSql;
 
@@ -149,5 +150,8 @@ SQL,
             q: "UPDATE uzivatele_role SET posazen = '1970-01-01 01:01:01' WHERE id_uzivatele = $idUzivatele",
             mysqli: $mysqli,
         );
+
+        // Push notifikace: adresa zařízení u push služby je osobní údaj, a anonymní účet nemá nic dostávat
+        PushSubscriptions::smazVsechnyUzivatele($idUzivatele, $mysqli);
     }
 }

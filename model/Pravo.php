@@ -41,6 +41,7 @@ class Pravo extends \DbObject
     public const ADMINISTRACE_PUJCOVNA_KOSTYMU = 115; // Katalog kostýmů, výdej a vrácení, rezervace kostýmů za účastníky
     public const ADMINISTRACE_BINGO         = 116; // Bingo z jednání rady, migrace ho dala rolím s titulem organizátora
     public const SCHVALOVANI_MEDAILONKU     = 118; // Texty medailonků z Nastavení na webu, migrace ho dala rolím s titulem organizátora; 115 bere větev 1510, 117 větev 1513
+    public const ADMINISTRACE_PUSH_NOTIFIKACE = 119; // Smí z adminu poslat push notifikaci vybranému uživateli; zapnout si je na svém zařízení smí každý přihlášený
 
     public const PLACKA_ZDARMA    = 1002;
     public const KOSTKA_ZDARMA    = 1003;
