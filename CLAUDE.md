@@ -444,6 +444,7 @@ Pravdivý stav ke dni auditu (zdroj: `cat /usr/local/sbin/deploy-preview-branch.
 | `PREVIEW_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi preview | bake je správná cesta — společná hodnota |
 | `ARCHIVE_BASIC_AUTH_USER/PASSWORD` | Dockerfile bake | sdílené napříč všemi archive | bake je správná cesta |
 | `DEPLOY_*` (rsync nasazení) | nepředáváno | n/a | deploy-only, runtime kód nečte — správně, že to v preview není |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Dockerfile bake (`Dockerfile.preview`, build-args z `secrets.PREVIEW_VAPID_*`) | vlastní pár společný všem preview | **úmyslně jiné než ostra**: klíče pro web push notifikace. Preview běží nad kopií ostré DB i se zařízeními účastníků, s klíči ostré by jim mohlo poslat notifikaci (jako `MAILER_DSN` u mailů). Ostra `OSTRA_VAPID_*`, beta `BETA_VAPID_*`; k tomu aplikace posílá jen řádkům se svým klíčem a adresou webu. Bake je v pořádku: není to tajemství ostré a je společné všem preview. Archivy nic (`Dockerfile.archive` ani workflow je nemá), funkce je v nich vypnutá. Lokálně prázdné = vypnuto. Viz `docs/push-notifikace.md` |
 | `ALLOW_TEST_SETTINGS` | nepředáváno (ani ostra, beta, archivy) | n/a | **úmyslně jen vývojový a CI kontejner** (`docker-compose.yml`): povoluje web testům testovací nastavení, jinde se nesmí nastavit |
 
 **Když přidáváš novou env-driven feature, vrať se k téhle tabulce a doplň řádek.** Pokud rozhodneš, že preview má dostat něco jiného než ostra, **napiš proč** — jinak se z toho stane skrytý drift.
