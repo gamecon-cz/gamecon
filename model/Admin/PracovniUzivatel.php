@@ -26,6 +26,7 @@ final class PracovniUzivatel
         Pravo::ADMINISTRACE_PRAVA,     // Práva
         Pravo::ADMINISTRACE_FINANCE,   // Finance
         Pravo::ADMINISTRACE_PENIZE,    // Peníze
+        Pravo::ADMINISTRACE_PUSH_NOTIFIKACE, // Push notifikace, příjemce je pracovní uživatel
     ];
 
     /**

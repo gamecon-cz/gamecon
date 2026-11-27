@@ -113,3 +113,6 @@ jobs:
                     ARCHIVE_GATE_SECRET: ${{ secrets.ARCHIVE_GATE_SECRET }}
                     # Master pro magické přihlášení do archivu (viz deploy-ostra.yml).
                     GAMECON_SSO_SECRET: ${{ secrets.GAMECON_SSO_SECRET }}
+                    # Web push notifikace: VAPID klíče bety, jiné než na ostré (viz deploy-ostra.yml).
+                    VAPID_PUBLIC_KEY: ${{ secrets.BETA_VAPID_PUBLIC_KEY }}
+                    VAPID_PRIVATE_KEY: ${{ secrets.BETA_VAPID_PRIVATE_KEY }}

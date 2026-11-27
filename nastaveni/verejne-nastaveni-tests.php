@@ -19,6 +19,11 @@ define('TESTS_LOG_DIR', __DIR__ . '/../logy/tests');
 define('LOGY', TESTS_LOG_DIR . '/' . getmypid());
 define('UNIT_TESTS', true);
 
+// Web push notifikace: hodnoty jen ve tvaru VAPID klíčů (65 a 32 nulových bajtů), žádný skutečný pár. Stačí na to,
+// aby webové testy mohly funkci zapnout a ptát se API; podepsat se jimi nedá nic a testy odesílání si generují vlastní.
+define('VAPID_PUBLIC_KEY', 'B' . str_repeat('A', 86));
+define('VAPID_PRIVATE_KEY', str_repeat('Q', 42) . 'A');
+
 // konfigurace
 // TODO dokud není konfigurace vyřešena jinak, než přes konstanty, musíme testovat jen jeden vydefinovaný stav, tj. "reg na aktivity běží"
 define('PRVNI_VLNA_KDY', '2000-01-01 00:00:00');

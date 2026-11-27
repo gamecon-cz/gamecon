@@ -112,6 +112,15 @@ ENV PREVIEW_BASIC_AUTH_USER=$PREVIEW_BASIC_AUTH_USER \
     PREVIEW_GATE_SECRET=$PREVIEW_GATE_SECRET \
     ARCHIVE_GATE_SECRET=$ARCHIVE_GATE_SECRET
 
+# Web push notifications: the VAPID key pair of the previews, one for all of them and different from
+# production and beta. A preview runs on a copy of the production database, and its own keys (plus the
+# origin stored with each subscription) keep it from sending to devices subscribed on production.
+# Not a production secret, so baking it in is fine; without it the feature is off. Archives get none.
+ARG VAPID_PUBLIC_KEY=""
+ARG VAPID_PRIVATE_KEY=""
+ENV VAPID_PUBLIC_KEY=$VAPID_PUBLIC_KEY \
+    VAPID_PRIVATE_KEY=$VAPID_PRIVATE_KEY
+
 EXPOSE 80
 
 # Standard Apache foreground (the dev image's gamecon-run.sh does the

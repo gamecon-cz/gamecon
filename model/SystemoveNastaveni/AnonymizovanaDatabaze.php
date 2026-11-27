@@ -50,6 +50,8 @@ class AnonymizovanaDatabaze
         'ai_pripojeni',              // AI API tokens, encrypted, but a developer's copy has no use for them
         'medailonky_ke_schvaleni',   // texts written by storytellers, not yet public
         'kostym_vydej',              // notes on who returned which costume damaged
+        'uzivatele_push_subscriptions', // addresses of devices at push services and their keys
+        'push_notifikace_odeslani',  // who sent a push notification to whom
     ];
 
     public static function vytvorZGlobals(): self

@@ -60,6 +60,12 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
         // každé preview, a z něj odvozený klíč by si tak mohla podepsat libovolná větev.
         $VSEVEDA_SSO_SECRET = getenv('VSEVEDA_SSO_SECRET');
 
+        // Web push notifikace: VAPID klíče, kterými se server prokazuje push službám prohlížečů. Každé prostředí má
+        // vlastní pár (ostrá, beta, preview), aby kopie ostré databáze nemohla posílat zařízením z ostré.
+        // Bez klíčů je funkce vypnutá. Vygeneruje je `bin/console app:push:generate-vapid-keys`.
+        $VAPID_PUBLIC_KEY = getenv('VAPID_PUBLIC_KEY');
+        $VAPID_PRIVATE_KEY = getenv('VAPID_PRIVATE_KEY');
+
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
 
@@ -119,6 +125,10 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(
 
             // Přihlášení do Vševědy: jen ostrá
             define('VSEVEDA_SSO_SECRET', '{$VSEVEDA_SSO_SECRET}');
+
+            // Web push notifikace: VAPID klíče tohoto prostředí, bez nich je funkce vypnutá
+            define('VAPID_PUBLIC_KEY', '{$VAPID_PUBLIC_KEY}');
+            define('VAPID_PRIVATE_KEY', '{$VAPID_PRIVATE_KEY}');
             PHP,
         );
     }

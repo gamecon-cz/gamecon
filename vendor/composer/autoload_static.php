@@ -22,9 +22,9 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         '9d2b9fc6db0f153a0a149fefb182415e' => __DIR__ . '/..' . '/symfony/polyfill-php84/bootstrap.php',
         '9b38cf48e83f5d8f60375221cd213eee' => __DIR__ . '/..' . '/phpstan/phpstan/bootstrap.php',
         '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
+        '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         '1f87db08236948d07391152dccb70f04' => __DIR__ . '/..' . '/google/apiclient-services/autoload.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
-        '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         'a8d3953fd9959404dd22d3dfcd0a79f0' => __DIR__ . '/..' . '/google/apiclient/src/aliases.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
         '38143a9afc50997d55e4815db8489d1c' => __DIR__ . '/..' . '/rector/rector/bootstrap.php',
@@ -103,6 +103,7 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
             'Symfony\\Bundle\\MakerBundle\\' => 27,
             'Symfony\\Bundle\\FrameworkBundle\\' => 31,
             'Symfony\\Bridge\\Doctrine\\' => 24,
+            'SpomkyLabs\\Pki\\' => 15,
             'SepaQr\\' => 7,
         ),
         'R' =>
@@ -136,11 +137,22 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'M' =>
         array (
             'Monolog\\' => 8,
+            'Minishlink\\WebPush\\' => 19,
             'Michelf\\' => 8,
+        ),
+        'J' =>
+        array (
+            'Jose\\Component\\' => 15,
         ),
         'I' =>
         array (
             'Ifsnop\\' => 7,
+        ),
+        'H' =>
+        array (
+            'Http\\Promise\\' => 13,
+            'Http\\Discovery\\' => 15,
+            'Http\\Client\\' => 12,
         ),
         'G' =>
         array (
@@ -191,6 +203,8 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         ),
         'B' =>
         array (
+            'Brick\\Math\\' => 11,
+            'Base64Url\\' => 10,
             'BaconQrCode\\' => 12,
         ),
         'A' =>
@@ -397,6 +411,10 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         array (
             0 => __DIR__ . '/..' . '/symfony/doctrine-bridge',
         ),
+        'SpomkyLabs\\Pki\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/spomky-labs/pki-framework/src',
+        ),
         'SepaQr\\' =>
         array (
             0 => __DIR__ . '/..' . '/smhg/sepa-qr-data/src',
@@ -470,13 +488,33 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
+        'Minishlink\\WebPush\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/minishlink/web-push/src',
+        ),
         'Michelf\\' =>
         array (
             0 => __DIR__ . '/..' . '/michelf/php-markdown/Michelf',
         ),
+        'Jose\\Component\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/web-token/jwt-library',
+        ),
         'Ifsnop\\' =>
         array (
             0 => __DIR__ . '/..' . '/ifsnop/mysqldump-php/src/Ifsnop',
+        ),
+        'Http\\Promise\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/php-http/promise/src',
+        ),
+        'Http\\Discovery\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/php-http/discovery/src',
+        ),
+        'Http\\Client\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/php-http/httplug/src',
         ),
         'GuzzleHttp\\Psr7\\' =>
         array (
@@ -618,6 +656,14 @@ class ComposerStaticInitdb580ec440eba8dacea536916cb0200b
         'DASPRiD\\Enum\\' =>
         array (
             0 => __DIR__ . '/..' . '/dasprid/enum/src',
+        ),
+        'Brick\\Math\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/brick/math/src',
+        ),
+        'Base64Url\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/spomky-labs/base64url/src',
         ),
         'BaconQrCode\\' =>
         array (
